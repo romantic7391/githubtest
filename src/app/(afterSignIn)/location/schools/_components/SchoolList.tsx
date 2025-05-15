@@ -1,10 +1,10 @@
 'use client';
 
-import { Pagination, Stack, Title } from "@mantine/core";
-import { usePagination } from "@mantine/hooks";
-import { useEffect, useState } from "react";
-import useSchoolQuery from "../_hooks/useSchoolQuery";
-import { SchoolItem } from "./SchoolItem";
+import { Pagination, Stack, Title } from '@mantine/core';
+import { usePagination } from '@mantine/hooks';
+import { useEffect, useState } from 'react';
+import useSchoolQuery from '../_hooks/useSchoolQuery';
+import { SchoolItem } from './SchoolItem';
 
 export default function SchoolList() {
   const [page, setPage] = useState(1);
@@ -23,9 +23,7 @@ export default function SchoolList() {
   }, [page]);
 
   if (total === 0) {
-    return (
-      <Title order={3}>학교 목록이 없습니다.</Title>
-    )
+    return <Title order={3}>학교 목록이 없습니다.</Title>;
   }
 
   return (

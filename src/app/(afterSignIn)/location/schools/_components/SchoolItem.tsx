@@ -1,15 +1,7 @@
-import { Anchor, Badge, Card, Group, Text } from "@mantine/core";
+import { Anchor, Badge, Card, Group, Text } from '@mantine/core';
 import styles from '../_styles/schools.module.css';
 
-export function SchoolItem({
-  no = -1,
-  name = '',
-  code = '',
-}: {
-  no: number,
-  name: string,
-  code: string,
-}) {
+export function SchoolItem({ no = -1, name = '', code = '' }: { no: number; name: string; code: string }) {
   function getSchoolTypeBadge(sname: string) {
     const badgeProps = {
       size: 'lg',

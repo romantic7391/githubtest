@@ -33,9 +33,12 @@ export default defineConfig({
 
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: [
-    ['html', {
-      outputFolder: process.env.PLAYWRIGHT_HTML_OUTPUT_DIR,
-    }],
+    [
+      'html',
+      {
+        outputFolder: process.env.PLAYWRIGHT_HTML_OUTPUT_DIR,
+      },
+    ],
   ],
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
