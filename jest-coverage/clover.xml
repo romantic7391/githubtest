@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1747293699657" clover="3.2.0">
-  <project timestamp="1747293699657" name="All files">
+<coverage generated="1747311468680" clover="3.2.0">
+  <project timestamp="1747311468680" name="All files">
     <metrics statements="376" coveredstatements="256" conditionals="30" coveredconditionals="30" methods="9" coveredmethods="3" elements="415" coveredelements="289" complexity="0" loc="376" ncloc="376" packages="1" files="2" classes="2"/>
-    <file name="conn.ts" path="C:\Users\User\workspace\project\aqd-manager\src\lib\mariadb\conn.ts">
+    <file name="conn.ts" path="C:\Users\ksm\workspace\proejct\srn\aqd-manager\src\lib\mariadb\conn.ts">
       <metrics statements="25" coveredstatements="25" conditionals="1" coveredconditionals="1" methods="0" coveredmethods="0"/>
       <line num="1" count="1" type="stmt"/>
       <line num="2" count="1" type="stmt"/>
@@ -30,7 +30,7 @@
       <line num="24" count="1" type="stmt"/>
       <line num="25" count="1" type="stmt"/>
     </file>
-    <file name="query.ts" path="C:\Users\User\workspace\project\aqd-manager\src\lib\mariadb\query.ts">
+    <file name="query.ts" path="C:\Users\ksm\workspace\proejct\srn\aqd-manager\src\lib\mariadb\query.ts">
       <metrics statements="351" coveredstatements="231" conditionals="29" coveredconditionals="29" methods="9" coveredmethods="3"/>
       <line num="1" count="1" type="stmt"/>
       <line num="2" count="1" type="stmt"/>

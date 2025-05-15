@@ -13,7 +13,8 @@
     "test:watch": "jest --watch",
     "test:report": "open-cli file://${PWD}/jest-coverage/lcov-report/index.html",
     "test:e2e": "pnpm exec playwright test",
-    "test:e2e-report": "dotenv -e .env pnpm exec playwright show-report"
+    "test:e2e-report": "dotenv -e .env pnpm exec playwright show-report",
+    "prepare": "husky"
   },
   "dependencies": {
     "@mantine/charts": "^8.0.0",
