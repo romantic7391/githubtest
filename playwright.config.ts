@@ -1,3 +1,4 @@
+import type { PlaywrightTestConfig } from '@playwright/test';
 import { defineConfig, devices } from '@playwright/test';
 import { loadEnvConfig } from '@next/env';
 
@@ -27,6 +28,9 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
+
+  outputDir: process.env.PLAYWRIGHT_HTML_OUTPUT_DIR + '/test-results',
+
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: [
     ['html', {
@@ -86,4 +90,4 @@ export default defineConfig({
     url: baseURL,
     reuseExistingServer: !process.env.CI,
   },
-});
+} as PlaywrightTestConfig);
