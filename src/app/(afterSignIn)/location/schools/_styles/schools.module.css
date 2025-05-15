@@ -1,11 +1,3 @@
 .card:hover {
   background-color: var(--mantine-primary-color-light-hover);
 }
-
-.chevron {
-  width: calc(5.75rem * var(--mantine-scale));
-}
-
-.accordionLabel {
-  margin-right: 50px;
-}

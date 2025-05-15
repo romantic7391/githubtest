@@ -1,20 +1,8 @@
-/* eslint-disable */
-
+import type { SchoolApiResponse, SchoolSearchFilter } from '@/types/school';
 import { useQuery } from '@tanstack/react-query';
 
-export default function useSchoolQuery({
-  sname = '',
-  scode = '',
-  page = 1,
-  pageSize = 1,
-}: {
-  sname?: string;
-  scode?: string;
-  page?: number;
-  pageSize?: number;
-  // sensorTypes: ['온도', '습도', '미세먼지', '벤젠', '포름알데히드'],
-}) {
-  function getInitialData() {
+export default function useSchoolQuery({ page, pageSize, snames, scodes, stypes }: SchoolSearchFilter) {
+  function getInitialData(): SchoolApiResponse {
     return {
       schools: [],
       pagination: {
@@ -25,8 +13,14 @@ export default function useSchoolQuery({
     };
   }
 
-  async function fetchData() {
+  async function fetchData(): Promise<SchoolApiResponse> {
     const requestURL = new URL('/api/location/schools', window.location.origin);
+    requestURL.searchParams.set('page', page.toString());
+    requestURL.searchParams.set('pagesize', pageSize.toString());
+    requestURL.searchParams.set('snames', snames.join(','));
+    requestURL.searchParams.set('scodes', scodes.join(','));
+    requestURL.searchParams.set('stypes', stypes.join(','));
+
     const response = await fetch(requestURL, { method: 'GET' });
 
     const contentType = response.headers.get('content-type');
@@ -39,7 +33,6 @@ export default function useSchoolQuery({
       throw new Error(message);
     }
 
-    console.log('data', data);
     if (!data) {
       return getInitialData();
     }
@@ -52,7 +45,7 @@ export default function useSchoolQuery({
     retry: false,
     queryFn: fetchData,
     throwOnError: (error, query) => {
-      console.error(error);
+      console.error(error, query);
       throw error;
     },
   });
