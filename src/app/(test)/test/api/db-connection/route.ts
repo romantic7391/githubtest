@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { pool } from '@/lib/mariadb/conn';
 
 async function testDbConnecion() {
@@ -6,12 +6,12 @@ async function testDbConnecion() {
     const conn = await pool.getConnection();
     await conn.ping();
     return true;
-  } catch (error) {
+  } catch {
     return false;
   }
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const result = await testDbConnecion();
 

@@ -1,11 +1,5 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
-import { useEffect } from 'react';
-
-export default function Page({}: {}) {
-  const pathname = usePathname();
-  const schoolNo = pathname.split('/').pop();
-
+export default function Page() {
   return <>선택된 학교</>;
 }

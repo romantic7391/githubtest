@@ -174,6 +174,7 @@ describe('mapRow', () => {
     const row = { a: 'test' };
     const invalidkeyMapping = 123;
 
+    // eslint-disable-next-line
     expect(() => mapRow(row, invalidkeyMapping as any)).toThrow('유효하지 않은 keyMapping 매개변수입니다.');
   });
 
@@ -221,7 +222,7 @@ describe('mapRow', () => {
 describe('getAll', () => {
   let mockQuery: jest.Mock;
   let mockRelease: jest.Mock;
-  let mockGetConnection = pool.getConnection as jest.Mock; // 타입 단언
+  const mockGetConnection = pool.getConnection as jest.Mock; // 타입 단언
   let mockConsoleError: jest.SpyInstance;
 
   // 테스트용 기본 데이터
@@ -340,6 +341,7 @@ describe('getAll', () => {
 
   it('쿼리 결과의 rows 부분이 배열이 아니면 빈 배열을 반환해야 합니다.', async () => {
     // conn.query가 [rows, fields] 형태를 반환한다고 가정할 때, rows가 undefined인 경우
+    // eslint-disable-next-line
     mockQuery.mockResolvedValueOnce([undefined as any, []]);
 
     const result = await getAll('SELECT * FROM users');

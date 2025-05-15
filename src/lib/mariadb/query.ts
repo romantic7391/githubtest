@@ -1,6 +1,8 @@
 import type { PoolConnection } from 'mariadb';
 import { pool } from './conn';
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 /**
  * 중첩된 키를 처리하기 위해 경로를 점(.)으로 분리하여 값을 탐색합니다.
  *
@@ -349,3 +351,5 @@ export async function exec(
     }
   }
 }
+
+/* eslint-enable @typescript-eslint/no-explicit-any */

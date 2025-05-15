@@ -42,6 +42,7 @@ describe('MariaDB Connection Pool', () => {
 
     // conn.ts 모듈을 require합니다.
     // 이 시점에 conn.ts는 내부적으로 mockCreatePoolImplementation을 호출합니다.
+    // eslint-disable-next-line
     const { pool } = require('@/lib/mariadb/conn');
 
     // 디버깅 로그 (선택 사항, 이제 mock.calls에 기록이 있어야 함)
@@ -66,6 +67,7 @@ describe('MariaDB Connection Pool', () => {
 
   it('should use default port 3306 when MARIADB_PORT is undefined', () => {
     // conn.ts 모듈을 require합니다.
+    // eslint-disable-next-line
     const { pool } = require('@/lib/mariadb/conn');
 
     // 디버깅 로그 (선택 사항)
