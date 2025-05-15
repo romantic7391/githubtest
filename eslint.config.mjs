@@ -11,6 +11,17 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
+  // ignores 설정 추가
+  {
+    ignores: [
+      // node_modules 디렉토리 전체 제외
+      'node_modules/',
+      // .next 디렉토리 전체 제외
+      '.next/',
+      // 로그 파일 전체 제외
+      '**/*.log',
+    ],
+  },
   ...compat.extends('next/core-web-vitals', 'next/typescript', 'prettier'),
   ...pluginQuery.configs['flat/recommended'],
 ];
