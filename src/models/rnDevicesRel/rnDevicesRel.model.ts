@@ -1,5 +1,5 @@
 import { exec, getAll, getRow } from '@/lib/mariadb/query';
-import { PoolConnection } from 'mysql2/promise';
+import type { PoolConnection } from 'mariadb';
 import { updateDeviceMac } from '@/models/rnDevices/rnDevices.model';
 import {
   findRnDevicesRelBySchoolNoVO,
