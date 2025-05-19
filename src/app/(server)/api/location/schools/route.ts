@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { fakerKO as faker } from '@faker-js/faker';
 import { School, schoolSearchFilterSchema } from '@/types/school';
+import { DEFAULT_PAGE_SIZE } from '@/lib/default.constant';
 
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const { success, data } = schoolSearchFilterSchema.safeParse({
       page: searchParams.get('page') ?? 1,
-      pageSize: searchParams.get('pagesize') ?? 10,
+      pageSize: searchParams.get('pagesize') ?? DEFAULT_PAGE_SIZE,
       snames: searchParams.getAll('snames'),
       scodes: searchParams.getAll('scodes'),
       stypes: searchParams.getAll('stypes'),
@@ -23,7 +24,10 @@ export async function GET(request: NextRequest) {
       () => {
         return {
           no: faker.number.int(),
-          scode: faker.string.alpha(1) + faker.string.numeric(9),
+          scode:
+            faker.string.alpha({ length: 1, casing: 'upper' }) +
+            faker.string.numeric(1) +
+            faker.string.numeric(4).padStart(8, '0'),
           sname:
             faker.word
               .noun({ length: { min: 2, max: 5 }, strategy: 'shortest' })

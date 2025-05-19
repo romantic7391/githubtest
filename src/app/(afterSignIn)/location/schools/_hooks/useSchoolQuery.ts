@@ -1,4 +1,5 @@
 import type { SchoolApiResponse, SchoolSearchFilter } from '@/types/school';
+import { DEFAULT_PAGE_SIZE } from '@/lib/default.constant';
 import { useQuery } from '@tanstack/react-query';
 
 export default function useSchoolQuery({ page, pageSize, snames, scodes, stypes }: SchoolSearchFilter) {
@@ -8,7 +9,7 @@ export default function useSchoolQuery({ page, pageSize, snames, scodes, stypes 
       pagination: {
         total: 0,
         page: 1,
-        pageSize: 10,
+        pageSize: DEFAULT_PAGE_SIZE,
       },
     };
   }
@@ -41,8 +42,9 @@ export default function useSchoolQuery({ page, pageSize, snames, scodes, stypes 
   }
 
   return useQuery({
-    queryKey: ['schools'],
+    queryKey: ['schools', page, pageSize, snames, scodes, stypes],
     retry: false,
+    initialData: getInitialData(),
     queryFn: fetchData,
     throwOnError: (error, query) => {
       console.error(error, query);
