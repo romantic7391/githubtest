@@ -28,6 +28,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       },
     } satisfies SchoolApiResponse);
   } catch (error) {
+    console.error(error);
     return NextResponse.json({
       success: false,
       message: DEFAULT_ERROR_MESSAGE_500,
@@ -50,6 +51,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       },
     } satisfies SchoolCreateOrUpdateApiResponse);
   } catch (error) {
+    console.error(error);
     return NextResponse.json({
       success: false,
       message: DEFAULT_ERROR_MESSAGE_500,
@@ -72,6 +74,7 @@ export async function DELETE(
       message: '',
     } satisfies BaseApiResponse);
   } catch (error) {
+    console.error(error);
     return NextResponse.json({
       success: false,
       message: DEFAULT_ERROR_MESSAGE_500,

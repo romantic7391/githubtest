@@ -87,6 +87,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       },
     } satisfies SchoolsApiResponse);
   } catch (error) {
+    console.error(error);
     return NextResponse.json({
       success: false,
       message: DEFAULT_ERROR_MESSAGE_500,

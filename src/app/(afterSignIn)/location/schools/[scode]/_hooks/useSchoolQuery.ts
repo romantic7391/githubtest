@@ -1,25 +1,24 @@
-import { DEFAULT_PAGE_SIZE } from '@/lib/default.constant';
-import { paginationSchema } from '@/types/common';
-import { School, schoolSchema } from '@/types/school';
+import type { SchoolApiResponse } from '@/types/school';
+import { schoolApiResponseSchema } from '@/types/school';
 import { useQuery } from '@tanstack/react-query';
 
 interface UseSchoolQueryParams {
-  no: number;
+  schoolNo: number;
 }
 
-export default function useSchoolQuery({ no }: UseSchoolQueryParams) {
-  function getInitialData() {
-    return {
-      school: schoolSchema.parse({}),
-      device: {
-        devices: [],
-        pagination: paginationSchema.parse({}),
-      },
-    };
+/**
+ * 학교 조회
+ *
+ * @param no - 학교 번호
+ * @returns 학교 정보
+ */
+export default function useSchoolQuery({ schoolNo }: UseSchoolQueryParams) {
+  function getInitialData(): SchoolApiResponse {
+    return schoolApiResponseSchema.parse({});
   }
 
-  async function fetchData(): Promise<SchoolWithDevicesApiResponse> {
-    const requestURL = new URL(`/api/location/schools/${no}`, window.location.origin);
+  async function fetchData(): Promise<SchoolApiResponse> {
+    const requestURL = new URL(`/api/location/schools/${schoolNo}`, window.location.origin);
 
     const response = await fetch(requestURL, { method: 'GET' });
 
@@ -41,7 +40,7 @@ export default function useSchoolQuery({ no }: UseSchoolQueryParams) {
   }
 
   return useQuery({
-    queryKey: ['school', no],
+    queryKey: ['school', schoolNo],
     retry: false,
     initialData: getInitialData(),
     queryFn: fetchData,

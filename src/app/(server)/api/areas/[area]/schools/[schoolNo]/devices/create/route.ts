@@ -18,6 +18,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       },
     } satisfies DeviceCreateOrUpdateApiResponse);
   } catch (error) {
+    console.error(error);
     return NextResponse.json({
       success: false,
       message: DEFAULT_ERROR_MESSAGE_500,

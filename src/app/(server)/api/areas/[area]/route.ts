@@ -53,6 +53,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       message: '',
     } satisfies BaseApiResponse);
   } catch (error) {
+    console.error(error);
     return NextResponse.json({
       success: false,
       message: DEFAULT_ERROR_MESSAGE_500,

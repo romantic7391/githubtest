@@ -1,7 +1,7 @@
-import { Area, AreasApiResponse } from '@/types/area';
-import { NextRequest, NextResponse } from 'next/server';
+import type { AreasApiResponse } from '@/types/area';
+import type { BaseApiResponse } from '@/types/common';
 import { DEFAULT_ERROR_MESSAGE_500, DEFAULT_PAGE_SIZE } from '@/lib/default.constant';
-import { BaseApiResponse } from '@/types/common';
+import { NextRequest, NextResponse } from 'next/server';
 
 /**
  * 지역 목록 조회
@@ -49,6 +49,7 @@ export async function GET(request: NextRequest) {
       },
     } satisfies AreasApiResponse);
   } catch (error) {
+    console.error(error);
     return NextResponse.json({
       success: false,
       message: DEFAULT_ERROR_MESSAGE_500,

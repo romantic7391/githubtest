@@ -1,7 +1,6 @@
 import { DEFAULT_ERROR_MESSAGE_500 } from '@/lib/default.constant';
 import type { BaseApiResponse } from '@/types/common';
-import { DeviceApiResponse, DeviceCreateOrUpdateApiResponse } from '@/types/device';
-import type { SchoolApiResponse, SchoolCreateOrUpdateApiResponse } from '@/types/school';
+import type { DeviceApiResponse, DeviceCreateOrUpdateApiResponse } from '@/types/device';
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
@@ -40,6 +39,7 @@ export async function GET(
       },
     } satisfies DeviceApiResponse);
   } catch (error) {
+    console.error(error);
     return NextResponse.json({
       success: false,
       message: DEFAULT_ERROR_MESSAGE_500,
@@ -65,6 +65,7 @@ export async function PUT(
       },
     } satisfies DeviceCreateOrUpdateApiResponse);
   } catch (error) {
+    console.error(error);
     return NextResponse.json({
       success: false,
       message: DEFAULT_ERROR_MESSAGE_500,
@@ -87,6 +88,7 @@ export async function DELETE(
       message: '',
     } satisfies BaseApiResponse);
   } catch (error) {
+    console.error(error);
     return NextResponse.json({
       success: false,
       message: DEFAULT_ERROR_MESSAGE_500,
