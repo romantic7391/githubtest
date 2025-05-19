@@ -2,6 +2,7 @@ import { REGEX_ALPHANUMERIC } from '@/lib/regex.constant';
 import { z } from 'zod';
 import dayjs from '@/lib/dayjs';
 import { paginationSchema } from './common';
+import { schoolDeviceSchema } from './device';
 
 export const schoolSearchFilterSchema = z.object({
   /**
@@ -77,7 +78,7 @@ export const schoolSchema = z.object({
    */
   created: z
     .string()
-    .transform((v) => dayjs(v))
+    .transform((v) => dayjs(v).format('YYYY-MM-DD HH:mm:ss'))
     .optional(),
   /**
    * 행정코드. NEIS API용.
@@ -89,8 +90,16 @@ export const schoolSchema = z.object({
 });
 export type School = z.infer<typeof schoolSchema>;
 
-export const schoolApiResponse = z.object({
+export const schoolApiResponseSchema = z.object({
   schools: schoolSchema.array(),
   pagination: paginationSchema,
 });
-export type SchoolApiResponse = z.infer<typeof schoolApiResponse>;
+export type SchoolApiResponse = z.infer<typeof schoolApiResponseSchema>;
+
+export const schoolWithDevicesApiResponseSchema = schoolSchema.extend({
+  devices: z.object({
+    devices: schoolDeviceSchema.array(),
+    pagination: paginationSchema,
+  }),
+});
+export type SchoolWithDevicesApiResponse = z.infer<typeof schoolWithDevicesApiResponseSchema>;

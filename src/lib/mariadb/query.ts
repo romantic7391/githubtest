@@ -106,7 +106,7 @@ export async function rollbackTransaction(conn: PoolConnection): Promise<void> {
  * SELECT 쿼리 결과를 모두 가져옵니다.
  *
  * @param {string} query 쿼리 문자열
- * @param {string | number} params 쿼리 파라미터
+ * @param {Array<string | number | null>} params 쿼리 파라미터
  * @param {Record<keyof T, any> | (keyof T | string)[]} keyMapping 매핑 객체
  * @param {PoolConnection} externalConn 외부 커넥션 객체
  * @returns {Promise<T[]>}
@@ -147,7 +147,7 @@ export async function rollbackTransaction(conn: PoolConnection): Promise<void> {
  */
 export async function getAll<T = any>(
   query: string,
-  params: (string | number)[] = [],
+  params: Array<string | number | null> = [],
   keyMapping?: Record<keyof T, any> | (keyof T | string)[],
   externalConn?: PoolConnection,
 ): Promise<T[]> {
@@ -181,7 +181,7 @@ export async function getAll<T = any>(
  * SELECT 쿼리 결과 중 첫 번째 행을 가져옵니다.
  *
  * @param {string} query 쿼리 문자열
- * @param {string | number} params 쿼리 파라미터
+ * @param {Array<string | number | null>} params 쿼리 파라미터
  * @param {Record<keyof T, any> | (keyof T | string)[]} keyMapping 매핑 객체
  * @param {PoolConnection} externalConn 외부 커넥션 객체
  * @returns {Promise<T[]>}
@@ -218,7 +218,7 @@ export async function getAll<T = any>(
  */
 export async function getRow<T = any>(
   query: string,
-  params: (string | number)[] = [],
+  params: Array<string | number | null> = [],
   keyMapping?: Record<keyof T, any> | (keyof T | string)[],
   externalConn?: PoolConnection,
 ): Promise<T | null> {
@@ -252,7 +252,7 @@ export async function getRow<T = any>(
  * SELECT 쿼리 결과 중 첫 번째 행의 첫 번째 열을 가져옵니다.
  *
  * @param {string} query 쿼리 문자열
- * @param {string | number} params 쿼리 파라미터
+ * @param {Array<string | number | null>} params 쿼리 파라미터
  * @param {PoolConnection} externalConn 외부 커넥션 객체
  * @returns {Promise<T>}
  *
@@ -268,7 +268,7 @@ export async function getRow<T = any>(
  */
 export async function getOne<T = any>(
   query: string,
-  params: (string | number)[] = [],
+  params: Array<string | number | null> = [],
   externalConn?: PoolConnection,
 ): Promise<T | null> {
   let result: T | null = null;
@@ -306,7 +306,7 @@ export async function getOne<T = any>(
  * SELECT 쿼리를 제외한 모든 쿼리를 실행합니다.
  *
  * @param {string} query 쿼리 문자열
- * @param {string | number} params 쿼리 파라미터
+ * @param {Array<string | number | null>} params 쿼리 파라미터
  * @param {PoolConnection} externalConn 외부 커넥션 객체
  * @returns {Promise<{ affectedRows: number, insertId: number, warningStatus: number }>}
  *
@@ -321,7 +321,7 @@ export async function getOne<T = any>(
  */
 export async function exec(
   query: string,
-  params: (string | number | null)[] = [],
+  params: Array<string | number | null> = [],
   externalConn?: PoolConnection,
 ): Promise<{ affectedRows: number; insertId: number; warningStatus: number }> {
   let conn = externalConn;

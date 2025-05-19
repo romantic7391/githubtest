@@ -1,5 +1,5 @@
+import { useSearchParams } from 'next/navigation';
 import type { SchoolSearchFilter } from '@/types/school';
-import type { ReadonlyURLSearchParams } from 'next/navigation';
 import { schoolSearchFilterSchema } from '@/types/school';
 import { useMemo } from 'react';
 
@@ -9,13 +9,15 @@ import { useMemo } from 'react';
  * @param {ReadonlyURLSearchParams} searchParams 쿼리스트링
  * @returns {SchoolSearchFilter} 검색 필터
  */
-export default function useSchoolSearchFilter(searchParams: ReadonlyURLSearchParams): SchoolSearchFilter {
+export default function useSchoolSearchFilter(): SchoolSearchFilter {
+  const searchParams = useSearchParams();
+
   const parsedFilters = useMemo(() => {
     const page = searchParams.get('page') ?? 1;
     const pageSize = searchParams.get('pagesize') ?? 10;
-    const snames = searchParams.getAll('names');
-    const scodes = searchParams.getAll('codes');
-    const stypes = searchParams.getAll('types');
+    const snames = searchParams.getAll('snames');
+    const scodes = searchParams.getAll('scodes');
+    const stypes = searchParams.getAll('stypes');
 
     const { success, data } = schoolSearchFilterSchema.safeParse({
       page,
@@ -29,6 +31,7 @@ export default function useSchoolSearchFilter(searchParams: ReadonlyURLSearchPar
       return data;
     }
 
+    console.log('[useSchoolSearchFilter] ', searchParams.get('snames'));
     // 빈 객체를 파싱하여 기본값 얻기
     return schoolSearchFilterSchema.parse({});
   }, [searchParams]);

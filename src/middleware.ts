@@ -51,7 +51,7 @@ function isMatch(pathname: string, matchers: string[]): boolean {
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
-  console.log('[middleware] pathname: ', pathname);
+  console.log(`[middleware] ${request.method.toUpperCase()} ${pathname}${request.nextUrl.search}`);
 
   // Auth.js 용 URL 처리. 그냥 통과시켜야 합니다.
   if (isMatch(pathname, matchersForAuthJsApiEndpoint)) {

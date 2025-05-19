@@ -24,7 +24,7 @@ const eslintConfig = [
       // Next.js 자동 생성 파일 제외
       'next-env.d.ts',
       // jest 리포트 제외
-      'jest-coverage/',
+      'jest-coverage/**',
 
       // 로그 파일 전체 제외
       '**/*.log',
