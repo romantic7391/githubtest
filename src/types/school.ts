@@ -52,7 +52,7 @@ export type SchoolApiResponse = z.infer<typeof schoolApiResponseSchema>;
 /**
  * 학교 생성 객체
  */
-export const schoolCreateSchema = schoolSchema.omit({ schoolNo: true });
+export const schoolCreateSchema = schoolSchema.omit({ schoolNo: true, created: true });
 /**
  * 학교 생성 객체
  */

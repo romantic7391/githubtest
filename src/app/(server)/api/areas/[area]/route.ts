@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Area, AreaApiResponse, AreaCreateOrUpdateApiResponse } from '@/types/area';
-import { BaseApiResponse } from '@/types/common';
+import type { Area, AreaApiResponse, AreaCreateOrUpdateApiResponse } from '@/types/area';
+import type { BaseApiResponse } from '@/types/common';
+import { DEFAULT_ERROR_MESSAGE_500 } from '@/lib/default.constant';
 
 /**
  * 지역 조회
  *
- * @todo area가 `all`일 경우 모든 지역 조회
+ * @todo `area`가 `all`일 경우 모든 지역 조회. GET /api/areas 와 동일함.
  */
 export async function GET(request: NextRequest, { params }: { params: Promise<{ area: string }> }) {
-  // const { area } = await params;
+  console.log('GET /api/areas/[area]', await params);
 
   const sampleArea: Area = {
     areaNo: 1,
@@ -25,9 +26,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   } satisfies AreaApiResponse);
 }
 
+/**
+ * 지역 수정
+ */
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ area: string }> }) {
-  // const { area } = await params;
-  // const body = await request.json();
+  console.log('PUT /api/areas/[area]', await params, await request.json());
 
   return NextResponse.json({
     success: true,
@@ -38,11 +41,21 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   } satisfies AreaCreateOrUpdateApiResponse);
 }
 
+/**
+ * 지역 삭제
+ */
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ area: string }> }) {
-  // const { area } = await params;
+  try {
+    console.log('DELETE /api/areas/[area]', await params);
 
-  return NextResponse.json({
-    success: true,
-    message: '',
-  } satisfies BaseApiResponse);
+    return NextResponse.json({
+      success: true,
+      message: '',
+    } satisfies BaseApiResponse);
+  } catch (error) {
+    return NextResponse.json({
+      success: false,
+      message: DEFAULT_ERROR_MESSAGE_500,
+    } satisfies BaseApiResponse);
+  }
 }

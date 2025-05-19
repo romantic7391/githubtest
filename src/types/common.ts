@@ -27,7 +27,7 @@ import { z } from 'zod';
  */
 export const baseApiResponseSchema = z.object({
   /**
-   * 성공 여부. 성공 시 true, 실패 시 false를 반환합니다.
+   * 성공 여부. 성공 시 `true`, 실패 시 `false`를 반환합니다.
    */
   success: z.boolean().default(false),
   /**
@@ -36,11 +36,6 @@ export const baseApiResponseSchema = z.object({
   message: z.string().default(''),
   /**
    * 데이터. 데이터가 필요한 응답에서 사용합니다.
-   *
-   * @example
-   * ```ts
-   * interface SomethingApiResponse extends
-   * ```
    */
   data: z.array(z.unknown()).or(z.unknown()),
 });

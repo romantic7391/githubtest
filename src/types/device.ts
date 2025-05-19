@@ -49,4 +49,37 @@ export const devicesApiResponseSchema = baseApiResponseSchema.extend({
  */
 export type DevicesApiResponse = z.infer<typeof devicesApiResponseSchema>;
 
-export const deviceCreateSchema = deviceRelSchema.omit({ mac: true });
+export const deviceApiResponseSchema = baseApiResponseSchema.extend({
+  data: deviceRelSchema,
+});
+/**
+ * 센서 장치 응답
+ */
+export type DeviceApiResponse = z.infer<typeof deviceApiResponseSchema>;
+
+/**
+ * 센서 장치 생성 객체
+ */
+export const deviceRelCreateSchema = deviceRelSchema
+  .omit({
+    created: true,
+  })
+  .shape.device.omit({
+    created: true,
+    checkin: true,
+  });
+/**
+ * 센서 장치 생성 객체
+ */
+export type DeviceCreate = z.infer<typeof deviceRelCreateSchema>;
+
+/**
+ * 센서 장치 생성 또는 수정 응답
+ */
+export const deviceCreateOrUpdateApiResponseSchema = baseApiResponseSchema.extend({
+  data: deviceRelSchema.pick({ mac: true }),
+});
+/**
+ * 센서 장치 생성 또는 수정 응답
+ */
+export type DeviceCreateOrUpdateApiResponse = z.infer<typeof deviceCreateOrUpdateApiResponseSchema>;
