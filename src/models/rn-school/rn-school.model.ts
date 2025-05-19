@@ -36,7 +36,30 @@ export async function getRnSchoolByScode(scode: string): Promise<Record<string, 
   return getRow(query, [scode]);
 }
 
-// 1. 등록 (Create)
+// 학교 지역별 읽기(조회)
+export async function getRnSchoolBySchoolNo(school_no: number): Promise<Record<string, unknown> | null> {
+  const query = `
+        SELECT 
+      rs.sname,
+      rs.scode,
+      rs.administrationcode,
+      rs.area,
+      rs.modbus,
+      rs.modbus_host,
+      rs.modbus_port,
+      rs.use_os,
+      rs.active,
+      rs.parent_id
+      FROM rnschool AS rs
+  WHERE
+    (? IS NULL OR rs.area = ?)
+    AND
+    (? IS NULL OR rs.sname LIKE CONCAT('%', ?, '%'));
+  `;
+  return getRow(query, [school_no]);
+}
+
+// 2. 등록 (Create)
 export async function insertRnSchool(dto: insertRnSchoolDto) {
   const query = `
     INSERT INTO rnschool
@@ -58,7 +81,7 @@ export async function insertRnSchool(dto: insertRnSchoolDto) {
   return result.insertId;
 }
 
-// 2. 수정 (Update)
+// 3. 수정 (Update)
 export async function updateRnSchool(dto: updateRnSchoolDto) {
   const query = `
     UPDATE rnschool
@@ -81,7 +104,7 @@ export async function updateRnSchool(dto: updateRnSchoolDto) {
   return exec(query, params);
 }
 
-// 3. 삭제 (Delete)
+// 4. 삭제 (Delete)
 export async function deleteRnSchool(dto: deleteRnSchoolDto) {
   const query = `
     DELETE FROM rnschool

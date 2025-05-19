@@ -2,6 +2,7 @@ import { exec, getAll, getRow } from '@/lib/mariadb/query';
 import type { PoolConnection } from 'mariadb';
 import { updateDeviceMac } from '@/models/rnDevices/rnDevices.model';
 import {
+  findBySchoolNoVO,
   findRnDevicesRelBySchoolNoVO,
   insertRnDevicesRelDto,
   updateRnDevicesRelDto,
@@ -9,11 +10,32 @@ import {
   UpdateMacDto,
 } from '@/interfaces/rnDevicesRel/rnDevicesRel.d';
 
+// 학교별 내용 조회
+export async function findBySchoolNo(school_no: number): Promise<findBySchoolNoVO[]> {
+  const query = `
+      SELECT 
+      rs.sname,
+      rs.scode,
+      rs.administrationcode,
+      rs.area,
+      rs.modbus,
+      rs.modbus_host,
+      rs.modbus_port,
+      rs.use_os,
+      rs.active,
+      rs.parent_id
+      FROM rnschool AS rs
+      WHERE rs.school_no = ?;
+  `;
+  return await getAll<findBySchoolNoVO>(query, [school_no]);
+}
+
 // 학교별 센서 조회
-export async function findRnDevicesRelBySchoolNo(
-  params: { school_no: number; limit?: number; offset?: number },
-  conn?: PoolConnection,
-): Promise<findRnDevicesRelBySchoolNoVO[]> {
+export async function findRnDevicesRelBySchoolNo(params: {
+  school_no: number;
+  limit?: number;
+  offset?: number;
+}): Promise<findRnDevicesRelBySchoolNoVO[]> {
   const { school_no, limit = 10, offset = 0 } = params;
   const query = `
     SELECT 
@@ -42,7 +64,7 @@ export async function findRnDevicesRelBySchoolNo(
     ORDER BY rdr.mac
     LIMIT ? OFFSET ?
   `;
-  return await getAll<findRnDevicesRelBySchoolNoVO>(query, [school_no, limit, offset], undefined, conn);
+  return await getAll<findRnDevicesRelBySchoolNoVO>(query, [school_no, limit, offset]);
 }
 
 //학교별 Rel센서 등록

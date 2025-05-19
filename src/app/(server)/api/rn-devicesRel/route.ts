@@ -3,6 +3,7 @@ import {
   createRnDevicesRel,
   syncRnDevicesRel,
   getRnDevicesRelBySchoolNo,
+  findBySchoolNo,
 } from '@/services/rnDevices/rnDevices.service';
 import { deviceSchema, deviceQuerySchema } from '@/schemas/rnDevices';
 import { z } from 'zod';
@@ -36,7 +37,10 @@ export async function GET(req: NextRequest) {
       school_no,
       req,
     };
-    const result = await getRnDevicesRelBySchoolNo(
+    // 학교 정보 조회
+    const schoolInfo = await findBySchoolNo(school_no);
+    // 센서 목록 조회
+    const devices = await getRnDevicesRelBySchoolNo(
       {
         school_no,
         limit: limit ?? 10,
@@ -44,7 +48,7 @@ export async function GET(req: NextRequest) {
       },
       meta,
     );
-    return NextResponse.json({ success: true, data: result }, { status: 200 });
+    return NextResponse.json({ success: true, data: { school: schoolInfo[0], devices } }, { status: 200 });
   } catch (error) {
     // 내부 에러는 상세 로그, 사용자에겐 일반 메시지
     console.error('[GET /air-api/rn-devicesRel] 서버 에러:', error);
@@ -132,7 +136,12 @@ export async function PUT(req: NextRequest) {
 
     for (const [school_no, devices] of Object.entries(grouped)) {
       console.log(`[PUT] syncRnDevicesRel 호출: school_no=${school_no}, devices=`, JSON.stringify(devices, null, 2));
-      await syncRnDevicesRel(Number(school_no), devices, req, manager_no, Number(school_no));
+      const meta: RequestMeta = {
+        manager_no,
+        school_no: Number(school_no),
+        req,
+      };
+      await syncRnDevicesRel(Number(school_no), devices, meta);
       // TODO: syncRnDevicesRel도 meta로 통일하려면 서비스 함수 시그니처 수정 필요
       console.log(`[PUT] syncRnDevicesRel 성공: school_no=${school_no}`);
     }
