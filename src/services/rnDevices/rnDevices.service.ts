@@ -4,6 +4,7 @@ import { findRnDevicesRelBySchoolNoDto } from '@/interfaces/rnDevicesRel/rnDevic
 import { updateRnDevicesRelServiceDto, createRnDevicesRelServiceDto } from '@/services/rnDevices/rnDevices.service.d';
 import {
   insertRnDevicesRel,
+  findBySchoolNo,
   findRnDevicesRelBySchoolNo,
   findRelByMac,
   updateRnDevicesRel,
@@ -36,6 +37,7 @@ export async function getRnDevicesRelBySchoolNo(dto: findRnDevicesRelBySchoolNoD
   const limit = dto.limit ?? 10;
   const offset = dto.offset ?? 0;
   try {
+    // const schoolInfo = await findBySchoolNo(dto.school_no);
     const result = await findRnDevicesRelBySchoolNo({ ...dto, limit, offset });
     // 조회 로그 남기기
     try {
@@ -486,3 +488,5 @@ function getHeader(req: unknown, key: string): string | null {
   }
   return null;
 }
+
+export { findBySchoolNo };
