@@ -321,7 +321,7 @@ export async function getOne<T = any>(
  */
 export async function exec(
   query: string,
-  params: (string | number)[] = [],
+  params: (string | number | null)[] = [],
   externalConn?: PoolConnection,
 ): Promise<{ affectedRows: number; insertId: number; warningStatus: number }> {
   let conn = externalConn;
