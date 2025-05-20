@@ -18,8 +18,6 @@ export interface findRnDevicesRelBySchoolNoVO {
   tags: string | null;
   checkin: string | null;
   created: string;
-  updated: string;
-  deleted: string | null;
 }
 
 export interface findRnDevicesRelBySchoolNoDto {

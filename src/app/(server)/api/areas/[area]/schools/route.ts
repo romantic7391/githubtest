@@ -1,7 +1,9 @@
 import { DEFAULT_ERROR_MESSAGE_500, DEFAULT_PAGE_SIZE } from '@/lib/default.constant';
-import type { BaseApiResponse } from '@/types/common';
+import type { BaseApiResponse, Pagination } from '@/types/common';
 import type { SchoolsApiResponse } from '@/types/school';
 import { NextRequest, NextResponse } from 'next/server';
+import { getRnSchoolsByArea } from '@/services/areas/[area]/schools/schools.service';
+import { z } from 'zod';
 
 /**
  * 지역 학교 목록 조회
@@ -15,82 +17,82 @@ import { NextRequest, NextResponse } from 'next/server';
  */
 export async function GET(request: NextRequest, { params }: { params: Promise<{ area: string }> }) {
   try {
-    console.log(
-      'GET /api/areas/[area]/schools',
-      await params,
-      request.nextUrl.searchParams.get('sname'),
-      request.nextUrl.searchParams.get('scode'),
-      request.nextUrl.searchParams.get('useordersheet'),
-      request.nextUrl.searchParams.get('active'),
-      request.nextUrl.searchParams.get('administrationcode'),
-    );
-
     const { area } = await params;
+    const searchParams = request.nextUrl.searchParams;
 
-    if (area === 'all') {
-      // 모든 지역의 학교 목록
-    } else {
-      // 특정 지역의 학교 목록
+    // 파라미터 파싱 및 검증
+    const page = Number(searchParams.get('page')) || 1;
+    const pageSize = Number(searchParams.get('pageSize')) || DEFAULT_PAGE_SIZE;
+
+    // 페이지네이션 파라미터 검증
+    const paginationSchema = z.object({
+      page: z.number().positive().default(1),
+      pageSize: z.number().positive().default(DEFAULT_PAGE_SIZE),
+    });
+
+    try {
+      paginationSchema.parse({ page, pageSize });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: '잘못된 페이지네이션 파라미터입니다.',
+            errors: error.errors,
+          } satisfies BaseApiResponse,
+          { status: 400 },
+        );
+      }
+      throw error;
     }
 
-    return NextResponse.json({
-      success: true,
-      message: '',
-      data: {
-        schools: [
-          {
-            schoolNo: 1,
-            sname: '대전중학교',
-            scode: 'K100001234',
-            area: 'daejeon',
-            modbus: 0,
-            modbusHost: null,
-            modbusPort: 502,
-            useOrderSheet: 'Y',
-            active: 'Y',
-            administrationCode: '1111111',
-            created: '1970-01-01 00:00:00',
-          },
-          {
-            schoolNo: 2,
-            sname: '대전초등학교',
-            scode: 'K100001235',
-            area: 'daejeon',
-            modbus: 0,
-            modbusHost: null,
-            modbusPort: 502,
-            useOrderSheet: 'Y',
-            active: 'Y',
-            administrationCode: '1111111',
-            created: '1970-01-01 00:00:00',
-          },
-          {
-            schoolNo: 3,
-            sname: '대전고등학교',
-            scode: 'K100001236',
-            area: 'daejeon',
-            modbus: 0,
-            modbusHost: null,
-            modbusPort: 502,
-            useOrderSheet: 'Y',
-            active: 'Y',
-            administrationCode: '1111111',
-            created: '1970-01-01 00:00:00',
-          },
-        ],
-        pagination: {
-          page: 1,
-          pageSize: DEFAULT_PAGE_SIZE,
-          total: 3,
-          totalPages: 0,
+    // 필터링 파라미터
+    const filters = {
+      sname: searchParams.get('sname') || undefined,
+      scode: searchParams.get('scode') || undefined,
+      useOrderSheet: (searchParams.get('useordersheet') as 'Y' | 'N') || undefined,
+      active: (searchParams.get('active') as 'Y' | 'N') || undefined,
+      administrationCode: searchParams.get('administrationcode') || undefined,
+    };
+
+    const { schools, total } = await getRnSchoolsByArea(area, page, pageSize, filters);
+
+    const pagination: Pagination = {
+      page,
+      pageSize,
+      total,
+      totalPages: Math.ceil(total / pageSize),
+    };
+
+    return NextResponse.json(
+      {
+        success: true,
+        message: '학교 목록을 성공적으로 조회했습니다.',
+        data: {
+          schools,
+          pagination,
         },
-      },
-    } satisfies SchoolsApiResponse);
+      } satisfies SchoolsApiResponse,
+      { status: 200 },
+    );
   } catch (error) {
     console.error(error);
-    return NextResponse.json({
-      success: false,
-      message: DEFAULT_ERROR_MESSAGE_500,
-    } satisfies BaseApiResponse);
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: '잘못된 요청 파라미터입니다.',
+          errors: error.errors,
+        } satisfies BaseApiResponse,
+        { status: 400 },
+      );
+    }
+    return NextResponse.json(
+      {
+        success: false,
+        message: DEFAULT_ERROR_MESSAGE_500,
+      } satisfies BaseApiResponse,
+      { status: 500 },
+    );
   }
 }
