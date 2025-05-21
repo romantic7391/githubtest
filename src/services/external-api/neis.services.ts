@@ -1,5 +1,5 @@
 import type { SchoolApiResponse } from '@/types/nies';
-import { getRow } from '@/lib/mariadb/query';
+import { existsRnSchoolByAdministrationCode } from '@/models/external-api/school-info.model';
 
 // NEIS API 기본 URL
 export const NEIS_API_URL = 'https://open.neis.go.kr/hub/schoolInfo';
@@ -90,14 +90,75 @@ export function findAreaNamesByPartial(input: string | null): string[] {
 }
 
 /**
- * 행정표준코드로 학교 존재 여부를 확인하는 함수
- * @param administrationcode 행정표준코드
- * @returns 존재 여부 (boolean)
+ * NEIS API 응답을 처리하고 중복 체크를 수행하는 공통 함수
+ * @param url NEIS API URL
+ * @returns 처리된 학교 목록
  */
-export async function existsRnSchoolByAdministrationCode(administrationcode: string): Promise<boolean> {
-  const query = `SELECT 1 FROM rnschool WHERE administrationcode = ? LIMIT 1`;
-  const row = await getRow(query, [administrationcode]);
-  return !!row;
+async function processNeisApiResponse(url: string) {
+  const response = await fetch(url);
+  const data = await response.json();
+  if (!data.schoolInfo || !data.schoolInfo[1]?.row) return [];
+  const schools = data.schoolInfo[1].row;
+
+  return await Promise.all(
+    schools.map(async (school: SchoolApiResponse) => {
+      const administrationcode = school.SD_SCHUL_CODE;
+      const isDup = await existsRnSchoolByAdministrationCode(administrationcode);
+
+      const {
+        ORG_RDNZC,
+        ORG_RDNMA,
+        ORG_RDNDA,
+        ORG_TELNO,
+        HMPG_ADRES,
+        COEDU_SC_NM,
+        ORG_FAXNO,
+        HS_SC_NM,
+        INDST_SPECL_CCCCL_EXST_YN,
+        HS_GNRL_BUSNS_SC_NM,
+        SPCLY_PURPS_HS_ORD_NM,
+        ENE_BFE_SEHF_SC_NM,
+        DGHT_SC_NM,
+        FOND_YMD,
+        FOAS_MEMRD,
+        LOAD_DTM,
+        ATPT_OFCDC_SC_NM,
+        SCHUL_KND_SC_NM,
+        FOND_SC_NM,
+        JU_ORG_NM,
+        ENG_SCHUL_NM,
+      } = school;
+
+      return {
+        is_duplicated: isDup ? 'Y' : 'N',
+        administrationcode: school.SD_SCHUL_CODE,
+        area: school.LCTN_SC_NM,
+        sname: school.SCHUL_NM,
+        scode: school.ATPT_OFCDC_SC_CODE,
+        ATPT_OFCDC_SC_NM, // 교육청명
+        SCHUL_KND_SC_NM, // 학교종류
+        FOND_SC_NM, // 설립구분
+        JU_ORG_NM, // 관할교육청
+        ENG_SCHUL_NM, // 영문명
+        ORG_RDNZC,
+        ORG_RDNMA,
+        ORG_RDNDA,
+        ORG_TELNO,
+        HMPG_ADRES,
+        COEDU_SC_NM,
+        ORG_FAXNO,
+        HS_SC_NM,
+        INDST_SPECL_CCCCL_EXST_YN,
+        HS_GNRL_BUSNS_SC_NM,
+        SPCLY_PURPS_HS_ORD_NM,
+        ENE_BFE_SEHF_SC_NM,
+        DGHT_SC_NM,
+        FOND_YMD,
+        FOAS_MEMRD,
+        LOAD_DTM,
+      };
+    }),
+  );
 }
 
 // ===== NEIS API 호출 함수 =====
@@ -113,71 +174,7 @@ export async function fetchSchoolListByName(schoolName: string, area?: string) {
   if (area) {
     url += `&LCTN_SC_NM=${encodeURIComponent(area)}`;
   }
-
-  const response = await fetch(url);
-  const data = await response.json();
-  if (!data.schoolInfo || !data.schoolInfo[1]?.row) return [];
-  const schools = data.schoolInfo[1].row;
-
-  return await Promise.all(
-    schools.map(async (school: SchoolApiResponse) => {
-      const administrationcode = school.SD_SCHUL_CODE;
-      const isDup = await existsRnSchoolByAdministrationCode(administrationcode);
-
-      const {
-        ORG_RDNZC,
-        ORG_RDNMA,
-        ORG_RDNDA,
-        ORG_TELNO,
-        HMPG_ADRES,
-        COEDU_SC_NM,
-        ORG_FAXNO,
-        HS_SC_NM,
-        INDST_SPECL_CCCCL_EXST_YN,
-        HS_GNRL_BUSNS_SC_NM,
-        SPCLY_PURPS_HS_ORD_NM,
-        ENE_BFE_SEHF_SC_NM,
-        DGHT_SC_NM,
-        FOND_YMD,
-        FOAS_MEMRD,
-        LOAD_DTM,
-        ATPT_OFCDC_SC_NM,
-        SCHUL_KND_SC_NM,
-        FOND_SC_NM,
-        JU_ORG_NM,
-        ENG_SCHUL_NM,
-      } = school;
-
-      return {
-        is_duplicated: isDup ? 'Y' : 'N',
-        administrationcode: school.SD_SCHUL_CODE,
-        area: school.LCTN_SC_NM,
-        sname: school.SCHUL_NM,
-        scode: school.ATPT_OFCDC_SC_CODE,
-        ATPT_OFCDC_SC_NM, // 교육청명
-        SCHUL_KND_SC_NM, // 학교종류
-        FOND_SC_NM, // 설립구분
-        JU_ORG_NM, // 관할교육청
-        ENG_SCHUL_NM, // 영문명
-        ORG_RDNZC,
-        ORG_RDNMA,
-        ORG_RDNDA,
-        ORG_TELNO,
-        HMPG_ADRES,
-        COEDU_SC_NM,
-        ORG_FAXNO,
-        HS_SC_NM,
-        INDST_SPECL_CCCCL_EXST_YN,
-        HS_GNRL_BUSNS_SC_NM,
-        SPCLY_PURPS_HS_ORD_NM,
-        ENE_BFE_SEHF_SC_NM,
-        DGHT_SC_NM,
-        FOND_YMD,
-        FOAS_MEMRD,
-        LOAD_DTM,
-      };
-    }),
-  );
+  return processNeisApiResponse(url);
 }
 
 /**
@@ -188,68 +185,5 @@ export async function fetchSchoolListByName(schoolName: string, area?: string) {
  */
 export async function fetchSchoolList(page = 1, size = 1000) {
   const url = `${NEIS_API_URL}?KEY=${process.env.NEIS_API_KEY}&Type=json&pIndex=${page}&pSize=${size}`;
-  const response = await fetch(url);
-  const data = await response.json();
-  if (!data.schoolInfo || !data.schoolInfo[1]?.row) return [];
-  const schools = data.schoolInfo[1].row;
-
-  return await Promise.all(
-    schools.map(async (school: SchoolApiResponse) => {
-      const administrationcode = school.SD_SCHUL_CODE;
-      const isDup = await existsRnSchoolByAdministrationCode(administrationcode);
-
-      const {
-        ORG_RDNZC,
-        ORG_RDNMA,
-        ORG_RDNDA,
-        ORG_TELNO,
-        HMPG_ADRES,
-        COEDU_SC_NM,
-        ORG_FAXNO,
-        HS_SC_NM,
-        INDST_SPECL_CCCCL_EXST_YN,
-        HS_GNRL_BUSNS_SC_NM,
-        SPCLY_PURPS_HS_ORD_NM,
-        ENE_BFE_SEHF_SC_NM,
-        DGHT_SC_NM,
-        FOND_YMD,
-        FOAS_MEMRD,
-        LOAD_DTM,
-        ATPT_OFCDC_SC_NM,
-        SCHUL_KND_SC_NM,
-        FOND_SC_NM,
-        JU_ORG_NM,
-        ENG_SCHUL_NM,
-      } = school;
-
-      return {
-        is_duplicated: isDup ? 'Y' : 'N',
-        administrationcode: school.SD_SCHUL_CODE,
-        area: school.LCTN_SC_NM,
-        sname: school.SCHUL_NM,
-        scode: school.ATPT_OFCDC_SC_CODE,
-        ATPT_OFCDC_SC_NM, // 교육청명
-        SCHUL_KND_SC_NM, // 학교종류
-        FOND_SC_NM, // 설립구분
-        JU_ORG_NM, // 관할교육청
-        ENG_SCHUL_NM, // 영문명
-        ORG_RDNZC,
-        ORG_RDNMA,
-        ORG_RDNDA,
-        ORG_TELNO,
-        HMPG_ADRES,
-        COEDU_SC_NM,
-        ORG_FAXNO,
-        HS_SC_NM,
-        INDST_SPECL_CCCCL_EXST_YN,
-        HS_GNRL_BUSNS_SC_NM,
-        SPCLY_PURPS_HS_ORD_NM,
-        ENE_BFE_SEHF_SC_NM,
-        DGHT_SC_NM,
-        FOND_YMD,
-        FOAS_MEMRD,
-        LOAD_DTM,
-      };
-    }),
-  );
+  return processNeisApiResponse(url);
 }
