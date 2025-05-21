@@ -1,97 +1,88 @@
-import { DEFAULT_ERROR_MESSAGE_500 } from '@/lib/default.constant';
-import type { BaseApiResponse } from '@/types/common';
-import type { DeviceApiResponse, DeviceCreateOrUpdateApiResponse } from '@/types/device';
-import { NextRequest, NextResponse } from 'next/server';
+import type { Device } from '@/types/device';
+import {
+  findRnDeviceRelBySchoolNoAndMac,
+  updateRnDevicesRel,
+  softDeleteRnDevicesRel,
+} from '@/models/rnDevicesRel/rnDevicesRel.model';
+import { findDeviceByMac, updateDeviceFn, softDeleteRnDevice } from '@/models/rnDevices/rnDevices.model';
 
 /**
- * 지역 학교 센서 장치 정보
+ * 지역 학교 센서 장치 정보 조회
  */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ area: string; schoolNo: string; mac: string }> },
-) {
+export async function getDevice(mac: string) {
   try {
-    console.log('GET /api/areas/[area]/schools/[schoolNo]/devices/[mac]', await params);
-
-    return NextResponse.json({
-      success: true,
-      message: '',
-      data: {
-        mac: '1234567890',
-        name: '1234567890',
-        summary: '1234567890',
-        kind: 1,
-        extra: '1234567890',
-        sdate: '1970-01-01 00:00:00',
-        edate: '1970-01-01 00:00:00',
-        created: '1970-01-01 00:00:00',
-        device: {
-          model: '1234567890',
-          ip: '1234567890',
-          rip: '1234567890',
-          splrate: 10,
-          interval: 10,
-          ver: '1.0.0',
-          tags: '1234567890',
-          checkin: '1970-01-01 00:00:00',
-          created: '1970-01-01 00:00:00',
-        },
-      },
-    } satisfies DeviceApiResponse);
+    return await findRnDeviceRelBySchoolNoAndMac({ school_no: 0, mac });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({
-      success: false,
-      message: DEFAULT_ERROR_MESSAGE_500,
-    } satisfies BaseApiResponse);
+    console.error('[getDeviceService] DB 조회 에러:', error);
+    throw new Error('센서 조회 중 오류가 발생했습니다.');
   }
 }
 
 /**
- * 지역 학교 수정
+ * 지역 학교 센서 수정
  */
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ area: string; schoolNo: string; mac: string }> },
-) {
+export async function updateDevice(dto: Device): Promise<void> {
   try {
-    console.log('PUT /api/areas/[area]/schools/[schoolNo]/devices/[mac]', await params, await request.json());
+    // 센서 존재 여부 확인
+    await findDeviceByMac(dto.mac);
 
-    return NextResponse.json({
-      success: true,
-      message: '',
-      data: {
-        mac: '1234567890',
+    // rnDevicesRel 테이블 업데이트
+    await updateRnDevicesRel([
+      {
+        mac: dto.mac,
+        name: dto.name,
+        summary: dto.summary,
+        kind: dto.kind,
+        extra: dto.extra,
+        sdate: dto.sdate,
+        edate: dto.edate,
       },
-    } satisfies DeviceCreateOrUpdateApiResponse);
+    ]);
+
+    // rnDevices 테이블 업데이트
+    const deviceData: Device = {
+      mac: dto.mac,
+      name: dto.name,
+      summary: dto.summary,
+      kind: dto.kind,
+      extra: dto.extra,
+      sdate: dto.sdate,
+      edate: dto.edate,
+      created: dto.created,
+      device: {
+        model: dto.device.model,
+        ip: dto.device.ip,
+        rip: dto.device.rip,
+        splrate: dto.device.splrate,
+        interval: dto.device.interval,
+        ver: dto.device.ver,
+        tags: dto.device.tags,
+        checkin: dto.device.checkin,
+        created: dto.device.created,
+      },
+    };
+    await updateDeviceFn([deviceData]);
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({
-      success: false,
-      message: DEFAULT_ERROR_MESSAGE_500,
-    } satisfies BaseApiResponse);
+    console.error('[updateDeviceService] 센서 수정 중 오류 발생:', error);
+    throw new Error('센서 수정 중 오류가 발생했습니다.');
   }
 }
 
 /**
  * 지역 학교 센서 장치 삭제
  */
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ area: string; schoolNo: string; mac: string }> },
-) {
+export async function deleteDevice(dto: { mac: string }) {
   try {
-    console.log('DELETE /api/areas/[area]/schools/[schoolNo]/devices/[mac]', await params);
+    // 센서 존재 여부 확인
+    await findDeviceByMac(dto.mac);
 
-    return NextResponse.json({
-      success: true,
-      message: '',
-    } satisfies BaseApiResponse);
+    // rnDevicesRel 테이블에서 삭제
+    await softDeleteRnDevicesRel([{ mac: dto.mac, school_no: 0 }]);
+
+    // rnDevices 테이블에서 삭제
+    await softDeleteRnDevice([{ mac: dto.mac }]);
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({
-      success: false,
-      message: DEFAULT_ERROR_MESSAGE_500,
-    } satisfies BaseApiResponse);
+    console.error('[deleteDeviceService] 센서 삭제 중 오류 발생:', error);
+    throw new Error('센서 삭제 중 오류가 발생했습니다.');
   }
 }

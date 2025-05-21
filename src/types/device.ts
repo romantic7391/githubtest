@@ -8,8 +8,8 @@ export const deviceSchema = z.object({
   model: z.string().max(16).default(''),
   ip: z.string().ip({ version: 'v4' }).nullable(),
   rip: z.string().ip({ version: 'v4' }).nullable(),
-  splrate: z.number().int().max(6).default(0),
-  interval: z.number().int().max(6).default(0),
+  splrate: z.number().int().max(9999999).default(0),
+  interval: z.number().int().max(9999999).default(0),
   ver: z.string().max(24).default(''),
   tags: z.string().max(65535).nullable(),
   checkin: datetimeSchema.nullable(),
@@ -23,7 +23,7 @@ export const deviceRelSchema = z.object({
   mac: z.string().min(1).max(16),
   name: z.string().max(65535).nullable(),
   summary: z.string().max(65535).nullable(),
-  kind: z.number().int().nonnegative().max(11).default(0),
+  kind: z.number().int().nonnegative().max(999999999999999).default(0),
   extra: z.string().max(65535).nullable(),
   sdate: datetimeSchema.nullable(),
   edate: datetimeSchema.nullable(),
@@ -60,18 +60,18 @@ export type DeviceApiResponse = z.infer<typeof deviceApiResponseSchema>;
 /**
  * 센서 장치 생성 객체
  */
-export const deviceRelCreateSchema = deviceRelSchema
+export const deviceCreateSchema = deviceRelSchema
   .omit({
     created: true,
   })
-  .shape.device.omit({
-    created: true,
-    checkin: true,
+  .extend({
+    schoolNo: z.number(),
   });
+
 /**
  * 센서 장치 생성 객체
  */
-export type DeviceCreate = z.infer<typeof deviceRelCreateSchema>;
+export type DeviceCreate = z.infer<typeof deviceCreateSchema>;
 
 /**
  * 센서 장치 생성 또는 수정 응답
