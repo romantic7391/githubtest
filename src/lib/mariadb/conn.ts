@@ -4,7 +4,7 @@ const {
   MARIADB_HOST: host,
   MARIADB_USER: user,
   MARIADB_PASSWORD: password,
-  MARIADB_DATABASE: database,
+  MARIADB_DATABASE: database = 'test_air',
   MARIADB_PORT: port,
 } = process.env;
 

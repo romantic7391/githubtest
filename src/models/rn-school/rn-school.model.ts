@@ -160,6 +160,7 @@ export async function insertRnSchool(dto: SchoolCreate) {
     dto.modbusHost,
     dto.modbusPort,
     dto.useOrderSheet,
+    dto.parentNo,
     dto.administrationCode,
   ];
   const result = await exec(query, params);
