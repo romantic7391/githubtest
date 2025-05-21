@@ -5,7 +5,7 @@ import { baseApiResponseSchema, paginationSchema } from './common';
  * 지역
  */
 export const areaSchema = z.object({
-  areaNo: z.number().max(20),
+  areaNo: z.number().min(0).max(Number.MAX_SAFE_INTEGER),
   /**
    * 지역 영문명
    */
@@ -14,8 +14,8 @@ export const areaSchema = z.object({
     .regex(/^[a-z0-9]+$/)
     .max(50)
     .nullable(),
-  x: z.number().max(20).nullable(),
-  y: z.number().max(20).nullable(),
+  x: z.number().min(0).max(Number.MAX_SAFE_INTEGER).nullable(),
+  y: z.number().min(0).max(Number.MAX_SAFE_INTEGER).nullable(),
   areaCode: z
     .string()
     .regex(/^[A-Z0-9]+$/)
@@ -76,3 +76,18 @@ export const areaCreateOrUpdateApiResponseSchema = baseApiResponseSchema.extend(
  * 지역 생성 또는 수정 응답
  */
 export type AreaCreateOrUpdateApiResponse = z.infer<typeof areaCreateOrUpdateApiResponseSchema>;
+
+/**
+ * 지역 목록 응답 (페이지네이션 포함)
+ */
+export const areasWithPaginationApiResponseSchema = baseApiResponseSchema.extend({
+  data: z.object({
+    areas: areaSchema.array(),
+    pagination: paginationSchema,
+  }),
+});
+
+/**
+ * 지역 목록 응답 (페이지네이션 포함)
+ */
+export type AreasWithPaginationApiResponse = z.infer<typeof areasWithPaginationApiResponseSchema>;

@@ -4,7 +4,11 @@ const nextConfig: NextConfig = {
   /**
    * @see https://nextjs.org/docs/app/api-reference/config/next-config-js/logging
    */
-  logging: false,
+  logging: {
+    fetches: {
+      fullUrl: true,
+    },
+  },
 
   experimental: {
     optimizePackageImports: [

@@ -1,3 +1,15 @@
+export interface findBySchoolNoVO {
+  sname: string;
+  scode: string;
+  administrationcode: string | null;
+  area: string;
+  modbus: string;
+  modbus_host: string | null;
+  modbus_port: number;
+  use_os: string | null;
+  active: number;
+  parent_id: number | null;
+}
 export interface insertRnSchoolDto {
   sname: string;
   scode: string;

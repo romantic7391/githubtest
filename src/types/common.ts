@@ -38,6 +38,10 @@ export const baseApiResponseSchema = z.object({
    * 데이터. 데이터가 필요한 응답에서 사용합니다.
    */
   data: z.array(z.unknown()).or(z.unknown()),
+  /**
+   * 에러. 에러가 발생한 경우 상세 정보를 포함합니다.
+   */
+  errors: z.array(z.unknown()).optional(),
 });
 /**
  * 응답 객체에 공통적으로 사용되는 필드를 정의합니다.
