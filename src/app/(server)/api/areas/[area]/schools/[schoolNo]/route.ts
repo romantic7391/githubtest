@@ -7,14 +7,19 @@ import {
   updateRnSchool,
   deleteRnSchool,
 } from '@/services/areas/[area]/schools/[schoolNo]/[schoolNo].service';
+import { getClientInfo } from '@/services/log-action/log-action.service';
 
 /**
  * 지역 학교 정보
  */
-export async function GET(request: NextRequest, { params }: { params: Promise<{ area: string; schoolNo: string }> }) {
+export async function GET(request: NextRequest, { params }: { params: { area: string; schoolNo: string } }) {
   try {
-    const { schoolNo } = await params;
-    const school = await getSchoolBySchoolNo(Number(schoolNo));
+    const { userAgent, ip } = getClientInfo(request);
+    const school = await getSchoolBySchoolNo(Number(params.schoolNo), {
+      manager_no: 1, // 임시로 1로 설정
+      ip,
+      user_agent: userAgent,
+    });
 
     if (!school) {
       return NextResponse.json({
@@ -32,7 +37,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       { status: 200 },
     );
   } catch (error) {
-    console.error(error);
+    console.error('[GET] 학교 조회 중 오류 발생:', error);
     return NextResponse.json(
       {
         success: false,
@@ -46,31 +51,33 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 /**
  * 지역 학교 수정
  */
-export async function PUT(request: NextRequest, { params }: { params: Promise<{ area: string; schoolNo: string }> }) {
+export async function PUT(request: NextRequest, { params }: { params: { area: string; schoolNo: string } }) {
   try {
-    const { schoolNo } = await params;
     const body = await request.json();
-
-    // schoolNo를 URL 파라미터에서 가져온 값으로 설정
-    const schoolData: School = {
+    const dto: School = {
       ...body,
-      schoolNo: Number(schoolNo),
+      schoolNo: Number(params.schoolNo),
     };
 
-    await updateRnSchool(schoolData);
+    const { userAgent, ip } = getClientInfo(request);
+    await updateRnSchool(dto, {
+      manager_no: 1, // 임시로 1로 설정
+      ip,
+      user_agent: userAgent,
+    });
 
     return NextResponse.json(
       {
         success: true,
         message: '학교 정보가 성공적으로 수정되었습니다.',
         data: {
-          schoolNo: Number(schoolNo),
+          schoolNo: Number(params.schoolNo),
         },
       } satisfies SchoolCreateOrUpdateApiResponse,
       { status: 200 },
     );
   } catch (error) {
-    console.error(error);
+    console.error('[PUT] 학교 수정 중 오류 발생:', error);
     return NextResponse.json(
       {
         success: false,
@@ -84,25 +91,18 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 /**
  * 지역 학교 삭제
  */
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ area: string; schoolNo: string }> },
-) {
+export async function DELETE(request: NextRequest, { params }: { params: { area: string; schoolNo: string } }) {
   try {
-    const { schoolNo } = await params;
-    const school = await getSchoolBySchoolNo(Number(schoolNo));
+    const dto: School = {
+      schoolNo: Number(params.schoolNo),
+    } as School;
 
-    if (!school) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: '학교를 찾을 수 없습니다.',
-        } satisfies BaseApiResponse,
-        { status: 404 },
-      );
-    }
-
-    await deleteRnSchool(school);
+    const { userAgent, ip } = getClientInfo(request);
+    await deleteRnSchool(dto, {
+      manager_no: 1, // 임시로 1로 설정
+      ip,
+      user_agent: userAgent,
+    });
 
     return NextResponse.json(
       {
@@ -112,7 +112,7 @@ export async function DELETE(
       { status: 200 },
     );
   } catch (error) {
-    console.error(error);
+    console.error('[DELETE] 학교 삭제 중 오류 발생:', error);
     return NextResponse.json(
       {
         success: false,
