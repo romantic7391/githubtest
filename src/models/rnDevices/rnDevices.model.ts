@@ -1,7 +1,6 @@
 import { exec, getAll, getRow } from '@/lib/mariadb/query';
 import type { PoolConnection } from 'mariadb';
 import { Device, DeviceCreate } from '@/types/device';
-import { softDeleteRnDevicesDto } from '@/interfaces/rnDevices/rnDevices.d';
 
 //학교별 Rel센서 등록
 export async function insertRnDevices(
@@ -72,12 +71,12 @@ export async function updateDeviceFn(dtos: Device[], conn?: PoolConnection): Pro
 }
 
 // rnDevices 소프트 삭제
-export async function softDeleteRnDevice(dtos: softDeleteRnDevicesDto[], conn?: PoolConnection) {
+export async function softDeleteRnDevice(dtos: { mac: string }[], conn?: PoolConnection) {
   const query = `
     DELETE FROM rnDevices
-    WHERE  mac IN (${dtos.map(() => '?').join(', ')})
+    WHERE mac IN (${dtos.map(() => '?').join(', ')})
   `;
-  const params = dtos.flatMap((dto) => [dto.mac]);
+  const params = dtos.map((dto) => dto.mac);
   console.log('[softDeleteRnDevice] 쿼리:', query);
   console.log('[softDeleteRnDevice] 파라미터:', params);
   return await exec(query, params, conn);

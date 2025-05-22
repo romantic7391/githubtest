@@ -30,10 +30,23 @@ export const deviceRelSchema = z.object({
   created: datetimeSchema.nullable(),
   device: deviceSchema,
 });
+
+/**
+ * DB에서 조회되는 센서 장치 구조
+ */
+export const deviceDbSchema = deviceRelSchema.omit({ device: true }).merge(deviceSchema).extend({
+  device_created: datetimeSchema.nullable(),
+});
+
 /**
  * 학교 센서 장치
  */
 export type Device = z.infer<typeof deviceRelSchema>;
+
+/**
+ * DB에서 조회되는 센서 장치 타입
+ */
+export type DeviceDb = z.infer<typeof deviceDbSchema>;
 
 /**
  * 센서 장치 목록 응답
@@ -83,3 +96,17 @@ export const deviceCreateOrUpdateApiResponseSchema = baseApiResponseSchema.exten
  * 센서 장치 생성 또는 수정 응답
  */
 export type DeviceCreateOrUpdateApiResponse = z.infer<typeof deviceCreateOrUpdateApiResponseSchema>;
+
+/**
+ * 센서 장치 기본 정보 (MAC 주소와 학교 번호만)
+ */
+export const deviceBasicSchema = z.object({
+  mac: z.string(),
+  school_no: z.number(),
+  oldMac: z.string().optional(),
+});
+
+/**
+ * 센서 장치 기본 정보 타입
+ */
+export type DeviceBasic = z.infer<typeof deviceBasicSchema>;

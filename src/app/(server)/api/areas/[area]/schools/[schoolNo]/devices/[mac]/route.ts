@@ -18,45 +18,69 @@ export async function GET(
   { params }: { params: { area: string; schoolNo: string; mac: string } },
 ) {
   try {
-    const { mac } = await params;
-    const device = await getDevice(mac);
+    const { mac, schoolNo } = await params;
+    console.log('[GET] 요청 파라미터:', { mac, schoolNo });
+
+    const device = await getDevice({ mac, school_no: parseInt(schoolNo, 10) });
+    console.log('[GET] 조회된 디바이스:', device);
 
     if (!device) {
       return NextResponse.json({ success: false, message: '센서를 찾을 수 없습니다.' }, { status: 404 });
     }
 
     // Zod로 응답 데이터 검증
-    const validatedDevice = deviceRelSchema.parse(device);
-    return NextResponse.json({ success: true, data: validatedDevice });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { success: false, message: '데이터 검증에 실패했습니다.', errors: error.errors },
-        { status: 400 },
-      );
+    try {
+      const validatedDevice = deviceRelSchema.parse(device);
+      return NextResponse.json({ success: true, data: validatedDevice });
+    } catch (validationError) {
+      console.error('[GET] 데이터 검증 에러:', validationError);
+      if (validationError instanceof z.ZodError) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: '데이터 검증에 실패했습니다.',
+            errors: validationError.errors,
+            rawData: device,
+          },
+          { status: 400 },
+        );
+      }
+      throw validationError;
     }
+  } catch (error) {
     console.error('[GET] 센서 조회 에러:', error);
-    return NextResponse.json({ success: false, message: '센서 조회 중 오류가 발생했습니다.' }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        message: '센서 조회 중 오류가 발생했습니다.',
+        error: error instanceof Error ? error.message : String(error),
+      },
+      { status: 500 },
+    );
   }
 }
 
 /**
- * 지역 학교 수정
+ * 지역 학교센서 수정
  */
 export async function PUT(
   request: NextRequest,
   { params }: { params: { area: string; schoolNo: string; mac: string } },
 ) {
   try {
-    const { mac } = await params;
+    const { mac, schoolNo } = await params;
     const body = await request.json();
 
     // Zod로 요청 데이터 검증
     const validatedData = deviceRelSchema.parse(body);
-    const dto = { ...validatedData, mac };
+    const dto = { ...validatedData, mac, school_no: parseInt(schoolNo, 10) };
 
-    await updateDevice(dto);
-    return NextResponse.json({ success: true, message: '센서가 성공적으로 수정되었습니다.' });
+    const result = await updateDevice(dto);
+    return NextResponse.json({
+      success: true,
+      message: '센서가 성공적으로 수정되었습니다.',
+      data: result,
+    });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -77,8 +101,8 @@ export async function DELETE(
   { params }: { params: { area: string; schoolNo: string; mac: string } },
 ) {
   try {
-    const { mac } = await params;
-    await deleteDevice({ mac });
+    const { mac, schoolNo } = await params;
+    await deleteDevice({ mac, school_no: parseInt(schoolNo, 10) });
     return NextResponse.json({ success: true, message: '센서가 성공적으로 삭제되었습니다.' });
   } catch (error) {
     console.error('[DELETE] 센서 삭제 에러:', error);

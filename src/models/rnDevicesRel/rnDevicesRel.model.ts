@@ -1,12 +1,8 @@
 import { exec, getAll, getRow } from '@/lib/mariadb/query';
 import type { PoolConnection } from 'mariadb';
 import { updateDeviceMac } from '@/models/rnDevices/rnDevices.model';
-import {
-  updateRnDevicesRelDto,
-  softDeleteRnDevicesRelDto,
-  UpdateMacDto,
-} from '@/interfaces/rnDevicesRel/rnDevicesRel.d';
-import { Device, DeviceCreate } from '@/types/device';
+import { UpdateMacDto } from '@/interfaces/rnDevicesRel/rnDevicesRel.d';
+import { Device, DeviceCreate, DeviceBasic, DeviceDb } from '@/types/device';
 
 // 학교별 내용 조회
 // export async function findBySchoolNo(school_no: number): Promise<findBySchoolNoVO[]> {
@@ -97,11 +93,8 @@ export async function findRnDevicesRelBySchoolNo(params: {
 }
 
 // 학교의 센서 정보 조회
-export async function findRnDeviceRelBySchoolNoAndMac(params: {
-  school_no: number;
-  mac: string;
-}): Promise<Device | null> {
-  const { school_no, mac } = params;
+export async function findRnDeviceRelBySchoolNoAndMac(params: DeviceBasic): Promise<DeviceDb | null> {
+  const { mac, school_no } = params;
 
   const query = `
     SELECT 
@@ -127,7 +120,7 @@ export async function findRnDeviceRelBySchoolNoAndMac(params: {
     WHERE rdr.school_no = ? AND rdr.mac = ?
   `;
 
-  return await getRow<Device>(query, [school_no, mac]);
+  return await getRow<DeviceDb>(query, [school_no, mac]);
 }
 
 //학교별 Rel센서 등록
@@ -158,30 +151,61 @@ export async function findRelByMac(mac: string, conn?: PoolConnection) {
 }
 
 // 학교별 센서 수정
-export async function updateRnDevicesRel(dtos: updateRnDevicesRelDto[], conn?: PoolConnection): Promise<void> {
+export async function updateRnDevicesRel(
+  dtos: (DeviceBasic & Omit<Device, 'mac'>)[],
+  conn?: PoolConnection,
+): Promise<void> {
   for (const dto of dtos) {
-    const query = `
-      UPDATE rnDevicesRel SET
-        name = ?,
-        summary = ?,
-        kind = ?,
-        extra = ?,
-        sdate = ?,
-        edate = ?
-      WHERE mac = ?
-    `;
-    const params = [dto.name, dto.summary, dto.kind, dto.extra, dto.sdate, dto.edate, dto.mac];
-    await exec(query, params, conn);
+    // MAC 주소가 변경된 경우
+    if (dto.mac !== dto.oldMac) {
+      const query = `
+        UPDATE rnDevicesRel SET
+          mac = ?,
+          name = ?,
+          summary = ?,
+          kind = ?,
+          extra = ?,
+          sdate = ?,
+          edate = ?
+        WHERE mac = ? and school_no = ?
+      `;
+      const params = [
+        dto.mac,
+        dto.name,
+        dto.summary,
+        dto.kind,
+        dto.extra,
+        dto.sdate,
+        dto.edate,
+        dto.oldMac ?? null,
+        dto.school_no,
+      ];
+      await exec(query, params, conn);
+    } else {
+      // MAC 주소가 변경되지 않은 경우
+      const query = `
+        UPDATE rnDevicesRel SET
+          name = ?,
+          summary = ?,
+          kind = ?,
+          extra = ?,
+          sdate = ?,
+          edate = ?
+        WHERE mac = ? and school_no = ?
+      `;
+      const params = [dto.name, dto.summary, dto.kind, dto.extra, dto.sdate, dto.edate, dto.mac, dto.school_no];
+      await exec(query, params, conn);
+    }
   }
 }
 
 // rnDevices 소프트 삭제
-export async function softDeleteRnDevicesRel(dtos: softDeleteRnDevicesRelDto[], conn?: PoolConnection) {
+export async function softDeleteRnDevicesRel(dtos: DeviceBasic[], conn?: PoolConnection) {
   const query = `
     DELETE FROM rnDevicesRel
-    WHERE mac IN (${dtos.map(() => '?').join(', ')})
+    WHERE (mac, school_no) IN (${dtos.map(() => '(?, ?)').join(', ')})
   `;
-  const params = dtos.map((dto) => dto.mac);
+  const params = dtos.flatMap((dto) => [dto.mac, dto.school_no]);
   console.log('[softDeleteRnDevicesRel] 쿼리:', query);
   console.log('[softDeleteRnDevicesRel] 파라미터:', params);
   await exec(query, params, conn);
