@@ -1,6 +1,7 @@
 import { exec, getRow, getAll } from '@/lib/mariadb/query';
 import { School, SchoolCreate } from '@/types/school';
 import { DEFAULT_PAGE_SIZE } from '@/lib/default.constant';
+import type { PoolConnection } from 'mariadb';
 
 // 학교 존재 여부 확인(존재하면 true, 없으면 false)
 export async function existsRnSchoolByScode(scode: string): Promise<boolean> {
@@ -168,41 +169,18 @@ export async function insertRnSchool(dto: SchoolCreate) {
 }
 
 // 3. 수정 (Update)
-export async function updateRnSchool(dto: School) {
+export async function updateRnSchool(dto: School, conn?: PoolConnection) {
   const query = `
     UPDATE rnschool
-    SET sname = ?, 
-        scode = ?, 
-        area = ?, 
-        modbus = ?, 
-        modbus_host = ?, 
-        modbus_port = ?, 
-        use_os = ?, 
-        active = ?, 
-        administrationcode = ?
+    SET scode = ?, sname = ?, area = ?, administrationCode = ?
     WHERE school_no = ?
   `;
-  const params = [
-    dto.sname,
-    dto.scode,
-    dto.area,
-    dto.modbus,
-    dto.modbusHost,
-    dto.modbusPort,
-    dto.useOrderSheet,
-    dto.active,
-    dto.administrationCode,
-    dto.schoolNo,
-  ];
-  return exec(query, params);
+  const params = [dto.scode, dto.sname, dto.area, dto.administrationCode, dto.schoolNo];
+  return exec(query, params, conn);
 }
 
 // 4. 삭제 (Delete)
-export async function deleteRnSchool(school_no: number) {
-  const query = `
-    DELETE FROM rnschool
-    WHERE school_no = ?
-  `;
-  const params = [school_no];
-  return exec(query, params);
+export async function deleteRnSchool(schoolNo: number, conn?: PoolConnection) {
+  const query = `DELETE FROM rnschool WHERE school_no = ?`;
+  return exec(query, [schoolNo], conn);
 }
