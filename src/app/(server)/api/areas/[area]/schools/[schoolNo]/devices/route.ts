@@ -1,6 +1,6 @@
 import { DEFAULT_ERROR_MESSAGE_500 } from '@/lib/default.constant';
 import type { BaseApiResponse } from '@/types/common';
-import type { DevicesApiResponse } from '@/types/device';
+import type { DevicesApiResponse, DeviceListParams } from '@/types/device';
 import { NextRequest, NextResponse } from 'next/server';
 import { getRnDevicesRelBySchoolNo } from '@/services/areas/[area]/schools/[schoolNo]/devices/devices.service';
 import { z } from 'zod';
@@ -16,45 +16,40 @@ import { z } from 'zod';
  * @todo (옵션) 필터링 추가: `tags`를 받아서 태그로 학교 센서 장치 목록 조회.
  *
  */
-export async function GET(request: NextRequest, { params }: { params: Promise<{ area: string; schoolNo: string }> }) {
+export async function GET(request: NextRequest, { params }: { params: { area: string; schoolNo: string } }) {
   try {
-    const { area, schoolNo } = await params;
+    const { area, schoolNo } = params;
     const searchParams = request.nextUrl.searchParams;
 
     // 1. 쿼리 파라미터 파싱
-    const page = parseInt(searchParams.get('page') ?? '1', 10);
-    const pageSize = parseInt(searchParams.get('pageSize') ?? '10', 10);
-    const model = searchParams.get('model');
-    const ip = searchParams.get('ip');
-    const rip = searchParams.get('rip');
-    const interval = searchParams.get('interval') ? parseInt(searchParams.get('interval')!, 10) : undefined;
-    const ver = searchParams.get('ver');
-    const tags = searchParams.get('tags');
+    const queryParams: DeviceListParams = {
+      school_no: parseInt(schoolNo, 10),
+      page: parseInt(searchParams.get('page') ?? '1', 10),
+      pageSize: parseInt(searchParams.get('pageSize') ?? '10', 10),
+      filters: {
+        model: searchParams.get('model') || null,
+        ip: searchParams.get('ip') || null,
+        rip: searchParams.get('rip') || null,
+        interval: searchParams.get('interval') ? parseInt(searchParams.get('interval')!, 10) : null,
+        ver: searchParams.get('ver') || null,
+        tags: searchParams.get('tags') || null,
+      },
+    };
 
     console.log('GET /api/areas/[area]/schools/[schoolNo]/devices', {
       area,
       schoolNo,
-      page,
-      pageSize,
-      filters: { model, ip, rip, interval, ver, tags },
+      ...queryParams,
     });
 
     // 2. 센서 목록 조회
-    const result = await getRnDevicesRelBySchoolNo({
-      school_no: parseInt(schoolNo, 10),
-      page,
-      pageSize,
-      filters: {
-        model: model ?? undefined,
-        ip: ip ?? undefined,
-        rip: rip ?? undefined,
-        interval,
-        ver: ver ?? undefined,
-        tags: tags ?? undefined,
-      },
-    });
+    const result = await getRnDevicesRelBySchoolNo(queryParams);
 
-    return NextResponse.json(result satisfies DevicesApiResponse);
+    return NextResponse.json({
+      success: true,
+      message: '',
+      data: result,
+    } satisfies DevicesApiResponse);
   } catch (error) {
     console.error('Error in GET /api/areas/[area]/schools/[schoolNo]/devices:', error);
 

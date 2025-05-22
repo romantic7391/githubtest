@@ -114,19 +114,14 @@ export type DeviceBasic = z.infer<typeof deviceBasicSchema>;
 /**
  * 센서 장치 필터링
  */
-export const deviceFilterSchema = deviceSchema
-  .omit({
-    splrate: true,
-    checkin: true,
-    created: true,
-  })
-  .extend({
-    model: z.string().max(16).optional(),
-    ip: z.string().ip({ version: 'v4' }).optional(),
-    rip: z.string().ip({ version: 'v4' }).optional(),
-    interval: z.number().int().max(9999999).optional(),
-    ver: z.string().max(24).optional(),
-    tags: z.string().max(65535).optional(),
+export const deviceFilterSchema = z
+  .object({
+    model: z.string().max(16).nullable(),
+    ip: z.string().ip({ version: 'v4' }).nullable(),
+    rip: z.string().ip({ version: 'v4' }).nullable(),
+    interval: z.number().int().max(9999999).nullable(),
+    ver: z.string().max(24).nullable(),
+    tags: z.string().max(65535).nullable(),
   })
   .partial();
 

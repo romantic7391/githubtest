@@ -1,6 +1,6 @@
 import { findRnDevicesRelBySchoolNo } from '@/models/rnDevicesRel/rnDevicesRel.model';
 import { deviceListParamsSchema } from '@/types/device';
-import type { Device } from '@/types/device';
+import type { Device, DeviceListParams } from '@/types/device';
 
 /**
  * 지역 학교 센서 장치 목록 조회
@@ -17,19 +17,7 @@ import type { Device } from '@/types/device';
 /**
  * 지역 학교 센서 장치 목록 조회
  */
-export async function getRnDevicesRelBySchoolNo(params: {
-  school_no: number;
-  page?: number;
-  pageSize?: number;
-  filters?: {
-    model?: string;
-    ip?: string;
-    rip?: string;
-    interval?: number;
-    ver?: string;
-    tags?: string;
-  };
-}): Promise<{
+export async function getRnDevicesRelBySchoolNo(params: DeviceListParams): Promise<{
   devices: Device[];
   pagination: {
     page: number;
