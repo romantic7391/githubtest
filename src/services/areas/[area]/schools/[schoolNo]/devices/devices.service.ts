@@ -1,7 +1,6 @@
-import { DEFAULT_ERROR_MESSAGE_500, DEFAULT_PAGE_SIZE } from '@/lib/default.constant';
-import type { BaseApiResponse } from '@/types/common';
-import type { DevicesApiResponse } from '@/types/device';
-import { NextRequest, NextResponse } from 'next/server';
+import { findRnDevicesRelBySchoolNo } from '@/models/rnDevicesRel/rnDevicesRel.model';
+import { deviceListParamsSchema } from '@/types/device';
+import type { Device, DeviceListParams } from '@/types/device';
 
 /**
  * 지역 학교 센서 장치 목록 조회
@@ -14,37 +13,22 @@ import { NextRequest, NextResponse } from 'next/server';
  * @todo (옵션) 필터링 추가: `tags`를 받아서 태그로 학교 센서 장치 목록 조회.
  *
  */
-export async function GET(request: NextRequest, { params }: { params: Promise<{ area: string; schoolNo: string }> }) {
-  try {
-    console.log(
-      'GET /api/areas/[area]/schools/[schoolNo]/devices',
-      await params,
-      request.nextUrl.searchParams.get('model'),
-      request.nextUrl.searchParams.get('ip'),
-      request.nextUrl.searchParams.get('rip'),
-      request.nextUrl.searchParams.get('interval'),
-      request.nextUrl.searchParams.get('ver'),
-      request.nextUrl.searchParams.get('tags'),
-    );
 
-    return NextResponse.json({
-      success: true,
-      message: '',
-      data: {
-        devices: [],
-        pagination: {
-          page: 1,
-          pageSize: DEFAULT_PAGE_SIZE,
-          total: 0,
-          totalPages: 0,
-        },
-      },
-    } satisfies DevicesApiResponse);
-  } catch (error) {
-    console.error(error);
-    return NextResponse.json({
-      success: false,
-      message: DEFAULT_ERROR_MESSAGE_500,
-    } satisfies BaseApiResponse);
-  }
+/**
+ * 지역 학교 센서 장치 목록 조회
+ */
+export async function getRnDevicesRelBySchoolNo(params: DeviceListParams): Promise<{
+  devices: Device[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    total: number;
+    totalPages: number;
+  };
+}> {
+  // 1. 파라미터 검증
+  const validatedParams = deviceListParamsSchema.parse(params);
+
+  // 2. 센서 목록 조회
+  return await findRnDevicesRelBySchoolNo(validatedParams);
 }

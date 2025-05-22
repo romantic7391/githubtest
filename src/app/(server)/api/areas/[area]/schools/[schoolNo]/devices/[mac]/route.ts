@@ -1,75 +1,106 @@
-import { DEFAULT_ERROR_MESSAGE_500 } from '@/lib/default.constant';
-import type { BaseApiResponse } from '@/types/common';
-import type { DeviceApiResponse, DeviceCreateOrUpdateApiResponse } from '@/types/device';
 import { NextRequest, NextResponse } from 'next/server';
+import {
+  getDevice,
+  updateDevice,
+  deleteDevice,
+} from '@/services/areas/[area]/schools/[schoolNo]/devices/[mac]/[mac].service';
+import { deviceRelSchema } from '@/types/device';
+import { getClientInfo } from '@/services/log-action/log-action.service';
+import { z } from 'zod';
 
 /**
  * 지역 학교 센서 장치 정보
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ area: string; schoolNo: string; mac: string }> },
+  { params }: { params: { area: string; schoolNo: string; mac: string } },
 ) {
   try {
-    console.log('GET /api/areas/[area]/schools/[schoolNo]/devices/[mac]', await params);
+    const { mac, schoolNo } = params;
+    console.log('[GET] 요청 파라미터:', { mac, schoolNo });
 
-    return NextResponse.json({
-      success: true,
-      message: '',
-      data: {
-        mac: '1234567890',
-        name: '1234567890',
-        summary: '1234567890',
-        kind: 1,
-        extra: '1234567890',
-        sdate: '1970-01-01 00:00:00',
-        edate: '1970-01-01 00:00:00',
-        created: '1970-01-01 00:00:00',
-        device: {
-          model: '1234567890',
-          ip: '1234567890',
-          rip: '1234567890',
-          splrate: 10,
-          interval: 10,
-          ver: '1.0.0',
-          tags: '1234567890',
-          checkin: '1970-01-01 00:00:00',
-          created: '1970-01-01 00:00:00',
-        },
+    const { userAgent, ip } = getClientInfo(request);
+    const device = await getDevice(
+      { mac, school_no: parseInt(schoolNo, 10) },
+      {
+        manager_no: 1, // 임시로 1로 설정
+        ip,
+        user_agent: userAgent,
       },
-    } satisfies DeviceApiResponse);
+    );
+    console.log('[GET] 조회된 디바이스:', device);
+
+    if (!device) {
+      return NextResponse.json({ success: false, message: '센서를 찾을 수 없습니다.' }, { status: 404 });
+    }
+
+    // Zod로 응답 데이터 검증
+    try {
+      const validatedDevice = deviceRelSchema.parse(device);
+      return NextResponse.json({ success: true, data: validatedDevice });
+    } catch (validationError) {
+      console.error('[GET] 데이터 검증 에러:', validationError);
+      if (validationError instanceof z.ZodError) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: '데이터 검증에 실패했습니다.',
+            errors: validationError.errors,
+            rawData: device,
+          },
+          { status: 400 },
+        );
+      }
+      throw validationError;
+    }
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({
-      success: false,
-      message: DEFAULT_ERROR_MESSAGE_500,
-    } satisfies BaseApiResponse);
+    console.error('[GET] 센서 조회 에러:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        message: '센서 조회 중 오류가 발생했습니다.',
+        error: error instanceof Error ? error.message : String(error),
+      },
+      { status: 500 },
+    );
   }
 }
 
 /**
- * 지역 학교 수정
+ * 지역 학교센서 수정
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ area: string; schoolNo: string; mac: string }> },
+  { params }: { params: { area: string; schoolNo: string; mac: string } },
 ) {
   try {
-    console.log('PUT /api/areas/[area]/schools/[schoolNo]/devices/[mac]', await params, await request.json());
+    const { mac, schoolNo } = params;
+    const body = await request.json();
 
+    // Zod로 요청 데이터 검증
+    const validatedData = deviceRelSchema.parse(body);
+    const dto = { ...validatedData, mac, school_no: parseInt(schoolNo, 10) };
+
+    const { userAgent, ip } = getClientInfo(request);
+    const result = await updateDevice(dto, {
+      manager_no: 1, // 임시로 1로 설정
+      ip,
+      user_agent: userAgent,
+    });
     return NextResponse.json({
       success: true,
-      message: '',
-      data: {
-        mac: '1234567890',
-      },
-    } satisfies DeviceCreateOrUpdateApiResponse);
+      message: '센서가 성공적으로 수정되었습니다.',
+      data: result,
+    });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({
-      success: false,
-      message: DEFAULT_ERROR_MESSAGE_500,
-    } satisfies BaseApiResponse);
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { success: false, message: '데이터 검증에 실패했습니다.', errors: error.errors },
+        { status: 400 },
+      );
+    }
+    console.error('[PUT] 센서 수정 에러:', error);
+    return NextResponse.json({ success: false, message: '센서 수정 중 오류가 발생했습니다.' }, { status: 500 });
   }
 }
 
@@ -78,20 +109,22 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ area: string; schoolNo: string; mac: string }> },
+  { params }: { params: { area: string; schoolNo: string; mac: string } },
 ) {
   try {
-    console.log('DELETE /api/areas/[area]/schools/[schoolNo]/devices/[mac]', await params);
-
-    return NextResponse.json({
-      success: true,
-      message: '',
-    } satisfies BaseApiResponse);
+    const { mac, schoolNo } = params;
+    const { userAgent, ip } = getClientInfo(request);
+    await deleteDevice(
+      { mac, school_no: parseInt(schoolNo, 10) },
+      {
+        manager_no: 1, // 임시로 1로 설정
+        ip,
+        user_agent: userAgent,
+      },
+    );
+    return NextResponse.json({ success: true, message: '센서가 성공적으로 삭제되었습니다.' });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({
-      success: false,
-      message: DEFAULT_ERROR_MESSAGE_500,
-    } satisfies BaseApiResponse);
+    console.error('[DELETE] 센서 삭제 에러:', error);
+    return NextResponse.json({ success: false, message: '센서 삭제 중 오류가 발생했습니다.' }, { status: 500 });
   }
 }

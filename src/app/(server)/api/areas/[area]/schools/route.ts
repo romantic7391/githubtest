@@ -3,6 +3,7 @@ import type { BaseApiResponse, Pagination } from '@/types/common';
 import type { SchoolsApiResponse } from '@/types/school';
 import { NextRequest, NextResponse } from 'next/server';
 import { getRnSchoolsByArea } from '@/services/areas/[area]/schools/schools.service';
+import { getClientInfo } from '@/services/log-action/log-action.service';
 import { z } from 'zod';
 
 /**
@@ -15,9 +16,9 @@ import { z } from 'zod';
  * @todo (옵션) 필터링 추가: `active`를 받아서 활성화 여부에 따른 학교 목록 조회.
  * @todo (옵션) 필터링 추가: `administrationcode`를 받아서 관리 코드로 학교 목록 조회.
  */
-export async function GET(request: NextRequest, { params }: { params: Promise<{ area: string }> }) {
+export async function GET(request: NextRequest, { params }: { params: { area: string } }) {
   try {
-    const { area } = await params;
+    const { area } = params;
     const searchParams = request.nextUrl.searchParams;
 
     // 파라미터 파싱 및 검증
@@ -55,7 +56,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       administrationCode: searchParams.get('administrationcode') || undefined,
     };
 
-    const { schools, total } = await getRnSchoolsByArea(area, page, pageSize, filters);
+    const { userAgent, ip } = getClientInfo(request);
+    const { schools, total } = await getRnSchoolsByArea(area, page, pageSize, filters, {
+      manager_no: 1, // 임시로 1로 설정
+      ip,
+      user_agent: userAgent,
+    });
 
     const pagination: Pagination = {
       page,
@@ -76,7 +82,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       { status: 200 },
     );
   } catch (error) {
-    console.error(error);
+    console.error('[GET] 학교 목록 조회 중 오류 발생:', error);
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         {
