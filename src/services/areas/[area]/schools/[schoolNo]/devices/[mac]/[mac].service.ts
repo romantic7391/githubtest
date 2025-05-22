@@ -5,11 +5,17 @@ import {
   softDeleteRnDevicesRel,
 } from '@/models/rnDevicesRel/rnDevicesRel.model';
 import { findDeviceByMac, updateDeviceFn, softDeleteRnDevice } from '@/models/rnDevices/rnDevices.model';
+import { logAction, makeLogParams } from '@/services/log-action/log-action.service';
+import { beginTransaction, commitTransaction, rollbackTransaction } from '@/lib/mariadb/query';
 
 /**
  * 지역 학교 센서 장치 정보 조회
  */
-export async function getDevice(params: DeviceBasic) {
+export async function getDevice(
+  params: DeviceBasic,
+  meta: { manager_no: number; ip: string | null; user_agent: string | null },
+) {
+  const conn = await beginTransaction();
   try {
     const device = await findRnDeviceRelBySchoolNoAndMac(params);
     if (!device) return null;
@@ -37,8 +43,27 @@ export async function getDevice(params: DeviceBasic) {
       },
     };
 
+    // 로그 기록
+    await logAction(
+      makeLogParams({
+        manager_no: meta.manager_no,
+        school_no: params.school_no,
+        ip: meta.ip,
+        user_agent: meta.user_agent,
+        action_type: 'S',
+        target_table: 'rndevicesrel',
+        target_id: params.mac,
+        old_values: null,
+        new_values: JSON.stringify(transformedDevice),
+        reason: '센서 정보 조회',
+      }),
+      conn,
+    );
+
+    await commitTransaction(conn);
     return transformedDevice;
   } catch (error) {
+    await rollbackTransaction(conn);
     console.error('[getDeviceService] DB 조회 에러:', error);
     throw new Error('센서 조회 중 오류가 발생했습니다.');
   }
@@ -47,13 +72,17 @@ export async function getDevice(params: DeviceBasic) {
 /**
  * 지역 학교 센서 수정
  */
-export async function updateDevice(dto: DeviceBasic & Omit<Device, 'mac'>): Promise<{ mac: string }> {
+export async function updateDevice(
+  dto: DeviceBasic & Omit<Device, 'mac'>,
+  meta: { manager_no: number; ip: string | null; user_agent: string | null },
+): Promise<{ mac: string }> {
+  const conn = await beginTransaction();
   try {
     // 센서 존재 여부 확인
-    await findDeviceByMac(dto.mac);
+    const oldDevice = await findDeviceByMac(dto.mac);
 
     // rnDevicesRel 테이블 업데이트
-    await updateRnDevicesRel([dto]);
+    await updateRnDevicesRel([dto], conn);
 
     // rnDevices 테이블 업데이트
     const deviceData: Device = {
@@ -77,10 +106,29 @@ export async function updateDevice(dto: DeviceBasic & Omit<Device, 'mac'>): Prom
         created: dto.device.created,
       },
     };
-    await updateDeviceFn([deviceData]);
+    await updateDeviceFn([deviceData], conn);
 
+    // 로그 기록
+    await logAction(
+      makeLogParams({
+        manager_no: meta.manager_no,
+        school_no: dto.school_no,
+        ip: meta.ip,
+        user_agent: meta.user_agent,
+        action_type: 'U',
+        target_table: 'rndevicesrel',
+        target_id: dto.mac,
+        old_values: JSON.stringify(oldDevice),
+        new_values: JSON.stringify(deviceData),
+        reason: '센서 정보 수정',
+      }),
+      conn,
+    );
+
+    await commitTransaction(conn);
     return { mac: dto.mac };
   } catch (error) {
+    await rollbackTransaction(conn);
     console.error('[updateDeviceService] 센서 수정 중 오류 발생:', error);
     throw new Error('센서 수정 중 오류가 발생했습니다.');
   }
@@ -89,17 +137,41 @@ export async function updateDevice(dto: DeviceBasic & Omit<Device, 'mac'>): Prom
 /**
  * 지역 학교 센서 장치 삭제
  */
-export async function deleteDevice(params: { mac: string; school_no: number }) {
+export async function deleteDevice(
+  params: { mac: string; school_no: number },
+  meta: { manager_no: number; ip: string | null; user_agent: string | null },
+) {
+  const conn = await beginTransaction();
   try {
     // 센서 존재 여부 확인
-    await findDeviceByMac(params.mac);
+    const oldDevice = await findDeviceByMac(params.mac);
 
     // rnDevicesRel 테이블에서 삭제
-    await softDeleteRnDevicesRel([{ mac: params.mac, school_no: params.school_no }]);
+    await softDeleteRnDevicesRel([{ mac: params.mac, school_no: params.school_no }], conn);
 
     // rnDevices 테이블에서 삭제
-    await softDeleteRnDevice([{ mac: params.mac }]);
+    await softDeleteRnDevice([{ mac: params.mac }], conn);
+
+    // 로그 기록
+    await logAction(
+      makeLogParams({
+        manager_no: meta.manager_no,
+        school_no: params.school_no,
+        ip: meta.ip,
+        user_agent: meta.user_agent,
+        action_type: 'D',
+        target_table: 'rndevicesrel',
+        target_id: params.mac,
+        old_values: JSON.stringify(oldDevice),
+        new_values: null,
+        reason: '센서 삭제',
+      }),
+      conn,
+    );
+
+    await commitTransaction(conn);
   } catch (error) {
+    await rollbackTransaction(conn);
     console.error('[deleteDeviceService] 센서 삭제 중 오류 발생:', error);
     throw new Error('센서 삭제 중 오류가 발생했습니다.');
   }

@@ -4,7 +4,7 @@ import { findDevicesByMacs, insertRnDevices } from '@/models/rnDevices/rnDevices
 import { beginTransaction, commitTransaction, rollbackTransaction } from '@/lib/mariadb/query';
 import { DeviceCreate } from '@/types/device';
 import { LogMeta } from '@/types/history';
-import { logAction, makeInsertLogParams } from '@/services/log-action/log-action.service';
+import { logAction, makeLogParams } from '@/services/log-action/log-action.service';
 import { DEFAULT_ERROR_MESSAGE_500 } from '@/lib/default.constant';
 
 /**
@@ -52,10 +52,11 @@ async function createDevicesAndRelationsFn(dtos: DeviceCreate[], conn: PoolConne
       action_type: 'I' as const,
       target_table: 'rnDevicesRel',
       target_id: dto.mac,
-      new_values: dto,
+      old_values: null,
+      new_values: JSON.stringify(dto),
       reason: '센서 등록',
     };
-    await logAction(makeInsertLogParams(logParams));
+    await logAction(makeLogParams(logParams), conn);
   }
 
   // 4. rnDevices 테이블에 등록 (새로운 디바이스만)
@@ -77,10 +78,11 @@ async function createDevicesAndRelationsFn(dtos: DeviceCreate[], conn: PoolConne
         action_type: 'I' as const,
         target_table: 'rnDevices',
         target_id: dto.mac,
-        new_values: dto,
+        old_values: null,
+        new_values: JSON.stringify(dto),
         reason: '센서 등록',
       };
-      await logAction(makeInsertLogParams(logParams));
+      await logAction(makeLogParams(logParams), conn);
     }
   }
 }
