@@ -49,7 +49,6 @@ export interface updateRnDevicesRelDto {
 
 export interface softDeleteRnDevicesRelDto {
   mac: string;
-  school_no: number;
 }
 
 // mac 변경용 DTO 타입 정의

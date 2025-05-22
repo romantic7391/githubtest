@@ -179,9 +179,9 @@ export async function updateRnDevicesRel(dtos: updateRnDevicesRelDto[], conn?: P
 export async function softDeleteRnDevicesRel(dtos: softDeleteRnDevicesRelDto[], conn?: PoolConnection) {
   const query = `
     DELETE FROM rnDevicesRel
-    WHERE (mac, school_no) IN (${dtos.map(() => '(?, ?)').join(', ')})
+    WHERE mac IN (${dtos.map(() => '?').join(', ')})
   `;
-  const params = dtos.flatMap((dto) => [dto.mac, dto.school_no]);
+  const params = dtos.map((dto) => dto.mac);
   console.log('[softDeleteRnDevicesRel] 쿼리:', query);
   console.log('[softDeleteRnDevicesRel] 파라미터:', params);
   await exec(query, params, conn);
