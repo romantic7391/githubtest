@@ -5,7 +5,7 @@ import { baseApiResponseSchema, paginationSchema } from './common';
  * 지역
  */
 export const areaSchema = z.object({
-  areaNo: z.number().min(0).max(Number.MAX_SAFE_INTEGER),
+  areaNo: z.number().min(0).max(Number.MAX_SAFE_INTEGER).optional(),
   /**
    * 지역 영문명
    */

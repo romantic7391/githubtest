@@ -1,15 +1,16 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import type { AreaCreateOrUpdateApiResponse } from '@/types/area';
 import type { BaseApiResponse } from '@/types/common';
 import { DEFAULT_ERROR_MESSAGE_500 } from '@/lib/default.constant';
 import { createArea } from '@/services/areas/create/create.service';
 import { areaCreateShcema } from '@/types/area';
 import { ZodError } from 'zod';
+import { getClientInfo } from '@/services/log-action/log-action.service';
 
 /**
  * 지역 생성
  */
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     console.log('[POST /api/areas/create] 요청 시작');
     const body = await request.json();
@@ -18,7 +19,12 @@ export async function POST(request: Request) {
     const validatedData = areaCreateShcema.parse(body);
     console.log('[POST /api/areas/create] 검증된 데이터:', validatedData);
 
-    await createArea(validatedData);
+    const { userAgent, ip } = getClientInfo(request);
+    await createArea(validatedData, {
+      manager_no: 1, // 임시로 1로 설정
+      ip,
+      user_agent: userAgent,
+    });
     console.log('[POST /api/areas/create] 지역 생성 완료');
 
     const response = {

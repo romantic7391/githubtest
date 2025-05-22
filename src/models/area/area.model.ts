@@ -1,5 +1,6 @@
 import { getAll, exec } from '@/lib/mariadb/query';
 import type { Area, AreaCreate } from '@/types/area';
+import type { PoolConnection } from 'mariadb';
 
 // 지역들 조회
 export async function findAreas(
@@ -44,78 +45,59 @@ export async function findAreas(
 // 지역 조회
 export async function findAreaByArea(area: string): Promise<Area[]> {
   const query = `
-  SELECT 
-    ad.area_no AS areaNo, 
-    ad.area,
-    ad.X ,
-    ad.Y ,
-    ad.areacode AS areaCode
-  FROM AreaData as ad
-  where ad.area = ?;   
-`;
-
-  const params = [area];
-  return await getAll<Area>(query, params);
+    SELECT 
+      ad.area_no AS areaNo, 
+      ad.area,
+      ad.X,
+      ad.Y,
+      ad.areacode AS areaCode
+    FROM AreaData as ad
+    WHERE ad.area = ?;
+  `;
+  return await getAll<Area>(query, [area]);
 }
 
 // 지역 생성
-export async function insertArea(dto: AreaCreate): Promise<void> {
+export async function insertArea(dto: AreaCreate, conn?: PoolConnection): Promise<void> {
   const query = `
     INSERT INTO AreaData (area, X, Y, areacode)
     VALUES (?, ?, ?, ?);
   `;
   const params = [dto.area, dto.x, dto.y, dto.areaCode];
 
-  await exec(query, params);
+  await exec(query, params, conn);
 }
 
 // 지역 수정
-export async function updateAreaInfo(dto: Area): Promise<void> {
-  // 1. 먼저 area로 areaNo를 찾습니다
-  const findQuery = `
-    SELECT area_no
-    FROM AreaData
-    WHERE area = ?;
-  `;
-  const [areaData] = await getAll<{ area_no: number }>(findQuery, [dto.area]);
-
-  if (!areaData) {
-    throw new Error('수정할 지역을 찾을 수 없습니다.');
-  }
-
-  // 2. 찾은 areaNo로 업데이트
-  const updateQuery = `
-    UPDATE AreaData 
-    SET area = ?, X = ?, Y = ?, areacode = ? 
-    WHERE area_no = ?;
+export async function updateAreaInfo(dto: Area, conn?: PoolConnection): Promise<void> {
+  const sql = `
+    UPDATE AreaData
+    SET area = ?,
+        x = ?,
+        y = ?,
+        areaCode = ?
+    WHERE area = ?
   `;
 
-  const params = [dto.area, dto.x, dto.y, dto.areaCode, areaData.area_no];
-  await exec(updateQuery, params);
+  await exec(sql, [dto.area, dto.x, dto.y, dto.areaCode, dto.area], conn);
 }
 
 // 지역 삭제
-export async function deleteAreaFromDB(area: string): Promise<void> {
-  const query = `
-    DELETE FROM AreaData WHERE area = ?;
+export async function deleteAreaFromDB(area: string, conn?: PoolConnection): Promise<void> {
+  const sql = `
+    DELETE FROM AreaData
+    WHERE area = ?
   `;
-
-  await exec(query, [area]);
+  await exec(sql, [area], conn);
 }
 
 // 지역 중복 검증
-export async function checkAreaExists(area: string, excludeAreaNo?: number): Promise<boolean> {
-  const query = `
-  SELECT 
-    ad.area_no,
-    ad.area
-  FROM AreaData as ad
-  WHERE ad.area = ?
-  ${excludeAreaNo ? 'AND ad.area_no != ?' : ''}
-  LIMIT 1;   
-`;
-
-  const params = excludeAreaNo ? [area, excludeAreaNo] : [area];
-  const result = await getAll<Area>(query, params);
-  return result.length > 0;
+export async function checkAreaExists(area: string): Promise<boolean> {
+  const sql = `
+    SELECT COUNT(*) as count
+    FROM AreaData
+    WHERE area = ?
+  `;
+  const result = await getAll<{ count: number }>(sql, [area]);
+  return result[0].count > 0;
 }

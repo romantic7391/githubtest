@@ -1,20 +1,43 @@
 import { findAreaByArea, updateAreaInfo, deleteAreaFromDB, checkAreaExists } from '@/models/area/area.model';
-
+import { beginTransaction, commitTransaction, rollbackTransaction } from '@/lib/mariadb/query';
+import { logAction, makeLogParams } from '@/services/log-action/log-action.service';
 import type { Area } from '@/types/area';
+import type { LogMeta } from '@/types/history';
 
 // 지역 조회
-export async function getAreaByArea(area: string) {
+export async function getAreaByArea(area: string, meta: LogMeta) {
+  const conn = await beginTransaction();
   try {
-    return await findAreaByArea(area);
+    const result = await findAreaByArea(area);
+
+    // 로그 기록
+    await logAction(
+      makeLogParams({
+        manager_no: meta.manager_no,
+        ip: meta.ip,
+        user_agent: meta.user_agent,
+        action_type: 'S',
+        target_table: 'AreaData',
+        target_id: area,
+        old_values: null,
+        new_values: JSON.stringify(result),
+        reason: '지역 정보 조회',
+      }),
+      conn,
+    );
+
+    await commitTransaction(conn);
+    return result;
   } catch (error) {
-    // 내부 에러 정보는 콘솔에만 남김
+    await rollbackTransaction(conn);
     console.error('[getAreaByAreaService] DB 조회 에러:', error);
     throw new Error('지역 목록 조회 중 오류가 발생했습니다.');
   }
 }
 
 // 지역 수정
-export async function updateArea(dto: Area): Promise<void> {
+export async function updateArea(dto: Area, meta: LogMeta): Promise<void> {
+  const conn = await beginTransaction();
   try {
     if (!dto.area) {
       throw new Error('지역명이 필요합니다.');
@@ -26,19 +49,66 @@ export async function updateArea(dto: Area): Promise<void> {
       throw new Error('이미 존재하는 지역명입니다.');
     }
 
-    await updateAreaInfo(dto);
+    // 이전 데이터 조회
+    const oldData = await findAreaByArea(dto.area);
+
+    // 데이터 수정
+    await updateAreaInfo(dto, conn);
+
+    // 로그 기록
+    await logAction(
+      makeLogParams({
+        manager_no: meta.manager_no,
+        ip: meta.ip,
+        user_agent: meta.user_agent,
+        action_type: 'U',
+        target_table: 'AreaData',
+        target_id: dto.area,
+        old_values: JSON.stringify(oldData),
+        new_values: JSON.stringify(dto),
+        reason: '지역 정보 수정',
+      }),
+      conn,
+    );
+
+    await commitTransaction(conn);
   } catch (error) {
+    await rollbackTransaction(conn);
     console.error('[updateAreaService] 지역 수정 중 오류:', error);
     throw error instanceof Error ? error : new Error('지역 수정 중 오류가 발생했습니다.');
   }
 }
 
 // 지역 삭제
-export async function deleteArea(area: string): Promise<void> {
+export async function deleteArea(area: string, meta: LogMeta): Promise<void> {
+  const conn = await beginTransaction();
   try {
+    // 이전 데이터 조회
+    const oldData = await findAreaByArea(area);
+
+    // 데이터 삭제
     await deleteAreaFromDB(area);
+
+    // 로그 기록
+    await logAction(
+      makeLogParams({
+        manager_no: meta.manager_no,
+        ip: meta.ip,
+        user_agent: meta.user_agent,
+        action_type: 'D',
+        target_table: 'AreaData',
+        target_id: area,
+        old_values: JSON.stringify(oldData),
+        new_values: null,
+        reason: '지역 삭제',
+      }),
+      conn,
+    );
+
+    await commitTransaction(conn);
   } catch (error) {
-    console.error('[deleteAreaService] 학교 삭제 중 오류:', error);
-    throw new Error('학교 삭제 중 오류가 발생했습니다.');
+    await rollbackTransaction(conn);
+    console.error('[deleteAreaService] 지역 삭제 중 오류:', error);
+    throw new Error('지역 삭제 중 오류가 발생했습니다.');
   }
 }

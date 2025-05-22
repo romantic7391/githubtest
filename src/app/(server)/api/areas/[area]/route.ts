@@ -5,6 +5,7 @@ import { DEFAULT_ERROR_MESSAGE_500 } from '@/lib/default.constant';
 import { getAreaByArea, updateArea, deleteArea } from '@/services/areas/[area]/[area].service';
 import { areaSchema } from '@/types/area';
 import { ZodError } from 'zod';
+import { getClientInfo } from '@/services/log-action/log-action.service';
 
 /**
  * 지역 조회
@@ -14,7 +15,13 @@ import { ZodError } from 'zod';
 export async function GET(request: NextRequest, { params }: { params: Promise<{ area: string }> }) {
   try {
     const { area } = await params;
-    const areas = await getAreaByArea(area);
+    const { userAgent, ip } = getClientInfo(request);
+
+    const areas = await getAreaByArea(area, {
+      manager_no: 1, // 임시로 1로 설정
+      ip,
+      user_agent: userAgent,
+    });
 
     if (!areas || areas.length === 0) {
       return NextResponse.json(
@@ -49,12 +56,18 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 /**
  * 지역 수정
  */
-export async function PUT(request: Request) {
+export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
     const validatedData = areaSchema.parse(body);
+    const { userAgent, ip } = getClientInfo(request);
 
-    await updateArea(validatedData);
+    await updateArea(validatedData, {
+      manager_no: 1, // 임시로 1로 설정
+      ip,
+      user_agent: userAgent,
+    });
+
     return NextResponse.json(
       {
         success: true,
@@ -98,10 +111,17 @@ export async function PUT(request: Request) {
 /**
  * 지역 삭제
  */
-export async function DELETE(request: Request, { params }: { params: Promise<{ area: string }> }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ area: string }> }) {
   try {
     const { area } = await params;
-    await deleteArea(area);
+    const { userAgent, ip } = getClientInfo(request);
+
+    await deleteArea(area, {
+      manager_no: 1, // 임시로 1로 설정
+      ip,
+      user_agent: userAgent,
+    });
+
     return NextResponse.json(
       {
         success: true,
