@@ -1,7 +1,9 @@
 import { findRnDevicesRelBySchoolNo } from '@/models/rnDevicesRel/rnDevicesRel.model';
 import { deviceListParamsSchema } from '@/types/device';
 import type { Device, DeviceListParams } from '@/types/device';
-
+import type { Pagination } from '@/types/common';
+import { logAction, makeLogParams } from '@/services/log-action/log-action.service';
+import type { LogMeta } from '@/types/history';
 /**
  * 지역 학교 센서 장치 목록 조회
  *
@@ -17,18 +19,33 @@ import type { Device, DeviceListParams } from '@/types/device';
 /**
  * 지역 학교 센서 장치 목록 조회
  */
-export async function getRnDevicesRelBySchoolNo(params: DeviceListParams): Promise<{
+export async function getRnDevicesRelBySchoolNo(
+  params: DeviceListParams,
+  meta: LogMeta,
+): Promise<{
   devices: Device[];
-  pagination: {
-    page: number;
-    pageSize: number;
-    total: number;
-    totalPages: number;
-  };
+  pagination: Pagination;
 }> {
   // 1. 파라미터 검증
   const validatedParams = deviceListParamsSchema.parse(params);
 
   // 2. 센서 목록 조회
-  return await findRnDevicesRelBySchoolNo(validatedParams);
+  const result = await findRnDevicesRelBySchoolNo(validatedParams);
+
+  // 3. 히스토리 기록
+  await logAction(
+    makeLogParams({
+      manager_no: meta.manager_no,
+      ip: meta.ip,
+      user_agent: meta.user_agent,
+      action_type: 'S',
+      target_table: 'rnDevicesRel',
+      target_id: validatedParams.school_no.toString(),
+      old_values: null,
+      new_values: JSON.stringify(result),
+      reason: '센서 목록 조회',
+    }),
+  );
+
+  return result;
 }
