@@ -3,13 +3,7 @@ import { BaseApiResponse } from '@/types/common';
 import { SchoolCreateOrUpdateApiResponse } from '@/types/school';
 import { NextRequest, NextResponse } from 'next/server';
 import { createRnSchool } from '@/services/areas/[area]/schools/create/create.service';
-
-// 클라이언트 정보 가져오기
-function getClientInfo(req: NextRequest) {
-  const userAgent = req.headers.get('user-agent') || '';
-  const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || '';
-  return { userAgent, ip };
-}
+import { getClientInfo } from '@/services/log-action/log-action.service';
 
 /**
  * 지역 학교 추가
