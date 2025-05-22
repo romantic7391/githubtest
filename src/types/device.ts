@@ -110,3 +110,42 @@ export const deviceBasicSchema = z.object({
  * 센서 장치 기본 정보 타입
  */
 export type DeviceBasic = z.infer<typeof deviceBasicSchema>;
+
+/**
+ * 센서 장치 필터링
+ */
+export const deviceFilterSchema = deviceSchema
+  .omit({
+    splrate: true,
+    checkin: true,
+    created: true,
+  })
+  .extend({
+    model: z.string().max(16).optional(),
+    ip: z.string().ip({ version: 'v4' }).optional(),
+    rip: z.string().ip({ version: 'v4' }).optional(),
+    interval: z.number().int().max(9999999).optional(),
+    ver: z.string().max(24).optional(),
+    tags: z.string().max(65535).optional(),
+  })
+  .partial();
+
+/**
+ * 센서 장치 필터링 타입
+ */
+export type DeviceFilter = z.infer<typeof deviceFilterSchema>;
+
+/**
+ * 센서 장치 목록 조회 파라미터
+ */
+export const deviceListParamsSchema = z.object({
+  school_no: z.number(),
+  page: z.number().positive().default(1),
+  pageSize: z.number().positive().default(10),
+  filters: deviceFilterSchema.optional(),
+});
+
+/**
+ * 센서 장치 목록 조회 파라미터 타입
+ */
+export type DeviceListParams = z.infer<typeof deviceListParamsSchema>;

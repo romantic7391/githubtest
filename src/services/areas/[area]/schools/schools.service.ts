@@ -8,11 +8,11 @@ export async function getRnSchoolsByArea(
   page: number = 1,
   pageSize: number = DEFAULT_PAGE_SIZE,
   filters?: {
-    sname?: string;
-    scode?: string;
-    useOrderSheet?: 'Y' | 'N';
-    active?: 'Y' | 'N';
-    administrationCode?: string;
+    sname: string;
+    scode: string;
+    useOrderSheet: 'Y' | 'N';
+    active: 'Y' | 'N';
+    administrationCode: string;
   },
 ) {
   try {

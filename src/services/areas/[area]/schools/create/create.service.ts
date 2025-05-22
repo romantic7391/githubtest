@@ -22,8 +22,8 @@ export async function createRnSchool(administrationCode: string, userInput: Part
       modbus: userInput.modbus || 0,
       modbusHost: userInput.modbusHost || null,
       modbusPort: userInput.modbusPort || 502,
-      useOrderSheet: userInput.useOrderSheet ?? 'N',
-      active: userInput.active ?? 'Y',
+      useOrderSheet: userInput.useOrderSheet || 'N',
+      active: userInput.active || 'Y',
       parentNo: null,
     };
 

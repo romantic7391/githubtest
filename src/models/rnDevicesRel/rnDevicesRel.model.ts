@@ -2,7 +2,7 @@ import { exec, getAll, getRow } from '@/lib/mariadb/query';
 import type { PoolConnection } from 'mariadb';
 import { updateDeviceMac } from '@/models/rnDevices/rnDevices.model';
 import { UpdateMacDto } from '@/interfaces/rnDevicesRel/rnDevicesRel.d';
-import { Device, DeviceCreate, DeviceBasic, DeviceDb } from '@/types/device';
+import { Device, DeviceCreate, DeviceBasic, DeviceDb, DeviceListParams } from '@/types/device';
 
 // 학교별 내용 조회
 // export async function findBySchoolNo(school_no: number): Promise<findBySchoolNoVO[]> {
@@ -25,28 +25,60 @@ import { Device, DeviceCreate, DeviceBasic, DeviceDb } from '@/types/device';
 // }
 
 // 학교의 센서 목록 조회
-export async function findRnDevicesRelBySchoolNo(params: {
-  school_no: number;
-  limit?: number;
-  offset?: number;
-}): Promise<{
+export async function findRnDevicesRelBySchoolNo(params: DeviceListParams): Promise<{
   devices: Device[];
   pagination: {
     page: number;
     pageSize: number;
     total: number;
-    totalPage: number;
+    totalPages: number;
   };
 }> {
-  const { school_no, limit = 10, offset = 0 } = params;
+  const { school_no, page = 1, pageSize = 10, filters } = params;
+  const offset = (page - 1) * pageSize;
+
+  // WHERE 절 조건 생성
+  const conditions = ['rdr.school_no = ?']; // 기본 조건
+  const queryParams: (string | number)[] = [school_no];
+
+  if (filters?.model) {
+    conditions.push('rd.model LIKE ?');
+    queryParams.push(`%${filters.model}%`);
+  }
+
+  if (filters?.ip) {
+    conditions.push('rd.ip LIKE ?');
+    queryParams.push(`%${filters.ip}%`);
+  }
+
+  if (filters?.rip) {
+    conditions.push('rd.rip LIKE ?');
+    queryParams.push(`%${filters.rip}%`);
+  }
+
+  if (filters?.interval !== undefined && filters?.interval !== null) {
+    conditions.push('rd.interval = ?');
+    queryParams.push(filters.interval);
+  }
+
+  if (filters?.ver) {
+    conditions.push('rd.ver LIKE ?');
+    queryParams.push(`%${filters.ver}%`);
+  }
+
+  if (filters?.tags) {
+    conditions.push('rd.tags LIKE ?');
+    queryParams.push(`%${filters.tags}%`);
+  }
 
   // 전체 개수 조회
   const countQuery = `
     SELECT COUNT(*) as total
     FROM rnDevicesRel AS rdr
-    WHERE rdr.school_no = ?
+    JOIN rnDevices AS rd ON rdr.mac = rd.mac
+    WHERE ${conditions.join(' AND ')}
   `;
-  const countResult = await getRow<{ total: number }>(countQuery, [school_no]);
+  const countResult = await getRow<{ total: number }>(countQuery, queryParams);
   const total = countResult?.total ?? 0;
 
   // 데이터 조회
@@ -70,24 +102,23 @@ export async function findRnDevicesRelBySchoolNo(params: {
       rd.checkin,
       rd.created as device_created
     FROM rnDevicesRel AS rdr
-     JOIN rnDevices AS rd ON rdr.mac = rd.mac
-    WHERE rdr.school_no = ? 
+    JOIN rnDevices AS rd ON rdr.mac = rd.mac
+    WHERE ${conditions.join(' AND ')}
     ORDER BY rdr.mac
     LIMIT ? OFFSET ?
   `;
 
-  const devices = await getAll<Device>(query, [school_no, limit, offset]);
+  const devices = await getAll<Device>(query, [...queryParams, pageSize, offset]);
 
-  const page = Math.floor(offset / limit) + 1;
-  const totalPage = Math.ceil(total / limit);
+  const totalPages = Math.ceil(total / pageSize);
 
   return {
     devices,
     pagination: {
       page,
-      pageSize: limit,
+      pageSize,
       total,
-      totalPage,
+      totalPages,
     },
   };
 }

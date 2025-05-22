@@ -1,7 +1,9 @@
-import { DEFAULT_ERROR_MESSAGE_500, DEFAULT_PAGE_SIZE } from '@/lib/default.constant';
+import { DEFAULT_ERROR_MESSAGE_500 } from '@/lib/default.constant';
 import type { BaseApiResponse } from '@/types/common';
 import type { DevicesApiResponse } from '@/types/device';
 import { NextRequest, NextResponse } from 'next/server';
+import { getRnDevicesRelBySchoolNo } from '@/services/areas/[area]/schools/[schoolNo]/devices/devices.service';
+import { z } from 'zod';
 
 /**
  * 지역 학교 센서 장치 목록 조회
@@ -16,35 +18,63 @@ import { NextRequest, NextResponse } from 'next/server';
  */
 export async function GET(request: NextRequest, { params }: { params: Promise<{ area: string; schoolNo: string }> }) {
   try {
-    console.log(
-      'GET /api/areas/[area]/schools/[schoolNo]/devices',
-      await params,
-      request.nextUrl.searchParams.get('model'),
-      request.nextUrl.searchParams.get('ip'),
-      request.nextUrl.searchParams.get('rip'),
-      request.nextUrl.searchParams.get('interval'),
-      request.nextUrl.searchParams.get('ver'),
-      request.nextUrl.searchParams.get('tags'),
-    );
+    const { area, schoolNo } = await params;
+    const searchParams = request.nextUrl.searchParams;
 
-    return NextResponse.json({
-      success: true,
-      message: '',
-      data: {
-        devices: [],
-        pagination: {
-          page: 1,
-          pageSize: DEFAULT_PAGE_SIZE,
-          total: 0,
-          totalPages: 0,
-        },
+    // 1. 쿼리 파라미터 파싱
+    const page = parseInt(searchParams.get('page') ?? '1', 10);
+    const pageSize = parseInt(searchParams.get('pageSize') ?? '10', 10);
+    const model = searchParams.get('model');
+    const ip = searchParams.get('ip');
+    const rip = searchParams.get('rip');
+    const interval = searchParams.get('interval') ? parseInt(searchParams.get('interval')!, 10) : undefined;
+    const ver = searchParams.get('ver');
+    const tags = searchParams.get('tags');
+
+    console.log('GET /api/areas/[area]/schools/[schoolNo]/devices', {
+      area,
+      schoolNo,
+      page,
+      pageSize,
+      filters: { model, ip, rip, interval, ver, tags },
+    });
+
+    // 2. 센서 목록 조회
+    const result = await getRnDevicesRelBySchoolNo({
+      school_no: parseInt(schoolNo, 10),
+      page,
+      pageSize,
+      filters: {
+        model: model ?? undefined,
+        ip: ip ?? undefined,
+        rip: rip ?? undefined,
+        interval,
+        ver: ver ?? undefined,
+        tags: tags ?? undefined,
       },
-    } satisfies DevicesApiResponse);
+    });
+
+    return NextResponse.json(result satisfies DevicesApiResponse);
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({
-      success: false,
-      message: DEFAULT_ERROR_MESSAGE_500,
-    } satisfies BaseApiResponse);
+    console.error('Error in GET /api/areas/[area]/schools/[schoolNo]/devices:', error);
+
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: '데이터 검증에 실패했습니다.',
+          errors: error.errors,
+        } satisfies BaseApiResponse,
+        { status: 400 },
+      );
+    }
+
+    return NextResponse.json(
+      {
+        success: false,
+        message: error instanceof Error ? error.message : DEFAULT_ERROR_MESSAGE_500,
+      } satisfies BaseApiResponse,
+      { status: 500 },
+    );
   }
 }
