@@ -1,5 +1,5 @@
 import { existsRnSchoolByAdministrationCode, insertRnSchool } from '@/models/rn-school/rn-school.model';
-import { logAction, makeInsertLogParams } from '@/services/log-action/log-action.service';
+import { logAction, makeLogParams } from '@/services/log-action/log-action.service';
 import { SchoolCreate } from '@/types/school';
 import { LogMeta } from '@/types/history';
 import { DEFAULT_ERROR_MESSAGE_500 } from '@/lib/default.constant';
@@ -33,19 +33,20 @@ export async function createRnSchool(administrationCode: string, userInput: Part
     const school_no = await insertRnSchool(dto);
 
     // 4. 로그 기록
-    const { manager_no, ...restMeta } = meta;
-    const logParams = {
-      ...restMeta,
-      manager_no: manager_no || undefined,
-      school_no,
-      action_type: 'I' as const,
-      target_table: 'rnschool',
-      target_id: `${school_no}`,
-      new_values: { ...dto, school_no },
-      reason: '학교 등록',
-    };
-
-    await logAction(makeInsertLogParams(logParams));
+    await logAction(
+      makeLogParams({
+        manager_no: meta.manager_no,
+        school_no,
+        ip: meta.ip,
+        user_agent: meta.user_agent,
+        action_type: 'I',
+        target_table: 'rnschool',
+        target_id: `${school_no}`,
+        old_values: null,
+        new_values: JSON.stringify({ ...dto, school_no }),
+        reason: '학교 등록',
+      }),
+    );
 
     return {
       type: 'insert',
