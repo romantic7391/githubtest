@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { match } from 'path-to-regexp';
 import { auth, config as authConfig } from '@/auth';
-import { logAction, makeLogParams } from '@/services/log-action/log-action.service';
 
 /**
  * 미들웨어 설정입니다.
@@ -77,18 +76,6 @@ export async function middleware(request: NextRequest) {
       signInUrl.searchParams.set('callbackUrl', callbackUrlEncoded);
 
       return NextResponse.redirect(signInUrl);
-    }
-
-    // 로그인된 사용자의 기본 정보 로깅
-    if (session?.user?.id) {
-      await logAction(
-        makeLogParams({
-          manager_no: Number(session.user.id),
-          school_no: null, // API 엔드포인트에서 설정
-          ip: request.headers.get('x-forwarded-for'),
-          user_agent: request.headers.get('user-agent'),
-        }),
-      );
     }
   }
 
