@@ -10,3 +10,17 @@ export function calculateTotalPage(pageSize: number, total: number): number {
   }
   return Math.ceil(total / pageSize);
 }
+
+/**
+ * 응답이 JSON 형식인지 확인합니다.
+ *
+ * @param {Response} response 응답
+ * @returns {boolean} 응답이 JSON 형식인지 여부
+ */
+export function isJsonResponse(response: Response): boolean {
+  const contentType = response.headers.get('content-type');
+  if (!contentType || !contentType.includes('application/json')) {
+    return false;
+  }
+  return true;
+}
