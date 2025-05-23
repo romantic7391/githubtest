@@ -4,6 +4,7 @@ import type { DevicesApiResponse, DeviceListParams } from '@/types/device';
 import { NextRequest, NextResponse } from 'next/server';
 import { getRnDevicesRelBySchoolNo } from '@/services/areas/[area]/schools/[schoolNo]/devices/devices.service';
 import { z } from 'zod';
+import { getClientInfo } from '@/services/log-action/log-action.service';
 
 /**
  * 지역 학교 센서 장치 목록 조회
@@ -16,10 +17,11 @@ import { z } from 'zod';
  * @todo (옵션) 필터링 추가: `tags`를 받아서 태그로 학교 센서 장치 목록 조회.
  *
  */
-export async function GET(request: NextRequest, { params }: { params: { area: string; schoolNo: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ area: string; schoolNo: string }> }) {
   try {
-    const { area, schoolNo } = params;
+    const { area, schoolNo } = await params;
     const searchParams = request.nextUrl.searchParams;
+    const { ip, userAgent } = getClientInfo(request);
 
     // 1. 쿼리 파라미터 파싱
     const queryParams: DeviceListParams = {
@@ -45,8 +47,9 @@ export async function GET(request: NextRequest, { params }: { params: { area: st
     // 2. 센서 목록 조회
     const result = await getRnDevicesRelBySchoolNo(queryParams, {
       manager_no: 1, // 임시로 1로 설정
-      ip: searchParams.get('ip') || null,
-      user_agent: request.headers.get('user-agent') || null,
+      school_no: parseInt(schoolNo),
+      ip,
+      user_agent: userAgent,
     });
 
     return NextResponse.json({

@@ -6,8 +6,9 @@ import type { LogMeta } from '@/types/history';
 
 // 지역 조회
 export async function getAreaByArea(area: string, meta: LogMeta) {
-  const conn = await beginTransaction();
+  let conn;
   try {
+    conn = await beginTransaction();
     const result = await findAreaByArea(area);
 
     // 로그 기록
@@ -20,7 +21,7 @@ export async function getAreaByArea(area: string, meta: LogMeta) {
         target_table: 'AreaData',
         target_id: area,
         old_values: null,
-        new_values: JSON.stringify(result),
+        new_values: JSON.stringify(result[0]),
         reason: '지역 정보 조회',
       }),
       conn,
@@ -29,16 +30,31 @@ export async function getAreaByArea(area: string, meta: LogMeta) {
     await commitTransaction(conn);
     return result;
   } catch (error) {
-    await rollbackTransaction(conn);
+    if (conn) {
+      try {
+        await rollbackTransaction(conn);
+      } catch (rollbackError) {
+        console.error('Rollback error:', rollbackError);
+      }
+    }
     console.error('[getAreaByAreaService] DB 조회 에러:', error);
     throw new Error('지역 목록 조회 중 오류가 발생했습니다.');
+  } finally {
+    if (conn) {
+      try {
+        await conn.release();
+      } catch (err) {
+        console.error('Connection release error:', err);
+      }
+    }
   }
 }
 
 // 지역 수정
 export async function updateArea(dto: Area, meta: LogMeta): Promise<void> {
-  const conn = await beginTransaction();
+  let conn;
   try {
+    conn = await beginTransaction();
     if (!dto.area) {
       throw new Error('지역명이 필요합니다.');
     }
@@ -73,16 +89,31 @@ export async function updateArea(dto: Area, meta: LogMeta): Promise<void> {
 
     await commitTransaction(conn);
   } catch (error) {
-    await rollbackTransaction(conn);
+    if (conn) {
+      try {
+        await rollbackTransaction(conn);
+      } catch (rollbackError) {
+        console.error('Rollback error:', rollbackError);
+      }
+    }
     console.error('[updateAreaService] 지역 수정 중 오류:', error);
     throw error instanceof Error ? error : new Error('지역 수정 중 오류가 발생했습니다.');
+  } finally {
+    if (conn) {
+      try {
+        await conn.release();
+      } catch (err) {
+        console.error('Connection release error:', err);
+      }
+    }
   }
 }
 
 // 지역 삭제
 export async function deleteArea(area: string, meta: LogMeta): Promise<void> {
-  const conn = await beginTransaction();
+  let conn;
   try {
+    conn = await beginTransaction();
     // 이전 데이터 조회
     const oldData = await findAreaByArea(area);
 
@@ -107,8 +138,22 @@ export async function deleteArea(area: string, meta: LogMeta): Promise<void> {
 
     await commitTransaction(conn);
   } catch (error) {
-    await rollbackTransaction(conn);
+    if (conn) {
+      try {
+        await rollbackTransaction(conn);
+      } catch (rollbackError) {
+        console.error('Rollback error:', rollbackError);
+      }
+    }
     console.error('[deleteAreaService] 지역 삭제 중 오류:', error);
     throw new Error('지역 삭제 중 오류가 발생했습니다.');
+  } finally {
+    if (conn) {
+      try {
+        await conn.release();
+      } catch (err) {
+        console.error('Connection release error:', err);
+      }
+    }
   }
 }

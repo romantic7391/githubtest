@@ -10,8 +10,9 @@ import { getClientInfo } from '@/services/log-action/log-action.service';
 /**
  * 지역 생성
  */
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ area: string }> }) {
   try {
+    await params; // area는 사용하지 않으므로 구조 분해 할당 제거
     console.log('[POST /api/areas/create] 요청 시작');
     const body = await request.json();
     console.log('[POST /api/areas/create] 요청 데이터:', body);

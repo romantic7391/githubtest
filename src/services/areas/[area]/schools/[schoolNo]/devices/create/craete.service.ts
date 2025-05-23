@@ -12,18 +12,27 @@ import { DEFAULT_ERROR_MESSAGE_500 } from '@/lib/default.constant';
  */
 export async function createRnDevicesRel(dtos: DeviceCreate[], meta: LogMeta) {
   console.log('[createRnDevicesRel] 호출, dtos:', JSON.stringify(dtos));
-  const conn = await beginTransaction();
+  let conn;
   try {
+    conn = await beginTransaction();
     await createDevicesAndRelationsFn(dtos, conn, meta);
     await commitTransaction(conn);
     return { success: true };
   } catch (error) {
-    await rollbackTransaction(conn);
+    if (conn) await rollbackTransaction(conn);
     console.error('[createRnDevicesRel] 에러:', error);
     if (error instanceof Error) {
       throw new Error(error.message);
     }
     throw new Error(DEFAULT_ERROR_MESSAGE_500);
+  } finally {
+    if (conn) {
+      try {
+        await conn.release();
+      } catch (err) {
+        console.error('Connection release error:', err);
+      }
+    }
   }
 }
 
@@ -31,33 +40,34 @@ export async function createRnDevicesRel(dtos: DeviceCreate[], meta: LogMeta) {
 async function createDevicesAndRelationsFn(dtos: DeviceCreate[], conn: PoolConnection, meta: LogMeta) {
   console.log('[createDevicesAndRelationsFn] dtos:', JSON.stringify(dtos));
 
-  // 1. MAC 주소 중복 체크
-  for (const dto of dtos) {
-    const exists = await findRelByMac(dto.mac, conn);
-    if (exists) {
-      throw new Error('이미 등록된 mac 주소 입니다. (학교마다 mac주소는 유일해야 합니다)');
-    }
+  // 1. MAC 주소 중복 체크를 병렬로 처리
+  const macChecks = await Promise.all(dtos.map((dto) => findRelByMac(dto.mac, conn)));
+
+  if (macChecks.some((exists) => exists)) {
+    throw new Error('이미 등록된 mac 주소 입니다. (학교마다 mac주소는 유일해야 합니다)');
   }
 
   // 2. rnDevicesRel 테이블에 등록
   await insertRnDevicesRel(dtos, conn);
 
-  // 3. 로그 기록 (rnDevicesRel)
-  for (const dto of dtos) {
-    const { manager_no, ...restMeta } = meta;
-    const logParams = {
-      ...restMeta,
-      manager_no: manager_no || undefined,
-      school_no: dto.schoolNo,
-      action_type: 'I' as const,
-      target_table: 'rnDevicesRel',
-      target_id: dto.mac,
-      old_values: null,
-      new_values: JSON.stringify(dto),
-      reason: '센서 등록',
-    };
-    await logAction(makeLogParams(logParams), conn);
-  }
+  // 3. 로그 기록 (rnDevicesRel) - 병렬 처리
+  await Promise.all(
+    dtos.map((dto) => {
+      const { manager_no, ...restMeta } = meta;
+      const logParams = {
+        ...restMeta,
+        manager_no: manager_no || undefined,
+        school_no: dto.schoolNo,
+        action_type: 'I' as const,
+        target_table: 'rnDevicesRel',
+        target_id: dto.mac,
+        old_values: null,
+        new_values: JSON.stringify(dto),
+        reason: '센서 등록',
+      };
+      return logAction(makeLogParams(logParams), conn);
+    }),
+  );
 
   // 4. rnDevices 테이블에 등록 (새로운 디바이스만)
   const macList = dtos.map((dto) => dto.mac);
@@ -68,21 +78,23 @@ async function createDevicesAndRelationsFn(dtos: DeviceCreate[], conn: PoolConne
   if (newDeviceDtos.length > 0) {
     await insertRnDevices(newDeviceDtos, conn);
 
-    // 5. 로그 기록 (rnDevices)
-    for (const dto of newDeviceDtos) {
-      const { manager_no, ...restMeta } = meta;
-      const logParams = {
-        ...restMeta,
-        manager_no: manager_no || undefined,
-        school_no: dto.schoolNo,
-        action_type: 'I' as const,
-        target_table: 'rnDevices',
-        target_id: dto.mac,
-        old_values: null,
-        new_values: JSON.stringify(dto),
-        reason: '센서 등록',
-      };
-      await logAction(makeLogParams(logParams), conn);
-    }
+    // 5. 로그 기록 (rnDevices) - 병렬 처리
+    await Promise.all(
+      newDeviceDtos.map((dto) => {
+        const { manager_no, ...restMeta } = meta;
+        const logParams = {
+          ...restMeta,
+          manager_no: manager_no || undefined,
+          school_no: dto.schoolNo,
+          action_type: 'I' as const,
+          target_table: 'rnDevices',
+          target_id: dto.mac,
+          old_values: null,
+          new_values: JSON.stringify(dto),
+          reason: '센서 등록',
+        };
+        return logAction(makeLogParams(logParams), conn);
+      }),
+    );
   }
 }
