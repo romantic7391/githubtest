@@ -4,7 +4,10 @@ import type { PoolConnection } from 'mariadb';
 
 // 로그 파라미터를 History 타입으로 변환
 export function makeLogParams(params: Partial<History>) {
-  return historySchema.parse(params);
+  return historySchema.parse({
+    ...params,
+    school_no: params.school_no ?? null,
+  });
 }
 
 // 로그 기록

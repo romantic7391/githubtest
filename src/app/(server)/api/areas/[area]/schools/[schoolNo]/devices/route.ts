@@ -23,14 +23,14 @@ export async function GET(request: NextRequest, { params }: { params: { area: st
 
     // 1. 쿼리 파라미터 파싱
     const queryParams: DeviceListParams = {
-      school_no: parseInt(schoolNo, 10),
-      page: parseInt(searchParams.get('page') ?? '1', 10),
-      pageSize: parseInt(searchParams.get('pageSize') ?? '10', 10),
+      school_no: parseInt(schoolNo),
+      page: parseInt(searchParams.get('page') ?? '1'),
+      pageSize: parseInt(searchParams.get('pageSize') ?? '10'),
       filters: {
         model: searchParams.get('model') || null,
         ip: searchParams.get('ip') || null,
         rip: searchParams.get('rip') || null,
-        interval: searchParams.get('interval') ? parseInt(searchParams.get('interval')!, 10) : null,
+        interval: searchParams.get('interval') ? parseInt(searchParams.get('interval')!) : null,
         ver: searchParams.get('ver') || null,
         tags: searchParams.get('tags') || null,
       },
@@ -43,7 +43,11 @@ export async function GET(request: NextRequest, { params }: { params: { area: st
     });
 
     // 2. 센서 목록 조회
-    const result = await getRnDevicesRelBySchoolNo(queryParams);
+    const result = await getRnDevicesRelBySchoolNo(queryParams, {
+      manager_no: 1, // 임시로 1로 설정
+      ip: searchParams.get('ip') || null,
+      user_agent: request.headers.get('user-agent') || null,
+    });
 
     return NextResponse.json({
       success: true,

@@ -2,8 +2,8 @@ import { z } from 'zod';
 
 // 히스토리 기본 스키마
 export const historySchema = z.object({
-  manager_no: z.number().min(0).max(Number.MAX_SAFE_INTEGER).nullable().default(0),
-  school_no: z.number().min(0).max(Number.MAX_SAFE_INTEGER).nullable().default(0),
+  manager_no: z.number().nullable(),
+  school_no: z.number().nullable(),
   ip: z.string().nullable(),
   user_agent: z.string().nullable(),
   action_type: z.enum(['S', 'I', 'U', 'D']),
@@ -15,11 +15,11 @@ export const historySchema = z.object({
 });
 
 // 히스토리 메타 정보 스키마
-export const historyMetaSchema = historySchema.pick({
-  manager_no: true,
-  school_no: true,
-  ip: true,
-  user_agent: true,
+export const historyMetaSchema = z.object({
+  ip: z.string().nullable(),
+  manager_no: z.number().nullable(),
+  school_no: z.number().nullable().optional(),
+  user_agent: z.string().nullable(),
 });
 
 // 히스토리 번호 스키마
