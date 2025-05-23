@@ -13,11 +13,11 @@ import { z } from 'zod';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { area: string; schoolNo: string; mac: string } },
+  { params }: { params: Promise<{ area: string; schoolNo: string; mac: string }> },
 ) {
   try {
-    const { mac, schoolNo } = params;
-    console.log('[GET] 요청 파라미터:', { mac, schoolNo });
+    const { mac, schoolNo, area } = await params;
+    console.log('[GET] 요청 파라미터:', { mac, schoolNo, area });
 
     const { userAgent, ip } = getClientInfo(request);
     const device = await getDevice(
@@ -71,10 +71,10 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { area: string; schoolNo: string; mac: string } },
+  { params }: { params: Promise<{ area: string; schoolNo: string; mac: string }> },
 ) {
   try {
-    const { mac, schoolNo } = params;
+    const { mac, schoolNo } = await params;
     const body = await request.json();
 
     // Zod로 요청 데이터 검증
@@ -109,10 +109,10 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { area: string; schoolNo: string; mac: string } },
+  { params }: { params: Promise<{ area: string; schoolNo: string; mac: string }> },
 ) {
   try {
-    const { mac, schoolNo } = params;
+    const { mac, schoolNo } = await params;
     const { userAgent, ip } = getClientInfo(request);
     await deleteDevice(
       { mac, school_no: parseInt(schoolNo, 10) },

@@ -17,11 +17,9 @@ import { getClientInfo } from '@/services/log-action/log-action.service';
  * @todo (옵션) 필터링 추가: `tags`를 받아서 태그로 학교 센서 장치 목록 조회.
  *
  */
-export async function GET(request: NextRequest, { params }: { params: { area: string; schoolNo: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ area: string; schoolNo: string }> }) {
   try {
-    // params를 비동기적으로 처리
-    const area = await Promise.resolve(params.area);
-    const schoolNo = await Promise.resolve(params.schoolNo);
+    const { area, schoolNo } = await params;
     const searchParams = request.nextUrl.searchParams;
     const { ip, userAgent } = getClientInfo(request);
 

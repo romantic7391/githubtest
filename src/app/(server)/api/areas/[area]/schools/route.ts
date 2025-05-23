@@ -16,9 +16,9 @@ import { z } from 'zod';
  * @todo (옵션) 필터링 추가: `active`를 받아서 활성화 여부에 따른 학교 목록 조회.
  * @todo (옵션) 필터링 추가: `administrationcode`를 받아서 관리 코드로 학교 목록 조회.
  */
-export async function GET(request: NextRequest, { params }: { params: { area: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ area: string }> }) {
   try {
-    const { area } = params;
+    const { area } = await params;
     const searchParams = request.nextUrl.searchParams;
 
     // 파라미터 파싱 및 검증

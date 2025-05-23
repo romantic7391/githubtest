@@ -56,8 +56,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 /**
  * 지역 수정
  */
-export async function PUT(request: NextRequest) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ area: string }> }) {
   try {
+    await params; // area는 사용하지 않으므로 구조 분해 할당 제거
     const body = await request.json();
     const validatedData = areaSchema.parse(body);
     const { userAgent, ip } = getClientInfo(request);

@@ -10,8 +10,9 @@ import { getClientInfo } from '@/services/log-action/log-action.service';
  *
  * @todo 필터링 추가: `areaCode`를 여러 개 받아서 여러 지역 조회.
  */
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ area: string }> }) {
   try {
+    await params; // area는 사용하지 않으므로 구조 분해 할당 제거
     const searchParams = request.nextUrl.searchParams;
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');

@@ -12,10 +12,11 @@ import { getClientInfo } from '@/services/log-action/log-action.service';
 /**
  * 지역 학교 정보
  */
-export async function GET(request: NextRequest, { params }: { params: { area: string; schoolNo: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ area: string; schoolNo: string }> }) {
   try {
+    const { schoolNo } = await params;
     const { userAgent, ip } = getClientInfo(request);
-    const school = await getSchoolBySchoolNo(Number(params.schoolNo), {
+    const school = await getSchoolBySchoolNo(Number(schoolNo), {
       manager_no: 1, // 임시로 1로 설정
       ip,
       user_agent: userAgent,
@@ -51,12 +52,13 @@ export async function GET(request: NextRequest, { params }: { params: { area: st
 /**
  * 지역 학교 수정
  */
-export async function PUT(request: NextRequest, { params }: { params: { area: string; schoolNo: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ area: string; schoolNo: string }> }) {
   try {
+    const { schoolNo } = await params;
     const body = await request.json();
     const dto: School = {
       ...body,
-      schoolNo: Number(params.schoolNo),
+      schoolNo: Number(schoolNo),
     };
 
     const { userAgent, ip } = getClientInfo(request);
@@ -71,7 +73,7 @@ export async function PUT(request: NextRequest, { params }: { params: { area: st
         success: true,
         message: '학교 정보가 성공적으로 수정되었습니다.',
         data: {
-          schoolNo: Number(params.schoolNo),
+          schoolNo: Number(schoolNo),
         },
       } satisfies SchoolCreateOrUpdateApiResponse,
       { status: 200 },
@@ -91,10 +93,14 @@ export async function PUT(request: NextRequest, { params }: { params: { area: st
 /**
  * 지역 학교 삭제
  */
-export async function DELETE(request: NextRequest, { params }: { params: { area: string; schoolNo: string } }) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ area: string; schoolNo: string }> },
+) {
   try {
+    const { schoolNo } = await params;
     const dto: School = {
-      schoolNo: Number(params.schoolNo),
+      schoolNo: Number(schoolNo),
     } as School;
 
     const { userAgent, ip } = getClientInfo(request);
