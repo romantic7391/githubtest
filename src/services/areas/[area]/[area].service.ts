@@ -21,7 +21,7 @@ export async function getAreaByArea(area: string, meta: LogMeta) {
         target_table: 'AreaData',
         target_id: area,
         old_values: null,
-        new_values: JSON.stringify(result),
+        new_values: JSON.stringify(result[0]),
         reason: '지역 정보 조회',
       }),
       conn,

@@ -3,6 +3,7 @@ import type { BaseApiResponse } from '@/types/common';
 import { DEFAULT_ERROR_MESSAGE_500 } from '@/lib/default.constant';
 import { NextRequest, NextResponse } from 'next/server';
 import { getAreas } from '@/services/areas/areas.service';
+import { getClientInfo } from '@/services/log-action/log-action.service';
 
 /**
  * 지역 목록 조회
@@ -15,8 +16,13 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
     const areas = searchParams.getAll('area');
+    const { ip, userAgent } = getClientInfo(request);
 
-    const { areas: areasData, total } = await getAreas(page, limit, areas.length > 0 ? areas : undefined);
+    const { areas: areasData, total } = await getAreas(page, limit, areas.length > 0 ? areas : undefined, {
+      manager_no: 1, // 임시로 1로 설정
+      ip,
+      user_agent: userAgent,
+    });
 
     return NextResponse.json(
       {
