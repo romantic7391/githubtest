@@ -18,8 +18,9 @@ export async function getRnSchoolsByArea(
   },
   meta?: { manager_no: number; ip: string | null; user_agent: string | null },
 ) {
-  const conn = await beginTransaction();
+  let conn;
   try {
+    conn = await beginTransaction();
     // 페이지네이션 파라미터 검증
     const validatedPagination = paginationSchema.pick({ page: true, pageSize: true }).parse({
       page,
@@ -56,8 +57,16 @@ export async function getRnSchoolsByArea(
     await commitTransaction(conn);
     return result;
   } catch (error) {
-    await rollbackTransaction(conn);
+    if (conn) await rollbackTransaction(conn);
     console.error('[getRnSchoolsByAreaService] 파라미터 검증 또는 DB 조회 에러:', error);
     throw new Error('학교 목록 조회 중 오류가 발생했습니다.');
+  } finally {
+    if (conn) {
+      try {
+        await conn.release();
+      } catch (err) {
+        console.error('Connection release error:', err);
+      }
+    }
   }
 }

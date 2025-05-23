@@ -14,8 +14,9 @@ export async function existsAreaByAreaName(area: string): Promise<boolean> {
 
 // 지역 생성
 export async function createArea(dto: AreaCreate, meta: LogMeta): Promise<void> {
-  const conn = await beginTransaction();
+  let conn;
   try {
+    conn = await beginTransaction();
     // 중복 검증
     const exists = await checkAreaExists(dto.area);
     if (exists) {
@@ -42,8 +43,23 @@ export async function createArea(dto: AreaCreate, meta: LogMeta): Promise<void> 
 
     await commitTransaction(conn);
   } catch (error) {
-    await rollbackTransaction(conn);
+    if (conn) {
+      try {
+        await rollbackTransaction(conn);
+      } catch (rollbackError) {
+        console.error('Rollback error:', rollbackError);
+      }
+    }
     console.error('[createAreaService] 지역 생성 중 오류:', error);
     throw error instanceof Error ? error : new Error('지역 생성 중 오류가 발생했습니다.');
+  } finally {
+    if (conn) {
+      try {
+        // 트랜잭션이 완전히 종료된 후에만 연결 해제
+        await conn.release();
+      } catch (err) {
+        console.error('Connection release error:', err);
+      }
+    }
   }
 }

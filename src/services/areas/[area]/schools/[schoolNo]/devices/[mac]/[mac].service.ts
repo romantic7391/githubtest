@@ -15,8 +15,9 @@ export async function getDevice(
   params: DeviceBasic,
   meta: { manager_no: number; ip: string | null; user_agent: string | null },
 ) {
-  const conn = await beginTransaction();
+  let conn;
   try {
+    conn = await beginTransaction();
     const device = await findRnDeviceRelBySchoolNoAndMac(params);
     if (!device) return null;
 
@@ -63,9 +64,23 @@ export async function getDevice(
     await commitTransaction(conn);
     return transformedDevice;
   } catch (error) {
-    await rollbackTransaction(conn);
+    if (conn) {
+      try {
+        await rollbackTransaction(conn);
+      } catch (rollbackError) {
+        console.error('Rollback error:', rollbackError);
+      }
+    }
     console.error('[getDeviceService] DB 조회 에러:', error);
     throw new Error('센서 조회 중 오류가 발생했습니다.');
+  } finally {
+    if (conn) {
+      try {
+        await conn.release();
+      } catch (err) {
+        console.error('Connection release error:', err);
+      }
+    }
   }
 }
 
@@ -76,8 +91,9 @@ export async function updateDevice(
   dto: DeviceBasic & Omit<Device, 'mac'>,
   meta: { manager_no: number; ip: string | null; user_agent: string | null },
 ): Promise<{ mac: string }> {
-  const conn = await beginTransaction();
+  let conn;
   try {
+    conn = await beginTransaction();
     // 센서 존재 여부 확인
     const oldDevice = await findDeviceByMac(dto.mac);
 
@@ -128,9 +144,23 @@ export async function updateDevice(
     await commitTransaction(conn);
     return { mac: dto.mac };
   } catch (error) {
-    await rollbackTransaction(conn);
+    if (conn) {
+      try {
+        await rollbackTransaction(conn);
+      } catch (rollbackError) {
+        console.error('Rollback error:', rollbackError);
+      }
+    }
     console.error('[updateDeviceService] 센서 수정 중 오류 발생:', error);
     throw new Error('센서 수정 중 오류가 발생했습니다.');
+  } finally {
+    if (conn) {
+      try {
+        await conn.release();
+      } catch (err) {
+        console.error('Connection release error:', err);
+      }
+    }
   }
 }
 
@@ -141,8 +171,9 @@ export async function deleteDevice(
   params: { mac: string; school_no: number },
   meta: { manager_no: number; ip: string | null; user_agent: string | null },
 ) {
-  const conn = await beginTransaction();
+  let conn;
   try {
+    conn = await beginTransaction();
     // 센서 존재 여부 확인
     const oldDevice = await findDeviceByMac(params.mac);
 
@@ -171,8 +202,22 @@ export async function deleteDevice(
 
     await commitTransaction(conn);
   } catch (error) {
-    await rollbackTransaction(conn);
+    if (conn) {
+      try {
+        await rollbackTransaction(conn);
+      } catch (rollbackError) {
+        console.error('Rollback error:', rollbackError);
+      }
+    }
     console.error('[deleteDeviceService] 센서 삭제 중 오류 발생:', error);
     throw new Error('센서 삭제 중 오류가 발생했습니다.');
+  } finally {
+    if (conn) {
+      try {
+        await conn.release();
+      } catch (err) {
+        console.error('Connection release error:', err);
+      }
+    }
   }
 }

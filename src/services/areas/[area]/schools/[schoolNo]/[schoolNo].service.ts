@@ -13,8 +13,9 @@ export async function getSchoolBySchoolNo(
   school_no: number,
   meta: { manager_no: number; ip: string | null; user_agent: string | null },
 ) {
-  const conn = await beginTransaction();
+  let conn;
   try {
+    conn = await beginTransaction();
     const school = await findSchoolBySchoolNo(school_no);
 
     // 로그 기록
@@ -37,10 +38,17 @@ export async function getSchoolBySchoolNo(
     await commitTransaction(conn);
     return school;
   } catch (error) {
-    await rollbackTransaction(conn);
-    // 내부 에러 정보는 콘솔에만 남김
+    if (conn) await rollbackTransaction(conn);
     console.error('[getSchoolBySchoolNoService] DB 조회 에러:', error);
     throw new Error('학교 조회 중 오류가 발생했습니다.');
+  } finally {
+    if (conn) {
+      try {
+        await conn.release();
+      } catch (err) {
+        console.error('Connection release error:', err);
+      }
+    }
   }
 }
 
@@ -49,8 +57,9 @@ export async function updateRnSchool(
   dto: School,
   meta: { manager_no: number; ip: string | null; user_agent: string | null },
 ): Promise<void> {
-  const conn = await beginTransaction();
+  let conn;
   try {
+    conn = await beginTransaction();
     // 학교 존재 여부 확인
     const oldSchool = await findSchoolBySchoolNo(dto.schoolNo);
 
@@ -76,9 +85,17 @@ export async function updateRnSchool(
 
     await commitTransaction(conn);
   } catch (error) {
-    await rollbackTransaction(conn);
+    if (conn) await rollbackTransaction(conn);
     console.error('[updateRnSchoolService] 학교 수정 중 오류 발생:', error);
     throw new Error('학교 수정 중 오류가 발생했습니다.');
+  } finally {
+    if (conn) {
+      try {
+        await conn.release();
+      } catch (err) {
+        console.error('Connection release error:', err);
+      }
+    }
   }
 }
 
@@ -87,8 +104,9 @@ export async function deleteRnSchool(
   dto: School,
   meta: { manager_no: number; ip: string | null; user_agent: string | null },
 ) {
-  const conn = await beginTransaction();
+  let conn;
   try {
+    conn = await beginTransaction();
     // 학교 존재 여부 확인
     const oldSchool = await findSchoolBySchoolNo(dto.schoolNo);
 
@@ -114,8 +132,16 @@ export async function deleteRnSchool(
 
     await commitTransaction(conn);
   } catch (error) {
-    await rollbackTransaction(conn);
+    if (conn) await rollbackTransaction(conn);
     console.error('[deleteRnSchoolService] 학교 삭제 중 오류 발생:', error);
     throw new Error('학교 삭제 중 오류가 발생했습니다.');
+  } finally {
+    if (conn) {
+      try {
+        await conn.release();
+      } catch (err) {
+        console.error('Connection release error:', err);
+      }
+    }
   }
 }
