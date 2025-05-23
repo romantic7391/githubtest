@@ -114,6 +114,27 @@ export async function findGroupPermission(groupNo: number, permissionNo: number)
   `;
   return getRow<GroupPermission>(query, [groupNo, permissionNo]);
 }
+/**
+ * 학교소속한 계층별 특정 권한 정보 조회
+ */
+export async function findGroupPermissionBySchoolNo(schoolNo: number): Promise<GroupPermission[]> {
+  const query = `
+    SELECT 
+      g.group_no,
+      g.name,
+      g.parent_group_no,
+      mg.no,
+      gp.permission_no,
+      gp.is_allowed,  
+      gp.extra_condition,
+      gp.extra_limit
+    FROM \`group\` AS g 
+    JOIN managerGroup AS mg ON g.group_no = mg.group_no
+    JOIN groupPermission AS gp ON g.group_no = gp.group_no
+    WHERE g.school_no = ?
+  `;
+  return getAll<GroupPermission>(query, [schoolNo]);
+}
 
 /**
  * 권한 생성
