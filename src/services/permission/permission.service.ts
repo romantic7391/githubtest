@@ -198,3 +198,54 @@ export async function addManagerToGroup(groupNo: number, managerNo: number): Pro
 export async function removeManagerFromGroup(groupNo: number, managerNo: number): Promise<void> {
   await deleteManagerGroup(groupNo, managerNo);
 }
+
+/**
+ * 계층 구조를 따라 Deny 우선, 조건 누적 권한 체크
+ * @param managerNo 사용자 번호
+ * @param permissionNo 권한 번호
+ * @returns { allowed: boolean; extraCondition: string | null }
+ */
+export async function checkPermissionWithHierarchy(
+  managerNo: number,
+  permissionNo: number,
+): Promise<{ allowed: boolean; extraCondition: string | null }> {
+  // 1. 사용자의 모든 그룹 가져오기
+  const userGroups = await findManagerGroups(managerNo);
+
+  // 2. 각 그룹별로 계층적으로 parent_group_no를 따라 올라가며 권한 체크
+  for (const userGroup of userGroups) {
+    let currentGroupNo = userGroup.group_no;
+    let denyFound = false;
+    let allowFound = false;
+    let extraCondition: string | null = null;
+
+    // 계층적으로 parent_group_no를 따라 올라감
+    while (currentGroupNo) {
+      const group = await findGroupByGroupNo(currentGroupNo);
+      if (!group) break;
+
+      const groupPermission = await findGroupPermission(currentGroupNo, permissionNo);
+      if (groupPermission) {
+        if (groupPermission.is_allowed === 'N') {
+          denyFound = true;
+          break; // Deny가 있으면 즉시 금지
+        }
+        if (groupPermission.is_allowed === 'Y') {
+          allowFound = true;
+          // 가장 가까운(하위) 허용 조건만 적용
+          if (!extraCondition) extraCondition = groupPermission.extra_condition;
+          // 계속 상위로 올라가며 Deny가 있는지 확인
+        }
+      }
+      // 상위 그룹으로 이동
+      currentGroupNo = group.parent_group_no;
+      if (!currentGroupNo || currentGroupNo === 0) break;
+    }
+
+    if (denyFound) return { allowed: false, extraCondition: null };
+    if (allowFound) return { allowed: true, extraCondition };
+  }
+
+  // 모든 그룹에서 허용이 없으면 금지
+  return { allowed: false, extraCondition: null };
+}
