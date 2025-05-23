@@ -8,6 +8,8 @@ import {
   deleteRnSchool,
 } from '@/services/areas/[area]/schools/[schoolNo]/[schoolNo].service';
 import { getClientInfo } from '@/services/log-action/log-action.service';
+import { checkSchoolPermission } from '@/services/permission/check-permission.service';
+import { getSession } from '@/lib/auth/session';
 
 /**
  * 지역 학교 정보
@@ -15,9 +17,25 @@ import { getClientInfo } from '@/services/log-action/log-action.service';
 export async function GET(request: NextRequest, { params }: { params: Promise<{ area: string; schoolNo: string }> }) {
   try {
     const { schoolNo } = await params;
+
+    // 권한 체크
+    const permissionCheck = await checkSchoolPermission(request, Number(schoolNo), '조회');
+    if (permissionCheck) return permissionCheck;
+
+    const session = await getSession(request);
+    if (!session?.manager_no) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: '로그인이 필요합니다.',
+        } satisfies BaseApiResponse,
+        { status: 401 },
+      );
+    }
+
     const { userAgent, ip } = getClientInfo(request);
     const school = await getSchoolBySchoolNo(Number(schoolNo), {
-      manager_no: 1, // 임시로 1로 설정
+      manager_no: session.manager_no,
       ip,
       user_agent: userAgent,
     });
@@ -55,6 +73,22 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ area: string; schoolNo: string }> }) {
   try {
     const { schoolNo } = await params;
+
+    // 권한 체크
+    const permissionCheck = await checkSchoolPermission(request, Number(schoolNo), '수정');
+    if (permissionCheck) return permissionCheck;
+
+    const session = await getSession(request);
+    if (!session?.manager_no) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: '로그인이 필요합니다.',
+        } satisfies BaseApiResponse,
+        { status: 401 },
+      );
+    }
+
     const body = await request.json();
     const dto: School = {
       ...body,
@@ -63,7 +97,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     const { userAgent, ip } = getClientInfo(request);
     await updateRnSchool(dto, {
-      manager_no: 1, // 임시로 1로 설정
+      manager_no: session.manager_no,
       ip,
       user_agent: userAgent,
     });
@@ -99,13 +133,29 @@ export async function DELETE(
 ) {
   try {
     const { schoolNo } = await params;
+
+    // 권한 체크
+    const permissionCheck = await checkSchoolPermission(request, Number(schoolNo), '삭제');
+    if (permissionCheck) return permissionCheck;
+
+    const session = await getSession(request);
+    if (!session?.manager_no) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: '로그인이 필요합니다.',
+        } satisfies BaseApiResponse,
+        { status: 401 },
+      );
+    }
+
     const dto: School = {
       schoolNo: Number(schoolNo),
     } as School;
 
     const { userAgent, ip } = getClientInfo(request);
     await deleteRnSchool(dto, {
-      manager_no: 1, // 임시로 1로 설정
+      manager_no: session.manager_no,
       ip,
       user_agent: userAgent,
     });
