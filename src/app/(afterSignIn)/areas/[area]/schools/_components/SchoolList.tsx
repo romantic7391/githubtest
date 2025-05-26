@@ -42,7 +42,7 @@ export default function SchoolList({ sname, scode, page, pageSize }: SchoolListP
           <Pagination total={data.pagination.totalPages} value={page} onChange={pagination.setPage} />
           <Select
             w={80}
-            data={['5', '10', '20', '50', '100']}
+            data={['8', '10', '20', '50', '100']}
             value={pageSize.toString()}
             onChange={(value) => {
               if (!value) return;
