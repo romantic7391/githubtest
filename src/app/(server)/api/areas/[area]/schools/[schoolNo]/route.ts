@@ -1,6 +1,7 @@
 import { DEFAULT_ERROR_MESSAGE_500 } from '@/lib/default.constant';
 import type { BaseApiResponse } from '@/types/common';
 import type { SchoolApiResponse, SchoolCreateOrUpdateApiResponse, School } from '@/types/school';
+import type { CommonContext } from '@/types/permission';
 import { NextRequest, NextResponse } from 'next/server';
 import {
   getSchoolBySchoolNo,
@@ -11,34 +12,77 @@ import { getClientInfo } from '@/services/log-action/log-action.service';
 import { checkSchoolPermission } from '@/services/permission/check-permission.service';
 import { getSession } from '@/lib/auth/session';
 
+type ActionType = '조회' | '수정' | '삭제';
+
+/**
+ * 공통 인증 및 권한 체크
+ */
+async function validateRequest(
+  request: NextRequest,
+  schoolNo: number,
+  action: ActionType,
+): Promise<NextResponse | null> {
+  const permissionCheck = await checkSchoolPermission(request, schoolNo, action);
+  if (permissionCheck) return permissionCheck;
+
+  const session = await getSession(request);
+  if (!session?.manager_no) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: '로그인이 필요합니다.',
+      } satisfies BaseApiResponse,
+      { status: 401 },
+    );
+  }
+
+  return null;
+}
+
+/**
+ * 공통 컨텍스트 정보 가져오기
+ */
+async function getCommonContext(request: NextRequest): Promise<CommonContext> {
+  const session = await getSession(request);
+  if (!session?.manager_no) {
+    throw new Error('로그인이 필요합니다.');
+  }
+  const { userAgent, ip } = getClientInfo(request);
+
+  return {
+    manager_no: session.manager_no,
+    ip: ip || '',
+    user_agent: userAgent || '',
+  };
+}
+
+/**
+ * 공통 에러 처리
+ */
+function handleError(error: unknown, action: string): NextResponse {
+  console.error(`[${action}] 오류 발생:`, error);
+  return NextResponse.json(
+    {
+      success: false,
+      message: DEFAULT_ERROR_MESSAGE_500,
+    } satisfies BaseApiResponse,
+    { status: 500 },
+  );
+}
+
 /**
  * 지역 학교 정보
  */
 export async function GET(request: NextRequest, { params }: { params: Promise<{ area: string; schoolNo: string }> }) {
   try {
     const { schoolNo } = await params;
+    const schoolNoNum = Number(schoolNo);
 
-    // 권한 체크
-    const permissionCheck = await checkSchoolPermission(request, Number(schoolNo), '조회');
-    if (permissionCheck) return permissionCheck;
+    const validationError = await validateRequest(request, schoolNoNum, '조회');
+    if (validationError) return validationError;
 
-    const session = await getSession(request);
-    if (!session?.manager_no) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: '로그인이 필요합니다.',
-        } satisfies BaseApiResponse,
-        { status: 401 },
-      );
-    }
-
-    const { userAgent, ip } = getClientInfo(request);
-    const school = await getSchoolBySchoolNo(Number(schoolNo), {
-      manager_no: session.manager_no,
-      ip,
-      user_agent: userAgent,
-    });
+    const context = await getCommonContext(request);
+    const school = await getSchoolBySchoolNo(schoolNoNum, context);
 
     if (!school) {
       return NextResponse.json({
@@ -56,14 +100,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       { status: 200 },
     );
   } catch (error) {
-    console.error('[GET] 학교 조회 중 오류 발생:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: DEFAULT_ERROR_MESSAGE_500,
-      } satisfies BaseApiResponse,
-      { status: 500 },
-    );
+    return handleError(error, 'GET');
   }
 }
 
@@ -73,54 +110,32 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ area: string; schoolNo: string }> }) {
   try {
     const { schoolNo } = await params;
+    const schoolNoNum = Number(schoolNo);
 
-    // 권한 체크
-    const permissionCheck = await checkSchoolPermission(request, Number(schoolNo), '수정');
-    if (permissionCheck) return permissionCheck;
-
-    const session = await getSession(request);
-    if (!session?.manager_no) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: '로그인이 필요합니다.',
-        } satisfies BaseApiResponse,
-        { status: 401 },
-      );
-    }
+    const validationError = await validateRequest(request, schoolNoNum, '수정');
+    if (validationError) return validationError;
 
     const body = await request.json();
     const dto: School = {
       ...body,
-      schoolNo: Number(schoolNo),
+      schoolNo: schoolNoNum,
     };
 
-    const { userAgent, ip } = getClientInfo(request);
-    await updateRnSchool(dto, {
-      manager_no: session.manager_no,
-      ip,
-      user_agent: userAgent,
-    });
+    const context = await getCommonContext(request);
+    await updateRnSchool(dto, context);
 
     return NextResponse.json(
       {
         success: true,
         message: '학교 정보가 성공적으로 수정되었습니다.',
         data: {
-          schoolNo: Number(schoolNo),
+          schoolNo: schoolNoNum,
         },
       } satisfies SchoolCreateOrUpdateApiResponse,
       { status: 200 },
     );
   } catch (error) {
-    console.error('[PUT] 학교 수정 중 오류 발생:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: DEFAULT_ERROR_MESSAGE_500,
-      } satisfies BaseApiResponse,
-      { status: 500 },
-    );
+    return handleError(error, 'PUT');
   }
 }
 
@@ -133,32 +148,17 @@ export async function DELETE(
 ) {
   try {
     const { schoolNo } = await params;
+    const schoolNoNum = Number(schoolNo);
 
-    // 권한 체크
-    const permissionCheck = await checkSchoolPermission(request, Number(schoolNo), '삭제');
-    if (permissionCheck) return permissionCheck;
-
-    const session = await getSession(request);
-    if (!session?.manager_no) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: '로그인이 필요합니다.',
-        } satisfies BaseApiResponse,
-        { status: 401 },
-      );
-    }
+    const validationError = await validateRequest(request, schoolNoNum, '삭제');
+    if (validationError) return validationError;
 
     const dto: School = {
-      schoolNo: Number(schoolNo),
+      schoolNo: schoolNoNum,
     } as School;
 
-    const { userAgent, ip } = getClientInfo(request);
-    await deleteRnSchool(dto, {
-      manager_no: session.manager_no,
-      ip,
-      user_agent: userAgent,
-    });
+    const context = await getCommonContext(request);
+    await deleteRnSchool(dto, context);
 
     return NextResponse.json(
       {
@@ -168,13 +168,6 @@ export async function DELETE(
       { status: 200 },
     );
   } catch (error) {
-    console.error('[DELETE] 학교 삭제 중 오류 발생:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: DEFAULT_ERROR_MESSAGE_500,
-      } satisfies BaseApiResponse,
-      { status: 500 },
-    );
+    return handleError(error, 'DELETE');
   }
 }

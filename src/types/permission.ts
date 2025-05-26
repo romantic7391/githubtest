@@ -9,6 +9,12 @@ export const PermissionSchema = z.object({
   default_extra_limit: z.string().nullable(),
 });
 
+export const CommonContextSchema = z.object({
+  manager_no: z.number(),
+  ip: z.string(),
+  user_agent: z.string(),
+});
+
 export const GroupSchema = z.object({
   group_no: z.number(),
   school_no: z.number(),
@@ -39,6 +45,7 @@ export const GroupPermissionSchema = z.object({
 
 // 타입 추론을 위한 타입 정의
 export type Permission = z.infer<typeof PermissionSchema>;
+export type CommonContext = z.infer<typeof CommonContextSchema>;
 export type Group = z.infer<typeof GroupSchema>;
 export type Manager = z.infer<typeof ManagerSchema>;
 export type ManagerGroup = z.infer<typeof ManagerGroupSchema>;
