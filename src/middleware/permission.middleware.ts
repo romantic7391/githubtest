@@ -27,7 +27,12 @@ export async function checkSchoolPermission(
 
     // 2. 권한 체크
     const permissionName = `학교_${action}`;
-    const { allowed } = await checkPermission(session.manager_no, permissionName);
+    console.log('권한 체크 파라미터:', {
+      managerNo: session.manager_no,
+      schoolNo,
+      permissionName,
+    });
+    const { allowed } = await checkPermission(session.manager_no, schoolNo, permissionName);
 
     if (!allowed) {
       return NextResponse.json(

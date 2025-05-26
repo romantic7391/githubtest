@@ -33,6 +33,7 @@ export const ManagerSchema = z.object({
 export const ManagerGroupSchema = z.object({
   group_no: z.number(),
   no: z.number(),
+  manager_no: z.number(),
 });
 
 export const GroupPermissionSchema = z.object({

@@ -14,6 +14,21 @@ export async function findPermissionByName(name: string): Promise<Permission | n
 }
 
 /**
+ * 사용자의 그룹 정보 조회
+ */
+export async function findManagerGroups(managerNo: number, schoolNo: number): Promise<ManagerGroup[]> {
+  const query = `
+      SELECT mg.group_no, mg.no, m.school_no
+      FROM managerGroup mg
+      JOIN manager m ON mg.no = m.no
+      WHERE mg.no = ? 
+      AND (m.school_no = ? OR m.school_no = 0)
+      AND mg.deleted IS NULL;
+  `;
+  return getAll<ManagerGroup>(query, [managerNo, schoolNo]);
+}
+
+/**
  * 그룹 정보 조회
  */
 export async function findGroupByGroupNo(groupNo: number): Promise<Group | null> {
@@ -26,35 +41,6 @@ export async function findGroupByGroupNo(groupNo: number): Promise<Group | null>
 }
 
 /**
- * 사용자의 그룹 정보 조회
- */
-export async function findManagerGroups(managerNo: number): Promise<ManagerGroup[]> {
-  const query = `
-    SELECT group_no, no
-    FROM managerGroup
-    WHERE no = ? AND deleted IS NULL
-  `;
-  return getAll<ManagerGroup>(query, [managerNo]);
-}
-
-/**
- * 그룹의 권한 정보 조회
- */
-export async function findGroupPermissions(groupNo: number): Promise<GroupPermission[]> {
-  const query = `
-    SELECT 
-      group_no,
-      permission_no,
-      is_allowed,
-      extra_condition,
-      extra_limit
-    FROM groupPermission
-    WHERE group_no = ? AND deleted IS NULL
-  `;
-  return getAll<GroupPermission>(query, [groupNo]);
-}
-
-/**
  * 그룹의 특정 권한 정보 조회
  */
 export async function findGroupPermission(groupNo: number, permissionNo: number): Promise<GroupPermission | null> {
@@ -64,28 +50,6 @@ export async function findGroupPermission(groupNo: number, permissionNo: number)
     WHERE group_no = ? AND permission_no = ? AND deleted IS NULL
   `;
   return getRow<GroupPermission>(query, [groupNo, permissionNo]);
-}
-
-/**
- * 학교소속한 계층별 특정 권한 정보 조회
- */
-export async function findGroupPermissionBySchoolNo(schoolNo: number): Promise<GroupPermission[]> {
-  const query = `
-    SELECT 
-      g.group_no,
-      g.name,
-      g.parent_group_no,
-      mg.no,
-      gp.permission_no,
-      gp.is_allowed,  
-      gp.extra_condition,
-      gp.extra_limit
-    FROM \`group\` AS g 
-    JOIN managerGroup AS mg ON g.group_no = mg.group_no
-    JOIN groupPermission AS gp ON g.group_no = gp.group_no
-    WHERE g.school_no = ?
-  `;
-  return getAll<GroupPermission>(query, [schoolNo]);
 }
 
 /**
