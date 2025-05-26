@@ -9,35 +9,8 @@ import {
   deleteRnSchool,
 } from '@/services/areas/[area]/schools/[schoolNo]/[schoolNo].service';
 import { getClientInfo } from '@/services/log-action/log-action.service';
-import { checkSchoolPermission } from '@/services/permission/check-permission.service';
+import { checkSchoolPermission } from '@/middleware/permission.middleware';
 import { getSession } from '@/lib/auth/session';
-
-type ActionType = '조회' | '수정' | '삭제';
-
-/**
- * 공통 인증 및 권한 체크
- */
-async function validateRequest(
-  request: NextRequest,
-  schoolNo: number,
-  action: ActionType,
-): Promise<NextResponse | null> {
-  const permissionCheck = await checkSchoolPermission(request, schoolNo, action);
-  if (permissionCheck) return permissionCheck;
-
-  const session = await getSession(request);
-  if (!session?.manager_no) {
-    return NextResponse.json(
-      {
-        success: false,
-        message: '로그인이 필요합니다.',
-      } satisfies BaseApiResponse,
-      { status: 401 },
-    );
-  }
-
-  return null;
-}
 
 /**
  * 공통 컨텍스트 정보 가져오기
@@ -78,7 +51,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const { schoolNo } = await params;
     const schoolNoNum = Number(schoolNo);
 
-    const validationError = await validateRequest(request, schoolNoNum, '조회');
+    const validationError = await checkSchoolPermission(request, schoolNoNum, '조회');
     if (validationError) return validationError;
 
     const context = await getCommonContext(request);
@@ -112,7 +85,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const { schoolNo } = await params;
     const schoolNoNum = Number(schoolNo);
 
-    const validationError = await validateRequest(request, schoolNoNum, '수정');
+    const validationError = await checkSchoolPermission(request, schoolNoNum, '수정');
     if (validationError) return validationError;
 
     const body = await request.json();
@@ -150,7 +123,7 @@ export async function DELETE(
     const { schoolNo } = await params;
     const schoolNoNum = Number(schoolNo);
 
-    const validationError = await validateRequest(request, schoolNoNum, '삭제');
+    const validationError = await checkSchoolPermission(request, schoolNoNum, '삭제');
     if (validationError) return validationError;
 
     const dto: School = {

@@ -2,11 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { checkPermission } from '@/services/permission/permission.service';
 import { getSession } from '@/lib/auth/session';
 
+type ActionType = '조회' | '수정' | '삭제';
+
 /**
- * 권한 체크 미들웨어
+ * 학교 관련 권한 체크 미들웨어
  */
-export async function withPermission(req: NextRequest, permissionName: string, schoolNo?: number) {
+export async function checkSchoolPermission(
+  req: NextRequest,
+  schoolNo: number,
+  action: ActionType,
+): Promise<NextResponse | null> {
   try {
+    // 1. 세션 체크
     const session = await getSession(req);
     if (!session?.manager_no) {
       return NextResponse.json(
@@ -18,9 +25,11 @@ export async function withPermission(req: NextRequest, permissionName: string, s
       );
     }
 
-    const hasPermission = await checkPermission(session.manager_no, permissionName, schoolNo);
+    // 2. 권한 체크
+    const permissionName = `학교_${action}`;
+    const { allowed } = await checkPermission(session.manager_no, permissionName);
 
-    if (!hasPermission) {
+    if (!allowed) {
       return NextResponse.json(
         {
           success: false,
@@ -32,7 +41,7 @@ export async function withPermission(req: NextRequest, permissionName: string, s
 
     return null; // 권한이 있는 경우 null 반환하여 다음 미들웨어로 진행
   } catch (error) {
-    console.error('[withPermission] 권한 체크 중 오류 발생:', error);
+    console.error('[checkSchoolPermission] 권한 체크 중 오류 발생:', error);
     return NextResponse.json(
       {
         success: false,
