@@ -48,7 +48,7 @@ export default function useFilteredSchools({ sname, scode, page, pageSize }: Use
       throw new Error(message);
     }
 
-    if (!data) {
+    if (response.status === 404) {
       return getInitialData();
     }
 
