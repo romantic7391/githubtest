@@ -8,6 +8,7 @@ import { Fragment, useEffect } from 'react';
 import { schoolSchema } from '@/types/school';
 import { ZodError } from 'zod';
 
+// TODO: 없는 학교로 URL 조회 시 에러 발생
 export default function SchoolForm({ schoolNo }: { schoolNo: number }) {
   const { area } = useParams();
   const { data, isLoading } = useSchool({ area: area as string, schoolNo });
@@ -68,7 +69,7 @@ export default function SchoolForm({ schoolNo }: { schoolNo: number }) {
   useEffect(() => {
     if (!data) return;
 
-    form.setValues({
+    form.setInitialValues({
       ...data,
       modbus: data.modbus.toString(),
       area: data.area ?? '',
@@ -77,7 +78,9 @@ export default function SchoolForm({ schoolNo }: { schoolNo: number }) {
       useOrderSheet: data.useOrderSheet ?? 'N',
       modbusHost: data.modbusHost ?? '',
     });
-  }, [form, data]);
+
+    form.setValues(form.values);
+  }, [data]);
 
   if (isLoading) {
     return '로딩 중';

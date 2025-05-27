@@ -27,3 +27,22 @@ export const pool = mariadb.createPool({
 
   metaAsArray: true,
 });
+
+// DB 커넥션 로깅
+// if (process.env.NODE_ENV === 'development') {
+//   pool.on('acquire', (conn) => {
+//     console.log(`[db][conn] Connection#${conn.threadId} 획득 (active: ${pool.activeConnections()} / idle: ${pool.idleConnections()} / total: ${pool.totalConnections()})`);
+//   });
+
+//   pool.on('release', (conn) => {
+//     console.log(`[db][conn] Connection#${conn.threadId} 반환 (active: ${pool.activeConnections()} / idle: ${pool.idleConnections()} / total: ${pool.totalConnections()})`);
+//   });
+
+//   pool.on('connection', (conn) => {
+//     console.log(`[db][conn] Connection#${conn.threadId} 연결 (active: ${pool.activeConnections()} / idle: ${pool.idleConnections()} / total: ${pool.totalConnections()})`);
+//   });
+
+//   pool.on('enqueue', () => {
+//     console.log(`[db][conn] 대기 중인 쿼리가 있습니다. (active: ${pool.activeConnections()} / idle: ${pool.idleConnections()} / total: ${pool.totalConnections()})`);
+//   });
+// }
