@@ -15,6 +15,10 @@ export const pool = mariadb.createPool({
   database,
   port: Number(port ?? '3306'),
 
+  connectionLimit: 10,
+  idleTimeout: 1000 * 60,
+  acquireTimeout: 1000 * 10,
+
   // 날짜 타입을 문자열로 변환
   dateStrings: true,
   // BIGINT 타입을 number로 변환
