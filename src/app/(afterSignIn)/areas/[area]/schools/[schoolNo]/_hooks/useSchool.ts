@@ -42,7 +42,7 @@ export default function useSchool({ area = 'all', schoolNo }: { area?: string; s
   }
 
   return useQuery({
-    queryKey: ['school', schoolNo],
+    queryKey: ['school', area, schoolNo],
     retry: false,
     staleTime: 0,
     gcTime: 0,

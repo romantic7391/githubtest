@@ -1,10 +1,12 @@
 'use client';
 
-import { Code, Group, NumberInput, Radio, Stack, TextInput } from '@mantine/core';
+import { Button, Group, NumberInput, Radio, Stack, TextInput } from '@mantine/core';
 import useSchool from '../_hooks/useSchool';
 import { useParams } from 'next/navigation';
 import { useForm } from '@mantine/form';
-import { useEffect } from 'react';
+import { Fragment, useEffect } from 'react';
+import { schoolSchema } from '@/types/school';
+import { ZodError } from 'zod';
 
 export default function SchoolForm({ schoolNo }: { schoolNo: number }) {
   const { area } = useParams();
@@ -18,8 +20,50 @@ export default function SchoolForm({ schoolNo }: { schoolNo: number }) {
       scode: data.scode ?? '',
       administrationCode: data.administrationCode ?? 0,
       useOrderSheet: data.useOrderSheet ?? 'N',
+      modbusHost: data.modbusHost ?? '',
+    },
+    validate: {
+      sname: (value) => {
+        const { error } = schoolSchema.shape.sname.safeParse(value);
+        if (error) return showError(error);
+      },
+      scode: (value) => {
+        const { error } = schoolSchema.shape.scode.safeParse(value);
+        if (error) return showError(error);
+      },
+      area: (value) => {
+        const { error } = schoolSchema.shape.area.safeParse(value);
+        if (error) return showError(error);
+      },
+      administrationCode: (value) => {
+        const { error } = schoolSchema.shape.administrationCode.safeParse(value);
+        if (error) return showError(error);
+      },
+      // parentNo: (value) => {
+      //   const { error } = schoolSchema.shape.parentNo.safeParse(value === '' ? null : value);
+      //   if (error) return showError(error);
+      // },
+      modbusHost: (value) => {
+        const { error } = schoolSchema.shape.modbusHost.safeParse(value === '' ? null : value);
+        if (error) return showError(error);
+      },
+      modbusPort: (value) => {
+        const { error } = schoolSchema.shape.modbusPort.safeParse(value);
+        if (error) return showError(error);
+      },
     },
   });
+
+  function showError(error: ZodError) {
+    return error.issues.map((issue, index, array) => {
+      return (
+        <Fragment key={issue.code}>
+          {issue.message}
+          {index < array.length - 1 ? <br /> : ''}
+        </Fragment>
+      );
+    });
+  }
 
   useEffect(() => {
     if (!data) return;
@@ -31,17 +75,21 @@ export default function SchoolForm({ schoolNo }: { schoolNo: number }) {
       scode: data.scode ?? '',
       administrationCode: data.administrationCode ?? 0,
       useOrderSheet: data.useOrderSheet ?? 'N',
+      modbusHost: data.modbusHost ?? '',
     });
-  }, [data]);
+  }, [form, data]);
 
   if (isLoading) {
     return '로딩 중';
   }
 
+  function handleSubmit(values: typeof form.values) {
+    console.log(values);
+  }
+
   return (
     <>
-      <Code block>{JSON.stringify(data, null, 2)}</Code>
-      <form>
+      <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack>
           <TextInput withAsterisk name="sname" label="학교 이름" {...form.getInputProps('sname')} />
           <TextInput withAsterisk name="area" label="지역 영문 이름" {...form.getInputProps('area')} />
@@ -89,10 +137,42 @@ export default function SchoolForm({ schoolNo }: { schoolNo: number }) {
             label="Modbus Port"
             name="modbusPort"
             defaultValue={502}
+            rightSection={<></>}
+            min={0}
+            max={65535}
+            allowNegative={false}
+            allowLeadingZeros={false}
             disabled={form.values.modbus === '0'}
             {...form.getInputProps('modbusPort')}
           />
           {/* End of Modbus */}
+
+          <NumberInput
+            label="상위 기관 번호"
+            description="상위 기관이 없다면 비워두십시오."
+            rightSection={<></>}
+            allowNegative={false}
+            allowLeadingZeros={false}
+            min={1}
+            {...form.getInputProps('parentNo')}
+          />
+
+          <Radio.Group label="활성화" name="active" defaultValue="Y" {...form.getInputProps('active')}>
+            <Group>
+              <Radio value="Y" label="활성화" />
+              <Radio value="N" label="비활성화" />
+            </Group>
+          </Radio.Group>
+
+          <Group justify="flex-start">
+            <Button type="reset" variant="transparent" color="grey" onClick={form.reset}>
+              초기화
+            </Button>
+            <Button type="button" variant="filled" color="red">
+              삭제
+            </Button>
+            <Button type="submit">수정</Button>
+          </Group>
         </Stack>
       </form>
     </>
