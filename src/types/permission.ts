@@ -40,6 +40,7 @@ export const GroupPermissionSchema = z.object({
   group_no: z.number(),
   permission_no: z.number(),
   is_allowed: z.enum(['Y', 'N']),
+  override: z.enum(['Y', 'N']).nullable(),
   extra_condition: z.string().nullable(),
   extra_limit: z.string().nullable(),
 });

@@ -32,13 +32,15 @@ export async function checkSchoolPermission(
       schoolNo,
       permissionName,
     });
-    const { allowed } = await checkPermission(session.manager_no, schoolNo, permissionName);
+    const { allowed, override } = await checkPermission(session.manager_no, schoolNo, permissionName);
 
     if (!allowed) {
       return NextResponse.json(
         {
           success: false,
-          message: '권한이 없습니다.',
+          message: override
+            ? '상위 그룹에서 권한이 거부되었지만, 하위 그룹에서 오버라이드되었습니다. 관리자에게 문의하세요.'
+            : '권한이 없습니다.',
         },
         { status: 403 },
       );

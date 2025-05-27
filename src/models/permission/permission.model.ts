@@ -18,12 +18,11 @@ export async function findPermissionByName(name: string): Promise<Permission | n
  */
 export async function findManagerGroups(managerNo: number, schoolNo: number): Promise<ManagerGroup[]> {
   const query = `
-      SELECT mg.group_no, mg.no, m.school_no
-      FROM managerGroup mg
-      JOIN manager m ON mg.no = m.no
-      WHERE mg.no = ? 
-      AND (m.school_no = ? OR m.school_no = 0)
-      AND mg.deleted IS NULL;
+    SELECT mg.group_no, mg.no, m.school_no
+    FROM managerGroup mg
+    JOIN manager m ON mg.no = m.no
+    WHERE mg.no = ? 
+      AND m.school_no = ?;
   `;
   return getAll<ManagerGroup>(query, [managerNo, schoolNo]);
 }
@@ -45,7 +44,7 @@ export async function findGroupByGroupNo(groupNo: number): Promise<Group | null>
  */
 export async function findGroupPermission(groupNo: number, permissionNo: number): Promise<GroupPermission | null> {
   const query = `
-    SELECT group_no, permission_no, is_allowed, extra_condition, extra_limit
+    SELECT group_no, permission_no, is_allowed, override, extra_condition, extra_limit
     FROM groupPermission
     WHERE group_no = ? AND permission_no = ? AND deleted IS NULL
   `;
@@ -63,6 +62,7 @@ export async function getPermissionStatusReport(permissionName: string) {
       g.school_no,
       gp.permission_no,
       gp.is_allowed,
+      gp.override,
       gp.extra_condition,
       gp.extra_limit,
       mg.no as manager_no
