@@ -24,7 +24,6 @@ export default function useSchool({ area = 'all', schoolNo }: { area?: string; s
     console.log('[useSchool][fetchData]', area, schoolNo);
     const requestUrl = new URL(`/api/areas/${area ?? 'all'}/schools/${schoolNo}`, window.location.origin);
     const response = await fetch(requestUrl, { method: 'GET' });
-
     if (!isJsonResponse(response)) {
       throw new Error('서버가 JSON 응답을 반환하지 않았습니다.');
     }
