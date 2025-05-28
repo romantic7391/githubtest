@@ -44,7 +44,7 @@ export async function checkPermission(
 
   for (const managerGroup of validatedGroups) {
     let currentGroupNo = managerGroup.group_no;
-    let denyFound = false;
+    // let denyFound = false;
     let allowFound = false;
     let overrideFound = false;
     const extraConditions: string[] = [];
@@ -58,44 +58,36 @@ export async function checkPermission(
       // Zod로 그룹 데이터 검증
       const validatedGroup = GroupSchema.parse(group);
 
-      // schoolNo가 0이 아닐 때만 학교 체크
-      if (
-        schoolNo !== 0 &&
-        validatedGroup.school_no !== null &&
-        validatedGroup.school_no !== 0 &&
-        validatedGroup.school_no !== schoolNo
-      ) {
-        console.log('학교 번호 불일치:', { groupSchoolNo: validatedGroup.school_no, requestSchoolNo: schoolNo });
-        currentGroupNo = validatedGroup.parent_group_no ?? 0;
-        continue;
-      }
-
       const groupPermission = await findGroupPermission(currentGroupNo, permissionNo);
       console.log('그룹 권한:', groupPermission);
       if (groupPermission) {
         // Zod로 그룹 권한 데이터 검증
         const validatedGroupPermission = GroupPermissionSchema.parse(groupPermission);
 
-        if (validatedGroupPermission.is_allowed === 'N' && !overrideFound) {
-          denyFound = true;
-          break; // Deny가 있으면 즉시 금지 (override가 없을 경우)
+        // Deny 우선 원칙: N을 만나면 즉시 권한 거부
+        if (validatedGroupPermission.is_allowed === 'N') {
+          return { allowed: 'N', override: null, extraCondition: null };
         }
         if (validatedGroupPermission.is_allowed === 'Y') {
-          allowFound = true;
-          if (validatedGroupPermission.override === 'Y') {
-            overrideFound = true;
-          }
-          if (validatedGroupPermission.extra_condition) {
-            extraConditions.push(validatedGroupPermission.extra_condition);
+          // 학교 번호가 일치하는 경우에만 Y 권한 허용
+          if (
+            schoolNo === 0 ||
+            validatedGroup.school_no === null ||
+            validatedGroup.school_no === 0 ||
+            validatedGroup.school_no === schoolNo
+          ) {
+            allowFound = true;
+            if (validatedGroupPermission.override === 'Y') {
+              overrideFound = true;
+            }
+            if (validatedGroupPermission.extra_condition) {
+              extraConditions.push(validatedGroupPermission.extra_condition);
+            }
           }
         }
       }
       currentGroupNo = validatedGroup.parent_group_no ?? 0;
       if (!currentGroupNo || currentGroupNo === 0) break;
-    }
-
-    if (denyFound && !overrideFound) {
-      return { allowed: 'N', override: null, extraCondition: null };
     }
 
     if (allowFound) {
