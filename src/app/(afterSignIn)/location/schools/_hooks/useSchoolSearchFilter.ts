@@ -1,30 +1,32 @@
 import { useSearchParams } from 'next/navigation';
-import type { SchoolSearchFilter } from '@/types/school';
-import { schoolSearchFilterSchema } from '@/types/school';
+import type { SchoolListParams } from '@/types/school';
+import { schoolListParamsSchema } from '@/types/school';
 import { useMemo } from 'react';
 
 /**
  * 쿼리스트링에서 학교 검색 필터를 가져옵니다.
  *
  * @param {ReadonlyURLSearchParams} searchParams 쿼리스트링
- * @returns {SchoolSearchFilter} 검색 필터
+ * @returns {SchoolListParams} 검색 필터
  */
-export default function useSchoolSearchFilter(): SchoolSearchFilter {
+export default function useSchoolSearchFilter(): SchoolListParams {
   const searchParams = useSearchParams();
 
   const parsedFilters = useMemo(() => {
-    const page = searchParams.get('page') ?? 1;
-    const pageSize = searchParams.get('pagesize') ?? 10;
+    const page = Number(searchParams.get('page')) || 1;
+    const pageSize = Number(searchParams.get('pagesize')) || 10;
     const snames = searchParams.getAll('snames');
     const scodes = searchParams.getAll('scodes');
     const stypes = searchParams.getAll('stypes');
 
-    const { success, data } = schoolSearchFilterSchema.safeParse({
+    const { success, data } = schoolListParamsSchema.safeParse({
       page,
       pageSize,
-      snames,
-      scodes,
-      stypes,
+      filters: {
+        sname: snames[0],
+        scode: scodes[0],
+        useOrderSheet: stypes[0] as 'Y' | 'N' | undefined,
+      },
     });
 
     if (success) {
@@ -33,7 +35,7 @@ export default function useSchoolSearchFilter(): SchoolSearchFilter {
 
     console.log('[useSchoolSearchFilter] ', searchParams.get('snames'));
     // 빈 객체를 파싱하여 기본값 얻기
-    return schoolSearchFilterSchema.parse({});
+    return schoolListParamsSchema.parse({});
   }, [searchParams]);
 
   return parsedFilters;

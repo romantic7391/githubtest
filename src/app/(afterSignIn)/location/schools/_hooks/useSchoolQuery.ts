@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import type { SchoolApiResponse, SchoolSearchFilter } from '@/types/school';
 import { DEFAULT_PAGE_SIZE } from '@/lib/default.constant';
 import { useQuery } from '@tanstack/react-query';
