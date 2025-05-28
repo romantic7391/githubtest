@@ -18,7 +18,7 @@ export default function SchoolList({ sname, scode, page, pageSize }: SchoolListP
   const pathname = usePathname();
   const router = useRouter();
 
-  const { data, isLoading } = useFilteredSchools({ sname, scode, page, pageSize });
+  const { data } = useFilteredSchools({ sname, scode, page, pageSize });
   const totalPages = data.pagination.totalPages ?? 1;
   const pagination = usePagination({ total: totalPages, page, initialPage: 1, onChange: handleChangePage });
 
@@ -26,10 +26,6 @@ export default function SchoolList({ sname, scode, page, pageSize }: SchoolListP
     const params = new URLSearchParams(searchParams);
     params.set('page', page.toString());
     router.replace(`${pathname}?${params.toString()}`);
-  }
-
-  if (isLoading) {
-    return <Text>학교 목록을 불러오고 있습니다.</Text>;
   }
 
   return (
@@ -42,7 +38,7 @@ export default function SchoolList({ sname, scode, page, pageSize }: SchoolListP
           <Pagination total={data.pagination.totalPages} value={page} onChange={pagination.setPage} />
           <Select
             w={80}
-            data={['5', '10', '20', '50', '100']}
+            data={['8', '10', '20', '50', '100']}
             value={pageSize.toString()}
             onChange={(value) => {
               if (!value) return;

@@ -3,6 +3,11 @@ import Search from './_components/Search';
 import SchoolList from './_components/SchoolList';
 import { DEFAULT_PAGE_SIZE } from '@/lib/default.constant';
 import SchoolAddButton from './_components/SchoolAddButton';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: '학교 목록',
+};
 
 /**
  * 지역 학교 목록 페이지
@@ -25,7 +30,6 @@ export default async function Page(params: {
 
   return (
     <>
-      <title>학교 목록 :: 공기질 관리자 페이지</title>
       <Stack>
         <Group justify="space-between">
           <Title order={3}>학교 목록</Title>

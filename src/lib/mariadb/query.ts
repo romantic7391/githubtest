@@ -86,6 +86,8 @@ export async function commitTransaction(conn: PoolConnection): Promise<void> {
     await conn.commit();
   } catch (error) {
     throw error;
+  } finally {
+    conn.release();
   }
 }
 
@@ -99,6 +101,8 @@ export async function rollbackTransaction(conn: PoolConnection): Promise<void> {
     await conn.rollback();
   } catch (error) {
     throw error;
+  } finally {
+    conn.release();
   }
 }
 

@@ -21,6 +21,8 @@ const nextConfig: NextConfig = {
       '@mantine/charts',
     ],
   },
+
+  productionBrowserSourceMaps: false,
 };
 
 export default nextConfig;
