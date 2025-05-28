@@ -201,3 +201,12 @@ export const schoolFormSchema = schoolSchema.merge(
     }, schoolSchema.shape.parentNo),
   }),
 );
+
+export const schoolDtoSchema = schoolSchema.pick({
+  schoolNo: true,
+  area: true,
+});
+/**
+ * 학교 DTO
+ */
+export type SchoolDto = z.infer<typeof schoolDtoSchema>;
