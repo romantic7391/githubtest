@@ -119,3 +119,12 @@ export const schoolCreateOrUpdateApiResponseSchema = baseApiResponseSchema.exten
  * 학교 생성 또는 수정 응답
  */
 export type SchoolCreateOrUpdateApiResponse = z.infer<typeof schoolCreateOrUpdateApiResponseSchema>;
+
+export const schoolDtoSchema = schoolSchema.pick({
+  schoolNo: true,
+  area: true,
+});
+/**
+ * 학교 DTO
+ */
+export type SchoolDto = z.infer<typeof schoolDtoSchema>;

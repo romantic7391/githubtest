@@ -121,7 +121,7 @@ export async function findRnSchoolsByArea(
 }
 
 // 학교별 내용 조회
-export async function findSchoolBySchoolNo(school_no: number): Promise<School> {
+export async function findSchoolBySchoolNo(school_no: number): Promise<School | null> {
   const query = `
       SELECT 
       rs.school_no AS schoolNo,
@@ -140,9 +140,7 @@ export async function findSchoolBySchoolNo(school_no: number): Promise<School> {
       LIMIT 1;
   `;
   const result = await getRow<School>(query, [school_no]);
-  if (!result) {
-    throw new Error(`학교 번호 ${school_no}에 해당하는 학교를 찾을 수 없습니다.`);
-  }
+
   return result;
 }
 

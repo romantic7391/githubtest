@@ -78,3 +78,10 @@ export type Pagination = z.infer<typeof paginationSchema>;
  * DATETIME 형식 문자열
  */
 export const datetimeSchema = z.string().transform((v) => dayjs(v).format(DEFAULT_DATETIME_FORMAT));
+
+export type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+
+export interface BaseApiResponse {
+  success: boolean;
+  message: string;
+}

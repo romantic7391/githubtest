@@ -22,7 +22,7 @@ export async function getSchoolBySchoolNo(
     await logAction(
       makeLogParams({
         manager_no: meta.manager_no,
-        school_no: school_no,
+        school_no: Number(school_no),
         ip: meta.ip,
         user_agent: meta.user_agent,
         action_type: 'S',
@@ -40,7 +40,7 @@ export async function getSchoolBySchoolNo(
   } catch (error) {
     if (conn) await rollbackTransaction(conn);
     console.error('[getSchoolBySchoolNoService] DB 조회 에러:', error);
-    throw new Error('학교 조회 중 오류가 발생했습니다.');
+    throw error;
   } finally {
     if (conn) {
       try {
@@ -70,7 +70,7 @@ export async function updateRnSchool(
     await logAction(
       makeLogParams({
         manager_no: meta.manager_no,
-        school_no: dto.schoolNo,
+        school_no: Number(dto.schoolNo),
         ip: meta.ip,
         user_agent: meta.user_agent,
         action_type: 'U',
@@ -87,7 +87,7 @@ export async function updateRnSchool(
   } catch (error) {
     if (conn) await rollbackTransaction(conn);
     console.error('[updateRnSchoolService] 학교 수정 중 오류 발생:', error);
-    throw new Error('학교 수정 중 오류가 발생했습니다.');
+    throw error;
   } finally {
     if (conn) {
       try {
@@ -117,7 +117,7 @@ export async function deleteRnSchool(
     await logAction(
       makeLogParams({
         manager_no: meta.manager_no,
-        school_no: dto.schoolNo,
+        school_no: Number(dto.schoolNo),
         ip: meta.ip,
         user_agent: meta.user_agent,
         action_type: 'D',
@@ -134,7 +134,7 @@ export async function deleteRnSchool(
   } catch (error) {
     if (conn) await rollbackTransaction(conn);
     console.error('[deleteRnSchoolService] 학교 삭제 중 오류 발생:', error);
-    throw new Error('학교 삭제 중 오류가 발생했습니다.');
+    throw error;
   } finally {
     if (conn) {
       try {
