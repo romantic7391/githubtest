@@ -23,13 +23,7 @@ export default function useSchool({ area = 'all', schoolNo }: { area?: string; s
   async function fetchData(): Promise<SchoolApiResponse['data']> {
     console.log('[useSchool][fetchData]', area, schoolNo);
     const requestUrl = new URL(`/api/areas/${area ?? 'all'}/schools/${schoolNo}`, window.location.origin);
-    const response = await fetch(requestUrl, {
-      method: 'GET',
-      headers: {
-        'x-manager-no': '1', // 테스트를 위해 임시로 1로 설정
-      },
-    });
-
+    const response = await fetch(requestUrl, { method: 'GET' });
     if (!isJsonResponse(response)) {
       throw new Error('서버가 JSON 응답을 반환하지 않았습니다.');
     }
