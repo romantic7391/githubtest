@@ -30,6 +30,9 @@ export default function useSchool({ area = 'all', schoolNo }: { area?: string; s
     }
 
     const { success, message, data } = await response.json();
+    if (!success && message === '로그인이 필요합니다.') {
+      return getInitialData();
+    }
     if (!success && response.status !== 404) {
       throw new Error(message);
     }

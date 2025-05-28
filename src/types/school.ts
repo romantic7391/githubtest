@@ -202,10 +202,15 @@ export const schoolFormSchema = schoolSchema.merge(
   }),
 );
 
-export const schoolDtoSchema = schoolSchema.pick({
-  schoolNo: true,
-  area: true,
-});
+export const schoolDtoSchema = schoolSchema
+  .pick({
+    schoolNo: true,
+    area: true,
+  })
+  .transform((data) => ({
+    ...data,
+    schoolNo: data.schoolNo.toString(),
+  }));
 /**
  * 학교 DTO
  */
