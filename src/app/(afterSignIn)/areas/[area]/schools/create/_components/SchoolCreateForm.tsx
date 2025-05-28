@@ -28,7 +28,7 @@ export default function SchoolCreateForm() {
       area: '',
       useOrderSheet: 'Y',
       active: 'Y',
-      administrationCode: '',
+      administrationCode: null,
       parentNo: null,
       modbus: '0',
       modbusHost: '',
@@ -48,7 +48,7 @@ export default function SchoolCreateForm() {
         if (error) return showError(error);
       },
       administrationCode: (value) => {
-        const { error } = schoolCreateSchema.shape.administrationCode.safeParse(value);
+        const { error } = schoolCreateSchema.shape.administrationCode.safeParse(value === '' ? null : value);
         if (error) return showError(error);
       },
       modbusHost: (value) => {
@@ -187,6 +187,9 @@ export default function SchoolCreateForm() {
           name="administrationCode"
           label="행정표준코드(기관)"
           placeholder="ex) 서울과학고등학교: 7010084"
+          min={0}
+          max={99_999_999}
+          clampBehavior="strict"
           styles={{
             wrapper: { flex: 1 },
           }}

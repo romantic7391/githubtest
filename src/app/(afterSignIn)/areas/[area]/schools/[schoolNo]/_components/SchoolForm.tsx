@@ -5,54 +5,64 @@ import useSchool from '../_hooks/useSchool';
 import { useParams, useRouter } from 'next/navigation';
 import { useForm } from '@mantine/form';
 import { Fragment, useEffect } from 'react';
-import { schoolSchema } from '@/types/school';
+import { schoolFormSchema, schoolSchema } from '@/types/school';
 import { ZodError } from 'zod';
 import useDeleteSchool from '../_hooks/useDeleteSchool';
+import { notifications } from '@mantine/notifications';
+import { IconCheck } from '@tabler/icons-react';
+// import useUpdateSchool from '../_hooks/useUpdateSchool';
 
 // TODO: 없는 학교로 URL 조회 시 에러 발생
 export default function SchoolForm({ schoolNo }: { schoolNo: number }) {
   const { area } = useParams();
   const { data } = useSchool({ area: area as string, schoolNo });
   const { mutate: deleteSchool, isPending: isDeleting, isSuccess: isDeleted } = useDeleteSchool();
+  // const { mutate: updateSchool, isPending: isUpdating, isSuccess: isUpdated } = useUpdateSchool();
   const router = useRouter();
 
   const form = useForm({
     initialValues: {
-      ...data,
-      modbus: data.modbus.toString(),
-      area: data.area ?? '',
-      scode: data.scode ?? '',
-      administrationCode: data.administrationCode ?? 0,
-      useOrderSheet: data.useOrderSheet ?? 'N',
-      modbusHost: data.modbusHost ?? '',
+      sname: data?.sname ?? '',
+      scode: data?.scode ?? '',
+      area: data?.area ?? '',
+      useOrderSheet: data?.useOrderSheet ?? 'Y',
+      active: data?.active ?? 'Y',
+      administrationCode: data?.administrationCode ?? '',
+      parentNo: data?.parentNo ?? '',
+      modbus: data?.modbus.toString() ?? '0',
+      modbusHost: data?.modbusHost ?? '',
+      modbusPort: data?.modbusPort ?? 502,
     },
     validate: {
       sname: (value) => {
-        const { error } = schoolSchema.shape.sname.safeParse(value);
+        const { error } = schoolFormSchema.shape.sname.safeParse(value);
         if (error) return showError(error);
       },
       scode: (value) => {
-        const { error } = schoolSchema.shape.scode.safeParse(value);
+        const { error } = schoolFormSchema.shape.scode.safeParse(value);
         if (error) return showError(error);
       },
       area: (value) => {
-        const { error } = schoolSchema.shape.area.safeParse(value);
+        const { error } = schoolFormSchema.shape.area.safeParse(value);
         if (error) return showError(error);
       },
       administrationCode: (value) => {
-        const { error } = schoolSchema.shape.administrationCode.safeParse(value);
+        console.log('administrationCode', typeof value, value);
+        const { error } = schoolFormSchema.shape.administrationCode.safeParse(value);
         if (error) return showError(error);
       },
       parentNo: (value) => {
-        const { error } = schoolSchema.shape.parentNo.safeParse(value);
+        console.log('parentNo', typeof value, value);
+        const { error } = schoolFormSchema.shape.parentNo.safeParse(value);
         if (error) return showError(error);
       },
       modbusHost: (value) => {
-        const { error } = schoolSchema.shape.modbusHost.safeParse(value === '' ? null : value);
+        console.log('modbusHost', typeof value, value);
+        const { error } = schoolFormSchema.shape.modbusHost.safeParse(value);
         if (error) return showError(error);
       },
       modbusPort: (value) => {
-        const { error } = schoolSchema.shape.modbusPort.safeParse(value);
+        const { error } = schoolFormSchema.shape.modbusPort.safeParse(value);
         if (error) return showError(error);
       },
     },
@@ -72,22 +82,39 @@ export default function SchoolForm({ schoolNo }: { schoolNo: number }) {
   useEffect(() => {
     if (!data) return;
 
-    console.log('data', data);
-
     form.setValues({
-      ...data,
-      modbus: data.modbus.toString(),
+      sname: data.sname,
+      scode: data.scode,
       area: data.area ?? '',
-      scode: data.scode ?? '',
-      administrationCode: data.administrationCode ?? 0,
-      useOrderSheet: data.useOrderSheet ?? 'N',
+      useOrderSheet: data.useOrderSheet,
+      active: data.active,
+      administrationCode: data.administrationCode ?? '',
+      parentNo: data.parentNo ?? '',
+      modbus: data.modbus.toString() ?? '0',
       modbusHost: data.modbusHost ?? '',
+      modbusPort: data.modbusPort ?? 502,
     });
     form.setInitialValues(form.values);
   }, [data]);
 
   function handleSubmit(values: typeof form.values) {
     console.log(values);
+
+    const { success, error, data } = schoolFormSchema.safeParse(values);
+    console.log('schoolFormSchema', success, error, data);
+
+    if (success) {
+      console.log('created', data.created);
+      const {
+        success: success2,
+        error: error2,
+        data: data2,
+      } = schoolSchema.safeParse({
+        ...data,
+        created: data.created,
+      });
+      console.log('schoolSchema', success2, error2, data2);
+    }
   }
 
   function handleDelete() {
@@ -97,22 +124,40 @@ export default function SchoolForm({ schoolNo }: { schoolNo: number }) {
     });
   }
 
-  if (isDeleted) {
+  useEffect(() => {
+    if (!isDeleted) return;
+
+    notifications.show({
+      title: '학교가 성공적으로 삭제되었습니다.',
+      message: '학교 목록으로 이동합니다.',
+      icon: <IconCheck size={18} />,
+      autoClose: true,
+      withCloseButton: true,
+      position: 'top-center',
+      color: 'green',
+    });
+
     router.push(`/areas/all/schools`);
-  }
+  }, [isDeleted]);
 
   return (
     <>
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack>
           <TextInput withAsterisk name="sname" label="학교 이름" {...form.getInputProps('sname')} />
+
           <TextInput withAsterisk name="area" label="지역 영문 이름" {...form.getInputProps('area')} />
+
           <TextInput withAsterisk name="scode" label="학교 코드" {...form.getInputProps('scode')} />
+
           <NumberInput
             withAsterisk
             name="administrationCode"
             label="행정표준코드(기관)"
             placeholder="ex) 서울과학고등학교: 7010084"
+            min={0}
+            max={99_999_999}
+            clampBehavior="strict"
             styles={{
               wrapper: { flex: 1 },
             }}

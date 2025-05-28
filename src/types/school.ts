@@ -154,7 +154,8 @@ export const schoolCreateSchema = schoolSchema.omit({ schoolNo: true, created: t
       .regex(REGEX_NUMBER, {
         message: '행정표준코드(기관)은 숫자만 입력할 수 있습니다.',
       })
-      .max(50),
+      .max(50)
+      .nullable(),
   }),
 );
 /**
@@ -172,3 +173,31 @@ export const schoolCreateOrUpdateApiResponseSchema = baseApiResponseSchema.exten
  * 학교 생성 또는 수정 응답
  */
 export type SchoolCreateOrUpdateApiResponse = z.infer<typeof schoolCreateOrUpdateApiResponseSchema>;
+
+export const schoolFormSchema = schoolSchema.merge(
+  z.object({
+    modbus: z.preprocess((val) => {
+      if (typeof val === 'string') return Number(val);
+      return val;
+    }, schoolSchema.shape.modbus),
+
+    modbusHost: z
+      .preprocess((val) => {
+        if (val === '') return null;
+        return val;
+      }, schoolSchema.shape.modbusHost)
+      .transform((val) => (val === '' ? null : val)),
+
+    administrationCode: z
+      .preprocess((val) => {
+        if (val === '') return null;
+        return val;
+      }, schoolSchema.shape.administrationCode)
+      .transform((val) => (val === '' ? null : val)),
+
+    parentNo: z.preprocess((val) => {
+      if (val === '') return null;
+      return val;
+    }, schoolSchema.shape.parentNo),
+  }),
+);
