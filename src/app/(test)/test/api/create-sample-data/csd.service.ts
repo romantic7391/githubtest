@@ -46,6 +46,7 @@ export function createSchool(count: number) {
         active: faker.helpers.arrayElement(['Y', 'N']),
         created: createDatetime(),
         administrationCode: faker.number.int({ min: 1100000, max: 9999999 }).toString(),
+        parentNo: null,
       };
     },
     { count },

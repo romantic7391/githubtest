@@ -11,7 +11,9 @@ export const areaSchema = z.object({
    */
   area: z
     .string()
-    .regex(/^[a-z0-9]+$/)
+    .regex(/^[a-z0-9]+$/, {
+      message: '지역 영문명은 영문 소문자와 숫자만 입력할 수 있습니다.',
+    })
     .max(50)
     .nullable(),
   x: z.number().min(0).max(Number.MAX_SAFE_INTEGER).nullable(),

@@ -1,17 +1,20 @@
 'use client';
 
-import { Button, Group, NumberInput, Radio, Stack, TextInput } from '@mantine/core';
+import { Button, Grid, Group, NumberInput, Radio, Stack, TextInput } from '@mantine/core';
 import useSchool from '../_hooks/useSchool';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useForm } from '@mantine/form';
 import { Fragment, useEffect } from 'react';
 import { schoolSchema } from '@/types/school';
 import { ZodError } from 'zod';
+import useDeleteSchool from '../_hooks/useDeleteSchool';
 
 // TODO: 없는 학교로 URL 조회 시 에러 발생
 export default function SchoolForm({ schoolNo }: { schoolNo: number }) {
   const { area } = useParams();
-  const { data, isLoading } = useSchool({ area: area as string, schoolNo });
+  const { data } = useSchool({ area: area as string, schoolNo });
+  const { mutate: deleteSchool, isPending: isDeleting, isSuccess: isDeleted } = useDeleteSchool();
+  const router = useRouter();
 
   const form = useForm({
     initialValues: {
@@ -40,10 +43,10 @@ export default function SchoolForm({ schoolNo }: { schoolNo: number }) {
         const { error } = schoolSchema.shape.administrationCode.safeParse(value);
         if (error) return showError(error);
       },
-      // parentNo: (value) => {
-      //   const { error } = schoolSchema.shape.parentNo.safeParse(value === '' ? null : value);
-      //   if (error) return showError(error);
-      // },
+      parentNo: (value) => {
+        const { error } = schoolSchema.shape.parentNo.safeParse(value);
+        if (error) return showError(error);
+      },
       modbusHost: (value) => {
         const { error } = schoolSchema.shape.modbusHost.safeParse(value === '' ? null : value);
         if (error) return showError(error);
@@ -69,7 +72,9 @@ export default function SchoolForm({ schoolNo }: { schoolNo: number }) {
   useEffect(() => {
     if (!data) return;
 
-    form.setInitialValues({
+    console.log('data', data);
+
+    form.setValues({
       ...data,
       modbus: data.modbus.toString(),
       area: data.area ?? '',
@@ -78,16 +83,22 @@ export default function SchoolForm({ schoolNo }: { schoolNo: number }) {
       useOrderSheet: data.useOrderSheet ?? 'N',
       modbusHost: data.modbusHost ?? '',
     });
-
-    form.setValues(form.values);
+    form.setInitialValues(form.values);
   }, [data]);
-
-  if (isLoading) {
-    return '로딩 중';
-  }
 
   function handleSubmit(values: typeof form.values) {
     console.log(values);
+  }
+
+  function handleDelete() {
+    deleteSchool({
+      area: area as string,
+      schoolNo,
+    });
+  }
+
+  if (isDeleted) {
+    router.push(`/areas/all/schools`);
   }
 
   return (
@@ -167,15 +178,27 @@ export default function SchoolForm({ schoolNo }: { schoolNo: number }) {
             </Group>
           </Radio.Group>
 
-          <Group justify="flex-start">
-            <Button type="reset" variant="transparent" color="grey" onClick={form.reset}>
-              초기화
-            </Button>
-            <Button type="button" variant="filled" color="red">
-              삭제
-            </Button>
-            <Button type="submit">수정</Button>
-          </Group>
+          {isDeleting ? (
+            <></>
+          ) : (
+            <Grid justify="flex-start">
+              <Grid.Col span={{ base: 12, md: 'content' }}>
+                <Button type="submit" fullWidth>
+                  수정
+                </Button>
+              </Grid.Col>
+              <Grid.Col span={{ base: 12, md: 'content' }}>
+                <Button type="reset" variant="transparent" color="grey" fullWidth onClick={form.reset}>
+                  초기화
+                </Button>
+              </Grid.Col>
+              <Grid.Col span={{ base: 12, md: 'content' }}>
+                <Button type="button" variant="filled" color="red" fullWidth onClick={handleDelete}>
+                  삭제
+                </Button>
+              </Grid.Col>
+            </Grid>
+          )}
         </Stack>
       </form>
     </>
