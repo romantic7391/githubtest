@@ -51,7 +51,15 @@ export default function AfterLoginLayout({ children }: { children: React.ReactNo
       </AppShell.Navbar>
 
       <AppShell.Main>
-        <ScrollArea h={height - 60} type="auto" viewportRef={viewport}>
+        <ScrollArea
+          h={height - 60}
+          type="auto"
+          viewportRef={viewport}
+          styles={{
+            content: {
+              height: '100%',
+            },
+          }}>
           <Box h="100%" p="md">
             {children}
           </Box>

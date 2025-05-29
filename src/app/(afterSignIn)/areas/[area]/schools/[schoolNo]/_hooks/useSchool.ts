@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import type { School, SchoolApiResponse } from '@/types/school';
 import { isJsonResponse } from '@/lib/util/common.util';
+import { HTTPStatusError } from '@/lib/common.error';
 
 export default function useSchool({ area = 'all', schoolNo }: { area?: string; schoolNo: School['schoolNo'] }) {
   function getInitialData(): SchoolApiResponse['data'] {
@@ -21,7 +22,6 @@ export default function useSchool({ area = 'all', schoolNo }: { area?: string; s
   }
 
   async function fetchData(): Promise<SchoolApiResponse['data']> {
-    console.log('[useSchool][fetchData]', area, schoolNo);
     const requestUrl = new URL(`/api/areas/${area ?? 'all'}/schools/${schoolNo}`, window.location.origin);
     const response = await fetch(requestUrl, { method: 'GET' });
     if (!isJsonResponse(response)) {
@@ -29,15 +29,9 @@ export default function useSchool({ area = 'all', schoolNo }: { area?: string; s
     }
 
     const { success, message, data } = await response.json();
-    if (!success && message === '로그인이 필요합니다.') {
-      return getInitialData();
-    }
-    if (!success && response.status !== 404) {
-      throw new Error(message);
-    }
 
-    if (!data) {
-      return getInitialData();
+    if (!success) {
+      throw new HTTPStatusError(message, response.status);
     }
 
     return data satisfies SchoolApiResponse['data'];
@@ -50,8 +44,7 @@ export default function useSchool({ area = 'all', schoolNo }: { area?: string; s
     gcTime: 0,
     initialData: getInitialData(),
     queryFn: fetchData,
-    throwOnError: (error, query) => {
-      console.error(error, query);
+    throwOnError: () => {
       return true;
     },
   });

@@ -49,7 +49,7 @@ export const schoolSchema = z.object({
     .default(502),
   useOrderSheet: z.enum(['Y', 'N']).default('N'),
   active: z.enum(['Y', 'N']).default('Y'),
-  administrationCode: z
+  administrationCode: z.coerce
     .string()
     .regex(REGEX_NUMBER, {
       message: '행정표준코드(기관)은 숫자만 입력할 수 있습니다.',
@@ -64,7 +64,6 @@ export const schoolSchema = z.object({
       message: '상위 기관 번호는 1 이상의 자연수만 입력할 수 있습니다.',
     })
     .max(Number.MAX_SAFE_INTEGER)
-    .default(0)
     .nullable(),
   created: datetimeSchema.nullable(),
 });
@@ -195,10 +194,12 @@ export const schoolFormSchema = schoolSchema.merge(
       }, schoolSchema.shape.administrationCode)
       .transform((val) => (val === '' ? null : val)),
 
-    parentNo: z.preprocess((val) => {
-      if (val === '') return null;
-      return val;
-    }, schoolSchema.shape.parentNo),
+    parentNo: z
+      .preprocess((val) => {
+        if (val === '') return null;
+        return val;
+      }, schoolSchema.shape.parentNo)
+      .transform((val) => val),
   }),
 );
 

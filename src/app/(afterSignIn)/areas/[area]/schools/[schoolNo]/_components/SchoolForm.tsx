@@ -4,21 +4,31 @@ import { Button, Grid, Group, NumberInput, Radio, Stack, TextInput } from '@mant
 import useSchool from '../_hooks/useSchool';
 import { useParams, useRouter } from 'next/navigation';
 import { useForm } from '@mantine/form';
-import { Fragment, useEffect } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { schoolFormSchema, schoolSchema } from '@/types/school';
 import { ZodError } from 'zod';
 import useDeleteSchool from '../_hooks/useDeleteSchool';
 import { notifications } from '@mantine/notifications';
-import { IconCheck } from '@tabler/icons-react';
+import { IconAlertCircleFilled, IconCheck } from '@tabler/icons-react';
+import useUpdateSchool from '../_hooks/useUpdateSchool';
 // import useUpdateSchool from '../_hooks/useUpdateSchool';
 
 // TODO: 없는 학교로 URL 조회 시 에러 발생
 export default function SchoolForm({ schoolNo }: { schoolNo: number }) {
   const { area } = useParams();
-  const { data } = useSchool({ area: area as string, schoolNo });
+  const { data, fetchStatus } = useSchool({ area: area as string, schoolNo });
   const { mutate: deleteSchool, isPending: isDeleting, isSuccess: isDeleted } = useDeleteSchool();
-  // const { mutate: updateSchool, isPending: isUpdating, isSuccess: isUpdated } = useUpdateSchool();
+  const {
+    mutate: updateSchool,
+    isPending: isUpdating,
+    isSuccess: isUpdated,
+    isError: isUpdateError,
+    error: updateError,
+  } = useUpdateSchool();
+  const [notificationId, setNotificationId] = useState<string | null>(null);
   const router = useRouter();
+
+  const isButtonLoading = isDeleting || isUpdating;
 
   const form = useForm({
     initialValues: {
@@ -47,17 +57,14 @@ export default function SchoolForm({ schoolNo }: { schoolNo: number }) {
         if (error) return showError(error);
       },
       administrationCode: (value) => {
-        console.log('administrationCode', typeof value, value);
-        const { error } = schoolFormSchema.shape.administrationCode.safeParse(value);
+        const { error } = schoolFormSchema.shape.administrationCode.safeParse(value.toString());
         if (error) return showError(error);
       },
       parentNo: (value) => {
-        console.log('parentNo', typeof value, value);
         const { error } = schoolFormSchema.shape.parentNo.safeParse(value);
         if (error) return showError(error);
       },
       modbusHost: (value) => {
-        console.log('modbusHost', typeof value, value);
         const { error } = schoolFormSchema.shape.modbusHost.safeParse(value);
         if (error) return showError(error);
       },
@@ -98,24 +105,83 @@ export default function SchoolForm({ schoolNo }: { schoolNo: number }) {
   }, [data]);
 
   function handleSubmit(values: typeof form.values) {
-    console.log(values);
+    form.validate();
 
-    const { success, error, data } = schoolFormSchema.safeParse(values);
-    console.log('schoolFormSchema', success, error, data);
+    if (!data) return;
 
-    if (success) {
-      console.log('created', data.created);
-      const {
-        success: success2,
-        error: error2,
-        data: data2,
-      } = schoolSchema.safeParse({
-        ...data,
-        created: data.created,
+    const notificationId = notifications.show({
+      loading: true,
+      title: '학교를 수정하고 있습니다. 잠시만 기다려주십시오.',
+      message: '',
+      autoClose: false,
+      withCloseButton: false,
+      position: 'top-center',
+    });
+    setNotificationId(notificationId);
+
+    const parsedFormData = schoolFormSchema.safeParse({
+      ...data,
+      ...values,
+    });
+
+    const parsedSchoolData = schoolSchema.safeParse({
+      ...parsedFormData.data,
+    });
+
+    if (parsedSchoolData.success) {
+      updateSchool({
+        params: {
+          area: area as string,
+          schoolNo,
+        },
+        school: parsedSchoolData.data,
       });
-      console.log('schoolSchema', success2, error2, data2);
+    } else {
+      notifications.update({
+        id: notificationId,
+        loading: false,
+        title: '입력 값이 올바르지 않습니다.',
+        message: showError(parsedSchoolData.error),
+        icon: <IconAlertCircleFilled size={18} />,
+        autoClose: false,
+        withCloseButton: true,
+        position: 'top-center',
+        color: 'red',
+      });
     }
   }
+
+  useEffect(() => {
+    if (!isUpdateError || !notificationId) return;
+
+    notifications.update({
+      id: notificationId,
+      loading: false,
+      title: '학교 수정 중 오류가 발생했습니다.',
+      message: updateError?.message ?? '',
+      icon: <IconAlertCircleFilled size={18} />,
+      autoClose: false,
+      withCloseButton: true,
+      position: 'top-center',
+      color: 'red',
+    });
+  }, [isUpdateError, updateError, notificationId]);
+
+  useEffect(() => {
+    if (!isUpdated || !notificationId) return;
+
+    notifications.update({
+      id: notificationId,
+      loading: false,
+      title: '학교를 수정했습니다.',
+      message: '',
+      icon: <IconCheck size={18} />,
+      autoClose: true,
+      withCloseButton: true,
+      position: 'top-center',
+      color: 'green',
+    });
+  }, [isUpdated, notificationId]);
 
   function handleDelete() {
     deleteSchool({
@@ -139,6 +205,10 @@ export default function SchoolForm({ schoolNo }: { schoolNo: number }) {
 
     router.push(`/areas/all/schools`);
   }, [isDeleted]);
+
+  if (fetchStatus === 'fetching') {
+    return <>데이터를 불러오고 있습니다.</>;
+  }
 
   return (
     <>
@@ -223,27 +293,35 @@ export default function SchoolForm({ schoolNo }: { schoolNo: number }) {
             </Group>
           </Radio.Group>
 
-          {isDeleting ? (
-            <></>
-          ) : (
-            <Grid justify="flex-start">
-              <Grid.Col span={{ base: 12, md: 'content' }}>
-                <Button type="submit" fullWidth>
-                  수정
-                </Button>
-              </Grid.Col>
-              <Grid.Col span={{ base: 12, md: 'content' }}>
-                <Button type="reset" variant="transparent" color="grey" fullWidth onClick={form.reset}>
-                  초기화
-                </Button>
-              </Grid.Col>
-              <Grid.Col span={{ base: 12, md: 'content' }}>
-                <Button type="button" variant="filled" color="red" fullWidth onClick={handleDelete}>
-                  삭제
-                </Button>
-              </Grid.Col>
-            </Grid>
-          )}
+          <Grid justify="flex-start">
+            <Grid.Col span={{ base: 12, md: 'content' }}>
+              <Button type="submit" fullWidth loading={isButtonLoading}>
+                수정
+              </Button>
+            </Grid.Col>
+            <Grid.Col span={{ base: 12, md: 'content' }}>
+              <Button
+                type="reset"
+                variant="transparent"
+                color="grey"
+                fullWidth
+                loading={isButtonLoading}
+                onClick={form.reset}>
+                초기화
+              </Button>
+            </Grid.Col>
+            <Grid.Col span={{ base: 12, md: 'content' }}>
+              <Button
+                type="button"
+                variant="filled"
+                color="red"
+                fullWidth
+                loading={isButtonLoading}
+                onClick={handleDelete}>
+                삭제
+              </Button>
+            </Grid.Col>
+          </Grid>
         </Stack>
       </form>
     </>

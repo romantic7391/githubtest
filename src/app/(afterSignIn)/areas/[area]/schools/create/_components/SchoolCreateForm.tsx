@@ -90,8 +90,8 @@ export default function SchoolCreateForm() {
     // 학교 추가 알림
     const notificationId = notifications.show({
       loading: true,
-      title: '학교 추가',
-      message: '학교를 추가하고 있습니다. 잠시만 기다려주십시오.',
+      title: '학교를 추가하고 있습니다. 잠시만 기다려주십시오.',
+      message: '',
       autoClose: false,
       withCloseButton: false,
       position: 'top-center',
