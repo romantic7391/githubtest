@@ -29,7 +29,7 @@ export const pool = mariadb.createPool({
 });
 
 // DB 커넥션 로깅
-if (process.env.NODE_ENV === 'development') {
+if (process.env.NODE_ENV === 'development' && process.env.MARIADB_CONN_LOG === '1') {
   pool.on('acquire', (conn) => {
     console.log(
       `[db][conn] Connection#${conn.threadId} 획득 (active: ${pool.activeConnections()} / idle: ${pool.idleConnections()} / total: ${pool.totalConnections()})`,
