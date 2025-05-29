@@ -53,6 +53,13 @@ export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   console.log(`[middleware] ${request.method.toUpperCase()} ${pathname}${request.nextUrl.search}`);
 
+  // 백엔드 작업 중이면 모든 API URL은 통과시킵니다.
+  if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
+    if (isMatch(pathname, ['/api{/*path}'])) {
+      return NextResponse.next();
+    }
+  }
+
   // Auth.js 용 URL 처리. 그냥 통과시켜야 합니다.
   if (isMatch(pathname, matchersForAuthJsApiEndpoint)) {
     return NextResponse.next();
