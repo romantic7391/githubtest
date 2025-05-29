@@ -11,7 +11,7 @@ import { DefaultJWT } from 'next-auth/jwt';
 declare module 'next-auth' {
   // Auth.js 사용자 타입
   interface User {
-    manager_no: number;
+    managerNo: number;
   }
 
   interface Session extends DefaultSession {

@@ -8,22 +8,22 @@ import {
   deleteRnSchool,
 } from '@/services/areas/[area]/schools/[schoolNo]/[schoolNo].service';
 import { getClientInfo } from '@/services/log-action/log-action.service';
-// import { checkPermissionMiddleware } from '@/middleware/permission.middleware';
-import { getSession } from '@/lib/auth/session';
+import { checkPermissionMiddleware } from '@/middleware/permission.middleware';
 import { handleError, handleZodError } from '@/utils/error.utils';
+import { auth } from '@/auth';
 
 /**
  * 공통 컨텍스트 정보 가져오기
  */
 async function getCommonContext(request: NextRequest): Promise<CommonContext> {
-  const session = await getSession(request);
-  if (!session?.manager_no) {
+  const session = await auth();
+  if (!session?.user.managerNo) {
     throw new Error('로그인이 필요합니다.');
   }
   const { userAgent, ip } = getClientInfo(request);
 
   return {
-    manager_no: session.manager_no,
+    manager_no: session.user.managerNo,
     ip: ip || '',
     user_agent: userAgent || '',
   };
@@ -38,11 +38,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<Sc
     const schoolNoNum = Number(resolvedParams.schoolNo);
 
     // 테스트를 위해 권한 체크 주석 처리
-    // const permissionError = await checkPermissionMiddleware(request, {
-    //   params: Promise.resolve({ schoolNo: schoolNoNum, area: resolvedParams.area })
-    // });
+    const permissionError = await checkPermissionMiddleware(request, {
+      params: Promise.resolve({ schoolNo: schoolNoNum, area: resolvedParams.area }),
+    });
 
-    // if (permissionError) return permissionError;
+    if (permissionError) return permissionError;
 
     const context = await getCommonContext(request);
     const school = await getSchoolBySchoolNo(schoolNoNum, context);

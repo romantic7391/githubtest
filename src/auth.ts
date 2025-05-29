@@ -40,7 +40,7 @@ export const config: NextAuthConfig = {
         console.log('[auth][authorize] credentials: ', credentials);
         return {
           id: '',
-          manager_no: 1,
+          managerNo: 1,
         } satisfies User;
       },
     }),
