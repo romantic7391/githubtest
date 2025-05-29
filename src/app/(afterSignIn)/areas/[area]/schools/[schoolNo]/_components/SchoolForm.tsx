@@ -305,7 +305,7 @@ export default function SchoolForm({ schoolNo }: { schoolNo: number }) {
             </Group>
           </Radio.Group>
 
-          <Grid justify="flex-start">
+          <Grid justify="flex-start" mb="md">
             <Grid.Col span={{ base: 12, md: 'content' }}>
               <Button type="submit" fullWidth loading={isButtonLoading}>
                 수정

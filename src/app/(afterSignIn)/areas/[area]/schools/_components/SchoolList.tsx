@@ -1,10 +1,11 @@
 'use client';
 
-import { Group, Pagination, Select, Stack, Text } from '@mantine/core';
+import { Box, Card, Group, Pagination, Select, Stack, Text, Title } from '@mantine/core';
 import useFilteredSchools from '../_hooks/useFilteredSchools';
 import { usePagination } from '@mantine/hooks';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import SchoolCard from './SchoolCard';
+import SchoolAddButton from './SchoolAddButton';
 
 interface SchoolListProps {
   sname: string | null;
@@ -18,7 +19,7 @@ export default function SchoolList({ sname, scode, page, pageSize }: SchoolListP
   const pathname = usePathname();
   const router = useRouter();
 
-  const { data } = useFilteredSchools({ sname, scode, page, pageSize });
+  const { data, isSuccess, fetchStatus } = useFilteredSchools({ sname, scode, page, pageSize });
   const totalPages = data.pagination.totalPages ?? 1;
   const pagination = usePagination({ total: totalPages, page, initialPage: 1, onChange: handleChangePage });
 
@@ -26,6 +27,26 @@ export default function SchoolList({ sname, scode, page, pageSize }: SchoolListP
     const params = new URLSearchParams(searchParams);
     params.set('page', page.toString());
     router.replace(`${pathname}?${params.toString()}`);
+  }
+
+  if (fetchStatus !== 'idle') {
+    return <>데이터를 불러오고 있습니다...</>;
+  }
+
+  if (isSuccess && fetchStatus === 'idle' && data.schools.length === 0) {
+    return (
+      <Stack>
+        <Card withBorder>
+          <Stack>
+            <Title order={5}>검색 결과가 없습니다.</Title>
+            <Text>검색 조건을 변경하거나 학교를 추가해주십시오.</Text>
+            <Box w="200px">
+              <SchoolAddButton />
+            </Box>
+          </Stack>
+        </Card>
+      </Stack>
+    );
   }
 
   return (

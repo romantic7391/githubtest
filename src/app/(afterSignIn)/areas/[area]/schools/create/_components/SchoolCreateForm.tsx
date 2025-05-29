@@ -254,7 +254,7 @@ export default function SchoolCreateForm() {
           </Group>
         </Radio.Group>
 
-        <Group justify="flex-start">
+        <Group justify="flex-start" mb="md">
           <Button type="submit" loading={isPending}>
             추가
           </Button>
