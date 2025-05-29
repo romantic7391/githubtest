@@ -214,11 +214,23 @@ export default function SchoolForm({ schoolNo }: { schoolNo: number }) {
     <>
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack>
-          <TextInput withAsterisk name="sname" label="학교 이름" {...form.getInputProps('sname')} />
+          <TextInput
+            withAsterisk
+            name="sname"
+            label="학교 이름"
+            maxLength={schoolFormSchema.shape.sname.maxLength ?? undefined}
+            {...form.getInputProps('sname')}
+          />
 
           <TextInput withAsterisk name="area" label="지역 영문 이름" {...form.getInputProps('area')} />
 
-          <TextInput withAsterisk name="scode" label="학교 코드" {...form.getInputProps('scode')} />
+          <TextInput
+            withAsterisk
+            name="scode"
+            label="학교 코드"
+            maxLength={schoolFormSchema.shape.scode.maxLength ?? undefined}
+            {...form.getInputProps('scode')}
+          />
 
           <NumberInput
             withAsterisk

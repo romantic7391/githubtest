@@ -40,6 +40,7 @@ export default function SchoolCreateForm() {
         if (error) return showError(error);
       },
       scode: (value) => {
+        console.log('scode', schoolCreateSchema.shape.scode.maxLength);
         const { error } = schoolCreateSchema.shape.scode.safeParse(value);
         if (error) return showError(error);
       },
@@ -152,6 +153,7 @@ export default function SchoolCreateForm() {
           name="sname"
           label="학교 이름"
           placeholder="ex) 사랑중학교"
+          maxLength={schoolCreateSchema.shape.sname.maxLength ?? undefined}
           styles={{
             wrapper: {
               flex: 1,
@@ -179,6 +181,7 @@ export default function SchoolCreateForm() {
           name="scode"
           label="학교 코드"
           placeholder="학교 검색 시 자동으로 입력됩니다."
+          maxLength={schoolCreateSchema.shape.scode.maxLength ?? undefined}
           {...form.getInputProps('scode')}
         />
 
