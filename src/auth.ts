@@ -4,7 +4,7 @@ import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 
 export const config: NextAuthConfig = {
-  debug: true,
+  debug: false,
   logger: {
     debug: (message, metadata) => {
       console.log(`[auth][debug] ${message} ${metadata}`);
@@ -35,9 +35,7 @@ export const config: NextAuthConfig = {
         password: {},
       },
 
-      authorize: async (credentials) => {
-        console.log('[auth][authorize] runtime: ', process.env.NEXT_RUNTIME);
-        console.log('[auth][authorize] credentials: ', credentials);
+      authorize: async () => {
         return {
           id: '',
           managerNo: 1,
@@ -47,8 +45,7 @@ export const config: NextAuthConfig = {
   ],
   // https://authjs.dev/reference/nextjs#callbacks
   callbacks: {
-    signIn: async ({ user }) => {
-      console.log('[auth][signIn] user: ', JSON.stringify(user));
+    signIn: async ({}) => {
       return true;
     },
     // token.sub: 사용자 고유 식별자
@@ -63,7 +60,6 @@ export const config: NextAuthConfig = {
     },
     session: async ({ session, token }) => {
       if (token.user) {
-        console.log('[auth][session] token.user: ', token.user);
         session.user = {
           ...token.user,
           // AdapterUser 타입을 위한 속성. 사용하지 않습니다.
@@ -77,4 +73,4 @@ export const config: NextAuthConfig = {
   },
 };
 
-export const { handlers, signIn, signOut, auth } = NextAuth(config);
+export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth(config);

@@ -11,12 +11,21 @@ import { getClientInfo } from '@/services/log-action/log-action.service';
 // import { checkPermissionMiddleware } from '@/middleware/permission.middleware';
 import { handleError, handleZodError } from '@/utils/error.utils';
 import { auth } from '@/auth';
-
+import { Session } from 'next-auth';
 /**
  * 공통 컨텍스트 정보 가져오기
  */
 async function getCommonContext(request: NextRequest): Promise<CommonContext> {
-  const session = await auth();
+  let session = await auth();
+  if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
+    session = {
+      ...session,
+      user: {
+        ...session?.user,
+        managerNo: 1,
+      },
+    } as Session;
+  }
   if (!session?.user.managerNo) {
     throw new Error('로그인이 필요합니다.');
   }
