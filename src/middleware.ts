@@ -17,14 +17,14 @@ export const config = {
      * - favicon.ico, sitemap.xml, robots.txt (메타데이터 파일)
      * - .well-known/appspecific/com.chrome.devtools.json (Chrome DevTools 파일)
      */
-    '/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|.well-known/appspecific/com.chrome.devtools.json).*)',
+    '/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|.well-known/appspecific/com.chrome.devtools.json).*)',
   ],
 };
 
 /**
  * 로그인이 필요없는 URL
  */
-const matchersForPublic: string[] = ['{/*path}'];
+const matchersForPublic: string[] = ['/logo.svg'];
 
 /**
  * 로그인, 회원가입 페이지 및 관련 엔드포인트 URL
@@ -65,7 +65,6 @@ export async function middleware(request: NextRequest) {
 
   // 세션 인증 확인
   const session = await auth();
-  console.log('[middleware] session: ', session);
 
   // 로그인이 필요한 페이지 처리
   if (!isMatch(pathname, [...matchersForSignInAndSignUp])) {
