@@ -63,6 +63,7 @@ export const config: NextAuthConfig = {
     },
     session: async ({ session, token }) => {
       if (token.user) {
+        console.log('[auth][session] token.user: ', token.user);
         session.user = {
           ...token.user,
           // AdapterUser 타입을 위한 속성. 사용하지 않습니다.

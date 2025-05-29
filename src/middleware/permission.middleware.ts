@@ -5,6 +5,7 @@ import { checkPermission, checkPermissions } from '@/services/permission/permiss
 import { getSession } from '@/lib/auth/session';
 import { permissionMappings } from '@/config/permission-mapping';
 import { HTTPMethod } from '@/types/common';
+import { auth } from '@/auth';
 
 /**
  * URL 패턴과 실제 URL을 매칭하여 파라미터를 추출
