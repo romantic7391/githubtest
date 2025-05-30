@@ -144,3 +144,15 @@ export const deviceListParamsSchema = z.object({
  * 센서 장치 목록 조회 파라미터 타입
  */
 export type DeviceListParams = z.infer<typeof deviceListParamsSchema>;
+
+/**
+ * 학교 센서 장치 폼
+ */
+export const deviceRelFormSchema = deviceRelSchema.omit({ device: true }).extend({
+  device: deviceSchema.partial(),
+});
+
+/**
+ * 학교 센서 장치 폼 타입
+ */
+export type DeviceRelForm = z.infer<typeof deviceRelFormSchema>;

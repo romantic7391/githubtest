@@ -1,13 +1,19 @@
 'use client';
 
-import { Button, Card, Code, Flex, Grid, Group, Pagination, Select, Stack, Text, TextInput } from '@mantine/core';
-import useFilteredDevices from '../_hooks/useFilteredDevices';
-import { IconPlus, IconSearch } from '@tabler/icons-react';
-import { useState } from 'react';
 import { DEFAULT_PAGE_SIZE } from '@/lib/default.constant';
-import { usePagination } from '@mantine/hooks';
+import useFilteredDevices from '../_hooks/useFilteredDevices';
+import { useEffect, useState } from 'react';
+import { useForm } from '@mantine/form';
+import { paginationSchema } from '@/types/common';
+import { DeviceRelForm, deviceRelFormSchema } from '@/types/device';
+import ZodErrorDisplay from '@/app/(afterSignIn)/_components/ZodErrorDisplay';
+import { Card, Grid, Stack } from '@mantine/core';
+import DevicePagination from './DevicePagination';
+import DeviceCard from './DeviceCard';
 
 export default function DeviceList({ area, schoolNo }: { area: string; schoolNo: number }) {
+  // const [searchType, setSearchType] = useState<string>('name');
+  // const [searchValue, setSearchValue] = useState<string>('');
   const [page, setPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(DEFAULT_PAGE_SIZE);
   const { data } = useFilteredDevices({
@@ -16,75 +22,72 @@ export default function DeviceList({ area, schoolNo }: { area: string; schoolNo:
     page,
     pageSize,
   });
-  const {} = usePagination({ total: data?.pagination.total, page, onChange: setPage });
+  const devices = data?.devices ?? [];
+  const pagination = data?.pagination ?? paginationSchema.parse({});
+
+  const form = useForm<{ devices: DeviceRelForm[] }>({
+    initialValues: {
+      devices,
+    },
+
+    validate: {
+      devices: {
+        mac: (value) => {
+          const { error } = deviceRelFormSchema.shape.mac.safeParse(value);
+          if (error) return <ZodErrorDisplay error={error} />;
+        },
+        summary: (value) => {
+          const { error } = deviceRelFormSchema.shape.summary.safeParse(value);
+          if (error) return <ZodErrorDisplay error={error} />;
+        },
+      },
+    },
+  });
+
+  useEffect(() => {
+    form.setValues({
+      devices,
+    });
+    form.setInitialValues({
+      devices,
+    });
+  }, [devices]);
+
+  // useEffect(() => {
+  //   console.log('검색: ', searchType, searchValue);
+  // }, [searchType, searchValue]);
 
   return (
     <Stack>
-      {/* 헤더 */}
-      <Card withBorder>
-        <Grid>
-          <Grid.Col span={{ base: 'content', md: 'content' }}>
-            <Flex h="100%" align="center">
-              <Text component="label" htmlFor="device-search" fw="bold">
-                검색
-              </Text>
-            </Flex>
-          </Grid.Col>
-          <Grid.Col span={{ base: 3, xs: 2, lg: 1 }}>
-            <Select
-              id="device-search"
-              allowDeselect={false}
-              data={[
-                { value: 'name', label: '이름' },
-                { value: 'mac', label: 'MAC' },
-              ]}
-              defaultValue="name"
-            />
-          </Grid.Col>
-          <Grid.Col span={{ base: 'auto' }}>
-            <TextInput id="device-search" placeholder="검색어를 입력해주세요." />
-          </Grid.Col>
-          <Grid.Col span={{ base: 12, xs: 'content' }}>
-            <Group>
-              <Button px={10} onClick={() => {}}>
-                <Group gap={5}>
-                  <IconSearch size={16} stroke={3} />
-                  검색
-                </Group>
-              </Button>
-              <Button px={10} onClick={() => {}} color="red">
-                초기화
-              </Button>
-              <Button px={10} onClick={() => {}}>
-                <Group gap={5}>
-                  <IconPlus size={16} stroke={3} />
-                  장치 추가
-                </Group>
-              </Button>
-            </Group>
-          </Grid.Col>
-        </Grid>
-      </Card>
+      {/* <DeviceSearchCard
+        searchType={searchType}
+        setSearchType={setSearchType}
+        setSearchValue={setSearchValue}
+      /> */}
 
-      {/* 목록 */}
-      {data && data.devices.length === 0 && <Text>등록된 장치가 없습니다.</Text>}
+      <Grid>
+        {devices.map((device, index) => (
+          <Grid.Col key={`${index}_${device.mac}`} span={{ base: 12, md: 6, xl: 3 }}>
+            <DeviceCard index={index} device={device} form={form} />
+          </Grid.Col>
+        ))}
+        {pagination.page === pagination.totalPages && (
+          <Grid.Col span={{ base: 12, md: 6, xl: 3 }}>
+            <Card withBorder h="100%" w="100%">
+              TODO: 장치 추가
+            </Card>
+          </Grid.Col>
+        )}
+      </Grid>
 
       {/* 페이지네이션 */}
-      <Group>
-        <Pagination total={data?.pagination.totalPages} value={page} onChange={setPage} />
-        <Select
-          data={[
-            { value: '8', label: '8개 씩 보기' },
-            { value: '10', label: '10개 씩 보기' },
-            { value: '20', label: '20개 씩 보기' },
-            { value: '50', label: '50개 씩 보기' },
-            { value: '100', label: '100개 씩 보기' },
-          ]}
-          value={pageSize.toString()}
-          onChange={(value) => setPageSize(Number(value))}
-        />
-      </Group>
-      <Code block>{JSON.stringify(data, null, 2)}</Code>
+      <DevicePagination
+        totalPages={pagination.totalPages}
+        page={page}
+        setPage={setPage}
+        pageSize={pageSize}
+        setPageSize={setPageSize}
+      />
     </Stack>
   );
 }

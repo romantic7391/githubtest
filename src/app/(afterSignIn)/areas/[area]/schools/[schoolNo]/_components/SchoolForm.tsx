@@ -211,13 +211,13 @@ export default function SchoolForm({ schoolNo }: { schoolNo: number }) {
 
   return (
     <>
-      <form onSubmit={form.onSubmit(handleSubmit)}>
-        <Accordion multiple defaultValue={['devices']} variant="contained">
-          <Accordion.Item value="school">
-            <Accordion.Control>
-              <Title order={4}>학교 기본 정보</Title>
-            </Accordion.Control>
-            <Accordion.Panel bg="white">
+      <Accordion multiple defaultValue={['devices']} variant="contained">
+        <Accordion.Item value="school">
+          <Accordion.Control>
+            <Title order={4}>학교 기본 정보</Title>
+          </Accordion.Control>
+          <Accordion.Panel bg="white">
+            <form onSubmit={form.onSubmit(handleSubmit)}>
               <Stack>
                 <TextInput
                   withAsterisk
@@ -340,19 +340,19 @@ export default function SchoolForm({ schoolNo }: { schoolNo: number }) {
                   </Grid.Col>
                 </Grid>
               </Stack>
-            </Accordion.Panel>
-          </Accordion.Item>
+            </form>
+          </Accordion.Panel>
+        </Accordion.Item>
 
-          <Accordion.Item value="devices">
-            <Accordion.Control>
-              <Title order={4}>센서 장치 목록</Title>
-            </Accordion.Control>
-            <Accordion.Panel bg="white" pt="sm">
-              <DeviceList area={area as string} schoolNo={schoolNo} />
-            </Accordion.Panel>
-          </Accordion.Item>
-        </Accordion>
-      </form>
+        <Accordion.Item value="devices">
+          <Accordion.Control>
+            <Title order={4}>센서 장치 목록</Title>
+          </Accordion.Control>
+          <Accordion.Panel bg="white" pt="sm">
+            <DeviceList area={area as string} schoolNo={schoolNo} />
+          </Accordion.Panel>
+        </Accordion.Item>
+      </Accordion>
     </>
   );
 }

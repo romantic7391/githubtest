@@ -1,0 +1,9 @@
+.textinput {
+  width: 100%;
+}
+
+.textinput input {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}

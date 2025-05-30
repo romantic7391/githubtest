@@ -1,16 +1,14 @@
 'use client';
 
-import { Anchor, AppShell, Box, Burger, Group, Image, ScrollArea, Title } from '@mantine/core';
-import { useDisclosure, useViewportSize } from '@mantine/hooks';
+import { Anchor, AppShell, Box, Burger, Group, Image, Title } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
 import LeftNavigation from './_components/LeftNavigation';
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 export default function AfterLoginLayout({ children }: { children: React.ReactNode }) {
   const [opened, { toggle }] = useDisclosure();
   const router = useRouter();
-  const { height } = useViewportSize();
-  const viewport = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -51,19 +49,9 @@ export default function AfterLoginLayout({ children }: { children: React.ReactNo
       </AppShell.Navbar>
 
       <AppShell.Main>
-        <ScrollArea
-          h={height - 60}
-          type="auto"
-          viewportRef={viewport}
-          styles={{
-            content: {
-              height: '100%',
-            },
-          }}>
-          <Box h="100%" p="md">
-            {children}
-          </Box>
-        </ScrollArea>
+        <Box h="100%" p="md">
+          {children}
+        </Box>
       </AppShell.Main>
     </AppShell>
   );
