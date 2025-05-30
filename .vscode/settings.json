@@ -6,5 +6,6 @@
     "**/*.sass",
     "**/*.less",
     "node_modules/@mantine/core/styles.css"
-  ]
+  ],
+  "prettier.configPath": "${workspaceFolder}/prettier.config.mjs"
 }

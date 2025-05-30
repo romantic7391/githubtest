@@ -55,7 +55,7 @@ export async function middleware(request: NextRequest) {
 
   // 백엔드 작업 중이면 모든 API URL은 통과시킵니다.
   if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
-    if (isMatch(pathname, ['/api{/*path}'])) {
+    if (isMatch(pathname, ['/api{/*path}', '/test/api{/*path}'])) {
       return NextResponse.next();
     }
   }

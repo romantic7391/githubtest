@@ -23,7 +23,7 @@ export const deviceRelSchema = z.object({
   mac: z.string().min(1).max(16),
   name: z.string().max(65535).nullable(),
   summary: z.string().max(65535).nullable(),
-  kind: z.number().int().nonnegative().max(999999999999999).default(0),
+  kind: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER).default(0),
   extra: z.string().max(65535).nullable(),
   sdate: datetimeSchema.nullable(),
   edate: datetimeSchema.nullable(),

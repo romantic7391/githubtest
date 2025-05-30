@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, Grid, Group, NumberInput, Radio, Stack, TextInput } from '@mantine/core';
+import { Accordion, Button, Grid, Group, NumberInput, Radio, Stack, TextInput, Title } from '@mantine/core';
 import useSchool from '../_hooks/useSchool';
 import { useParams, useRouter } from 'next/navigation';
 import { useForm } from '@mantine/form';
@@ -11,9 +11,8 @@ import useDeleteSchool from '../_hooks/useDeleteSchool';
 import { notifications } from '@mantine/notifications';
 import { IconAlertCircleFilled, IconCheck } from '@tabler/icons-react';
 import useUpdateSchool from '../_hooks/useUpdateSchool';
-// import useUpdateSchool from '../_hooks/useUpdateSchool';
+import DeviceList from './DeviceList';
 
-// TODO: 없는 학교로 URL 조회 시 에러 발생
 export default function SchoolForm({ schoolNo }: { schoolNo: number }) {
   const { area } = useParams();
   const { data, fetchStatus } = useSchool({ area: area as string, schoolNo });
@@ -213,128 +212,146 @@ export default function SchoolForm({ schoolNo }: { schoolNo: number }) {
   return (
     <>
       <form onSubmit={form.onSubmit(handleSubmit)}>
-        <Stack>
-          <TextInput
-            withAsterisk
-            name="sname"
-            label="학교 이름"
-            maxLength={schoolFormSchema.shape.sname.maxLength ?? undefined}
-            {...form.getInputProps('sname')}
-          />
+        <Accordion multiple defaultValue={['devices']} variant="contained">
+          <Accordion.Item value="school">
+            <Accordion.Control>
+              <Title order={4}>학교 기본 정보</Title>
+            </Accordion.Control>
+            <Accordion.Panel bg="white">
+              <Stack>
+                <TextInput
+                  withAsterisk
+                  name="sname"
+                  label="학교 이름"
+                  maxLength={schoolFormSchema.shape.sname.maxLength ?? undefined}
+                  {...form.getInputProps('sname')}
+                />
 
-          <TextInput withAsterisk name="area" label="지역 영문 이름" {...form.getInputProps('area')} />
+                <TextInput withAsterisk name="area" label="지역 영문 이름" {...form.getInputProps('area')} />
 
-          <TextInput
-            withAsterisk
-            name="scode"
-            label="학교 코드"
-            maxLength={schoolFormSchema.shape.scode.maxLength ?? undefined}
-            {...form.getInputProps('scode')}
-          />
+                <TextInput
+                  withAsterisk
+                  name="scode"
+                  label="학교 코드"
+                  maxLength={schoolFormSchema.shape.scode.maxLength ?? undefined}
+                  {...form.getInputProps('scode')}
+                />
 
-          <NumberInput
-            withAsterisk
-            name="administrationCode"
-            label="행정표준코드(기관)"
-            placeholder="ex) 서울과학고등학교: 7010084"
-            min={0}
-            max={99_999_999}
-            clampBehavior="strict"
-            styles={{
-              wrapper: { flex: 1 },
-            }}
-            rightSection={<></>}
-            allowNegative={false}
-            allowLeadingZeros={false}
-            {...form.getInputProps('administrationCode')}
-          />
-          <Radio.Group
-            label="작업지시서 사용 여부"
-            name="useOrderSheet"
-            defaultValue="Y"
-            {...form.getInputProps('useOrderSheet')}>
-            <Group>
-              <Radio value="Y" label="사용" />
-              <Radio value="N" label="사용 안함" />
-            </Group>
-          </Radio.Group>
+                <NumberInput
+                  withAsterisk
+                  name="administrationCode"
+                  label="행정표준코드(기관)"
+                  placeholder="ex) 서울과학고등학교: 7010084"
+                  min={0}
+                  max={99_999_999}
+                  clampBehavior="strict"
+                  styles={{
+                    wrapper: { flex: 1 },
+                  }}
+                  rightSection={<></>}
+                  allowNegative={false}
+                  allowLeadingZeros={false}
+                  {...form.getInputProps('administrationCode')}
+                />
+                <Radio.Group
+                  label="작업지시서 사용 여부"
+                  name="useOrderSheet"
+                  defaultValue="Y"
+                  {...form.getInputProps('useOrderSheet')}>
+                  <Group>
+                    <Radio value="Y" label="사용" />
+                    <Radio value="N" label="사용 안함" />
+                  </Group>
+                </Radio.Group>
 
-          {/* Modbus */}
-          <Radio.Group label="Modbus 사용 여부" name="modbus" defaultValue="0" {...form.getInputProps('modbus')}>
-            <Group>
-              <Radio value="1" label="사용" />
-              <Radio value="0" label="사용 안함" />
-            </Group>
-          </Radio.Group>
+                {/* Modbus */}
+                <Radio.Group label="Modbus 사용 여부" name="modbus" defaultValue="0" {...form.getInputProps('modbus')}>
+                  <Group>
+                    <Radio value="1" label="사용" />
+                    <Radio value="0" label="사용 안함" />
+                  </Group>
+                </Radio.Group>
 
-          <TextInput
-            label="Modbus Host"
-            name="modbusHost"
-            disabled={form.values.modbus === '0'}
-            {...form.getInputProps('modbusHost')}
-          />
+                <TextInput
+                  label="Modbus Host"
+                  name="modbusHost"
+                  disabled={form.values.modbus === '0'}
+                  {...form.getInputProps('modbusHost')}
+                />
 
-          <NumberInput
-            label="Modbus Port"
-            name="modbusPort"
-            defaultValue={502}
-            rightSection={<></>}
-            min={0}
-            max={65535}
-            allowNegative={false}
-            allowLeadingZeros={false}
-            disabled={form.values.modbus === '0'}
-            {...form.getInputProps('modbusPort')}
-          />
-          {/* End of Modbus */}
+                <NumberInput
+                  label="Modbus Port"
+                  name="modbusPort"
+                  defaultValue={502}
+                  rightSection={<></>}
+                  min={0}
+                  max={65535}
+                  allowNegative={false}
+                  allowLeadingZeros={false}
+                  disabled={form.values.modbus === '0'}
+                  {...form.getInputProps('modbusPort')}
+                />
+                {/* End of Modbus */}
 
-          <NumberInput
-            label="상위 기관 번호"
-            description="상위 기관이 없다면 비워두십시오."
-            rightSection={<></>}
-            allowNegative={false}
-            allowLeadingZeros={false}
-            min={1}
-            {...form.getInputProps('parentNo')}
-          />
+                <NumberInput
+                  label="상위 기관 번호"
+                  description="상위 기관이 없다면 비워두십시오."
+                  rightSection={<></>}
+                  allowNegative={false}
+                  allowLeadingZeros={false}
+                  min={1}
+                  {...form.getInputProps('parentNo')}
+                />
 
-          <Radio.Group label="활성화" name="active" defaultValue="Y" {...form.getInputProps('active')}>
-            <Group>
-              <Radio value="Y" label="활성화" />
-              <Radio value="N" label="비활성화" />
-            </Group>
-          </Radio.Group>
+                <Radio.Group label="활성화" name="active" defaultValue="Y" {...form.getInputProps('active')}>
+                  <Group>
+                    <Radio value="Y" label="활성화" />
+                    <Radio value="N" label="비활성화" />
+                  </Group>
+                </Radio.Group>
 
-          <Grid justify="flex-start" mb="md">
-            <Grid.Col span={{ base: 12, md: 'content' }}>
-              <Button type="submit" fullWidth loading={isButtonLoading}>
-                수정
-              </Button>
-            </Grid.Col>
-            <Grid.Col span={{ base: 12, md: 'content' }}>
-              <Button
-                type="reset"
-                variant="transparent"
-                color="grey"
-                fullWidth
-                loading={isButtonLoading}
-                onClick={form.reset}>
-                초기화
-              </Button>
-            </Grid.Col>
-            <Grid.Col span={{ base: 12, md: 'content' }}>
-              <Button
-                type="button"
-                variant="filled"
-                color="red"
-                fullWidth
-                loading={isButtonLoading}
-                onClick={handleDelete}>
-                삭제
-              </Button>
-            </Grid.Col>
-          </Grid>
-        </Stack>
+                <Grid justify="flex-start" mb="md">
+                  <Grid.Col span={{ base: 12, md: 'content' }}>
+                    <Button type="submit" fullWidth loading={isButtonLoading}>
+                      수정
+                    </Button>
+                  </Grid.Col>
+                  <Grid.Col span={{ base: 12, md: 'content' }}>
+                    <Button
+                      type="reset"
+                      variant="transparent"
+                      color="grey"
+                      fullWidth
+                      loading={isButtonLoading}
+                      onClick={form.reset}>
+                      초기화
+                    </Button>
+                  </Grid.Col>
+                  <Grid.Col span={{ base: 12, md: 'content' }}>
+                    <Button
+                      type="button"
+                      variant="filled"
+                      color="red"
+                      fullWidth
+                      loading={isButtonLoading}
+                      onClick={handleDelete}>
+                      삭제
+                    </Button>
+                  </Grid.Col>
+                </Grid>
+              </Stack>
+            </Accordion.Panel>
+          </Accordion.Item>
+
+          <Accordion.Item value="devices">
+            <Accordion.Control>
+              <Title order={4}>센서 장치 목록</Title>
+            </Accordion.Control>
+            <Accordion.Panel bg="white" pt="sm">
+              <DeviceList area={area as string} schoolNo={schoolNo} />
+            </Accordion.Panel>
+          </Accordion.Item>
+        </Accordion>
       </form>
     </>
   );
