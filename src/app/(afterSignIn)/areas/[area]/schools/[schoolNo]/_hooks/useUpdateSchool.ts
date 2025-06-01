@@ -1,10 +1,20 @@
+import { HTTPStatusError } from '@/lib/common.error';
 import { isJsonResponse } from '@/lib/util/common.util';
 import { School, SchoolCreateOrUpdateApiResponse } from '@/types/school';
 import { useMutation } from '@tanstack/react-query';
 
+interface UpdateSchoolParams {
+  params: {
+    area: string;
+    schoolNo: number;
+  };
+  school: School;
+}
+
 export default function useUpdateSchool() {
-  async function updateData(school: School): Promise<SchoolCreateOrUpdateApiResponse['data']> {
-    const requestUrl = new URL(`/api/areas/${school.area}/schools/${school.schoolNo}`, window.location.origin);
+  async function updateData({ params, school }: UpdateSchoolParams): Promise<SchoolCreateOrUpdateApiResponse['data']> {
+    const { area, schoolNo } = params;
+    const requestUrl = new URL(`/api/areas/${area}/schools/${schoolNo}`, window.location.origin);
     const body = JSON.stringify(school);
 
     const response = await fetch(requestUrl, {
@@ -21,7 +31,7 @@ export default function useUpdateSchool() {
 
     const { success, message, data } = await response.json();
     if (!success) {
-      throw new Error(message);
+      throw new HTTPStatusError(message, response.status);
     }
 
     return data satisfies SchoolCreateOrUpdateApiResponse['data'];
@@ -29,14 +39,8 @@ export default function useUpdateSchool() {
 
   return useMutation({
     mutationFn: updateData,
-    onSuccess: (data) => {
-      console.log('onSuccess', data);
-    },
-    onError: (error) => {
-      console.error('onError', error);
-    },
-    onMutate: (variables) => {
-      console.log('onMutate', variables);
+    throwOnError: () => {
+      return false;
     },
   });
 }

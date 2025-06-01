@@ -22,7 +22,6 @@ export default function useFilteredSchools({ sname, scode, page, pageSize }: Use
   }
 
   async function fetchData(): Promise<SchoolsApiResponse['data']> {
-    console.log('fetchData');
     const requestUrl = new URL('/api/areas/all/schools', window.location.origin);
     if (sname) {
       requestUrl.searchParams.set('sname', sname);

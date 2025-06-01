@@ -1,8 +1,10 @@
-import type { NextAuthConfig } from 'next-auth';
+import type { NextAuthConfig, User } from 'next-auth';
+import type { AdapterUser } from 'next-auth/adapters';
 import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 
 export const config: NextAuthConfig = {
+  debug: false,
   logger: {
     debug: (message, metadata) => {
       console.log(`[auth][debug] ${message} ${metadata}`);
@@ -21,38 +23,54 @@ export const config: NextAuthConfig = {
   },
   session: {
     strategy: 'jwt',
-    maxAge: 60,
-    updateAge: 60,
-  },
-  callbacks: {
-    signIn: async ({}) => {
-      return true;
-    },
-    jwt: async ({ token, user }) => {
-      if (user) {
-        token.id = user.id;
-      }
-      return token;
-    },
-    session: async ({ session, token }) => {
-      if (session.user && token.id) {
-        session.user.id = token.id as string;
-      }
-      return session;
-    },
+    // 세션 만료 시간 (단위: 초)
+    maxAge: 60 * 60 * 24,
+    // 세션 갱신 시간 (단위: 초).
+    updateAge: 60 * 60 * 24,
   },
   providers: [
     CredentialsProvider({
       credentials: {
-        id: {},
+        signInId: {},
         password: {},
       },
 
       authorize: async () => {
-        return {};
+        return {
+          id: '',
+          managerNo: 1,
+        } satisfies User;
       },
     }),
   ],
+  // https://authjs.dev/reference/nextjs#callbacks
+  callbacks: {
+    signIn: async ({}) => {
+      return true;
+    },
+    // token.sub: 사용자 고유 식별자
+    // token.iat: 토큰 발행 시간
+    // token.exp: 토큰 만료 시간
+    // token.jti: 토큰 고유 식별자
+    jwt: async ({ token, user }) => {
+      if (user) {
+        token.user = { ...user };
+      }
+      return token;
+    },
+    session: async ({ session, token }) => {
+      if (token.user) {
+        session.user = {
+          ...token.user,
+          // AdapterUser 타입을 위한 속성. 사용하지 않습니다.
+          id: token.user.id || '',
+          email: '',
+          emailVerified: null,
+        } satisfies AdapterUser;
+      }
+      return session;
+    },
+  },
 };
 
-export const { handlers, signIn, signOut, auth } = NextAuth(config);
+export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth(config);

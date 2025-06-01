@@ -70,7 +70,6 @@ export default function Search() {
                 if (!value) return;
                 setSearchKey(searchKeys.find((item) => item.value === value) || searchKeys[0]);
               }}
-              tabIndex={1}
             />
             <TextInput
               id="sname"
@@ -86,7 +85,6 @@ export default function Search() {
                   handleSearch(searchKey.value, searchValue);
                 }
               }}
-              tabIndex={2}
             />
           </Group>
         </Grid.Col>

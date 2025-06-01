@@ -23,7 +23,7 @@ export const deviceRelSchema = z.object({
   mac: z.string().min(1).max(16),
   name: z.string().max(65535).nullable(),
   summary: z.string().max(65535).nullable(),
-  kind: z.number().int().nonnegative().max(999999999999999).default(0),
+  kind: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER).default(0),
   extra: z.string().max(65535).nullable(),
   sdate: datetimeSchema.nullable(),
   edate: datetimeSchema.nullable(),
@@ -144,3 +144,15 @@ export const deviceListParamsSchema = z.object({
  * 센서 장치 목록 조회 파라미터 타입
  */
 export type DeviceListParams = z.infer<typeof deviceListParamsSchema>;
+
+/**
+ * 학교 센서 장치 폼
+ */
+export const deviceRelFormSchema = deviceRelSchema.omit({ device: true }).extend({
+  device: deviceSchema.partial(),
+});
+
+/**
+ * 학교 센서 장치 폼 타입
+ */
+export type DeviceRelForm = z.infer<typeof deviceRelFormSchema>;

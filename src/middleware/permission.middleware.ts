@@ -5,6 +5,7 @@ import { checkPermission, checkPermissions } from '@/services/permission/permiss
 import { getSession } from '@/lib/auth/session';
 import { permissionMappings } from '@/config/permission-mapping';
 import { HTTPMethod } from '@/types/common';
+import { auth } from '@/auth';
 
 /**
  * URL 패턴과 실제 URL을 매칭하여 파라미터를 추출
@@ -48,17 +49,7 @@ export async function checkPermissionMiddleware(
 ): Promise<NextResponse | null> {
   try {
     // 1. 세션 체크
-    const session = await getSession(request);
-    if (!session?.manager_no) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: '로그인이 필요합니다.',
-        },
-        { status: 401 },
-      );
-    }
-
+    const session = await auth();
     const method = request.method as HTTPMethod;
     const path = request.nextUrl.pathname;
     console.log('권한 체크 요청:', { method, path });
@@ -86,7 +77,7 @@ export async function checkPermissionMiddleware(
     }
 
     // 4. 권한 체크
-    const { allowed, override } = await checkPermissions(session.manager_no, schoolNo, mapping.permissions);
+    const { allowed, override } = await checkPermissions(session.user.managerNo, schoolNo, mapping.permissions);
 
     if (allowed === 'N') {
       console.log('권한 없음:', { allowed, override });

@@ -6,8 +6,9 @@ const nextConfig: NextConfig = {
    */
   logging: {
     fetches: {
-      fullUrl: true,
+      fullUrl: false,
     },
+    incomingRequests: false,
   },
 
   experimental: {
