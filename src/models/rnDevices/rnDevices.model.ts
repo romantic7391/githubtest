@@ -1,6 +1,6 @@
 import { exec, getAll, getRow } from '@/lib/mariadb/query';
 import type { PoolConnection } from 'mariadb';
-import { Device, DeviceCreate } from '@/types/device';
+import { DeviceCreate } from '@/types/device';
 
 //학교별 Rel센서 등록
 export async function insertRnDevices(
@@ -14,14 +14,14 @@ export async function insertRnDevices(
 
   const params = dtos.flatMap((dto) => [
     dto.mac,
-    dto.device.model,
-    dto.device.ip,
-    dto.device.rip,
-    dto.device.splrate,
-    dto.device.interval,
-    dto.device.ver,
-    dto.device.tags,
-    dto.device.checkin,
+    dto.device?.model ?? null,
+    dto.device?.ip ?? null,
+    dto.device?.rip ?? null,
+    dto.device?.splrate ?? null,
+    dto.device?.interval ?? null,
+    dto.device?.ver ?? null,
+    dto.device?.tags ?? null,
+    dto.device?.checkin ?? null,
   ]);
 
   return await exec(query, params, conn);
@@ -41,34 +41,34 @@ export async function findDevicesByMacs(macList: string[], conn?: PoolConnection
 }
 
 // rnDevices 수정
-export async function updateDeviceFn(dtos: Device[], conn?: PoolConnection): Promise<void> {
-  for (const dto of dtos) {
-    const query = `
-      UPDATE rnDevices SET
-        model = ?,
-        ip = ?,
-        rip = ?,
-        splrate = ?,
-        \`interval\` = ?,
-        ver = ?,
-        tags = ?,
-        checkin = ?
-      WHERE mac = ?
-    `;
-    const params = [
-      dto.device.model,
-      dto.device.ip,
-      dto.device.rip,
-      dto.device.splrate,
-      dto.device.interval,
-      dto.device.ver,
-      dto.device.tags,
-      dto.device.checkin,
-      dto.mac,
-    ];
-    await exec(query, params, conn);
-  }
-}
+// export async function updateDeviceFn(dtos: Device[], conn?: PoolConnection): Promise<void> {
+//   for (const dto of dtos) {
+//     const query = `
+//       UPDATE rnDevices SET
+//         model = ?,
+//         ip = ?,
+//         rip = ?,
+//         splrate = ?,
+//         \`interval\` = ?,
+//         ver = ?,
+//         tags = ?,
+//         checkin = ?
+//       WHERE mac = ?
+//     `;
+//     const params = [
+//       dto.device?.model ?? null,
+//       dto.device?.ip ?? null,
+//       dto.device?.rip ?? null,
+//       dto.device?.splrate ?? null,
+//       dto.device?.interval ?? null,
+//       dto.device?.ver ?? null,
+//       dto.device?.tags ?? null,
+//       dto.device?.checkin ?? null,
+//       dto.mac,
+//     ];
+//     await exec(query, params, conn);
+//   }
+// }
 
 // rnDevices 소프트 삭제
 export async function softDeleteRnDevice(dtos: { mac: string }[], conn?: PoolConnection) {

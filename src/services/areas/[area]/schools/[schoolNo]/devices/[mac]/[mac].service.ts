@@ -4,7 +4,7 @@ import {
   updateRnDevicesRel,
   softDeleteRnDevicesRel,
 } from '@/models/rnDevicesRel/rnDevicesRel.model';
-import { findDeviceByMac, updateDeviceFn, softDeleteRnDevice } from '@/models/rnDevices/rnDevices.model';
+import { findDeviceByMac, softDeleteRnDevice } from '@/models/rnDevices/rnDevices.model';
 import { logAction, makeLogParams } from '@/services/log-action/log-action.service';
 import { beginTransaction, commitTransaction, rollbackTransaction } from '@/lib/mariadb/query';
 
@@ -101,28 +101,28 @@ export async function updateDevice(
     await updateRnDevicesRel([dto], conn);
 
     // rnDevices 테이블 업데이트
-    const deviceData: Device = {
-      mac: dto.mac,
-      name: dto.name,
-      summary: dto.summary,
-      kind: dto.kind,
-      extra: dto.extra,
-      sdate: dto.sdate,
-      edate: dto.edate,
-      created: dto.created,
-      device: {
-        model: dto.device.model,
-        ip: dto.device.ip,
-        rip: dto.device.rip,
-        splrate: dto.device.splrate,
-        interval: dto.device.interval,
-        ver: dto.device.ver,
-        tags: dto.device.tags,
-        checkin: dto.device.checkin,
-        created: dto.device.created,
-      },
-    };
-    await updateDeviceFn([deviceData], conn);
+    // const deviceData: Device = {
+    //   mac: dto.mac,
+    //   name: dto.name,
+    //   summary: dto.summary,
+    //   kind: dto.kind,
+    //   extra: dto.extra,
+    //   sdate: dto.sdate,
+    //   edate: dto.edate,
+    //   created: dto.created,
+    //   device: {
+    //     model: dto.device.model,
+    //     ip: dto.device.ip,
+    //     rip: dto.device.rip,
+    //     splrate: dto.device.splrate,
+    //     interval: dto.device.interval,
+    //     ver: dto.device.ver,
+    //     tags: dto.device.tags,
+    //     checkin: dto.device.checkin,
+    //     created: dto.device.created,
+    //   },
+    // };
+    // await updateDeviceFn([deviceData], conn);
 
     // 로그 기록
     await logAction(
@@ -135,7 +135,7 @@ export async function updateDevice(
         target_table: 'rndevicesrel',
         target_id: dto.mac,
         old_values: JSON.stringify(oldDevice),
-        new_values: JSON.stringify(deviceData),
+        new_values: JSON.stringify(dto),
         reason: '센서 정보 수정',
       }),
       conn,

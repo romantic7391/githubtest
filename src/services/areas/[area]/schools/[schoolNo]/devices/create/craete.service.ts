@@ -1,6 +1,6 @@
 import { PoolConnection } from 'mariadb';
 import { findRelByMac, insertRnDevicesRel } from '@/models/rnDevicesRel/rnDevicesRel.model';
-import { findDevicesByMacs, insertRnDevices } from '@/models/rnDevices/rnDevices.model';
+// import { findDevicesByMacs, insertRnDevices } from '@/models/rnDevices/rnDevices.model';
 import { beginTransaction, commitTransaction, rollbackTransaction } from '@/lib/mariadb/query';
 import { DeviceCreate } from '@/types/device';
 import { LogMeta } from '@/types/history';
@@ -69,32 +69,32 @@ async function createDevicesAndRelationsFn(dtos: DeviceCreate[], conn: PoolConne
     }),
   );
 
-  // 4. rnDevices 테이블에 등록 (새로운 디바이스만)
-  const macList = dtos.map((dto) => dto.mac);
-  const existingRows = await findDevicesByMacs(macList, conn);
-  const existingMacs = new Set(existingRows.map((row) => row.mac));
-  const newDeviceDtos = dtos.filter((dto) => !existingMacs.has(dto.mac));
+  // // 4. rnDevices 테이블에 등록 (새로운 디바이스만)
+  // const macList = dtos.map((dto) => dto.mac);
+  // const existingRows = await findDevicesByMacs(macList, conn);
+  // const existingMacs = new Set(existingRows.map((row) => row.mac));
+  // const newDeviceDtos = dtos.filter((dto) => !existingMacs.has(dto.mac));
 
-  if (newDeviceDtos.length > 0) {
-    await insertRnDevices(newDeviceDtos, conn);
+  // if (newDeviceDtos.length > 0) {
+  //   await insertRnDevices(newDeviceDtos, conn);
 
-    // 5. 로그 기록 (rnDevices) - 병렬 처리
-    await Promise.all(
-      newDeviceDtos.map((dto) => {
-        const { manager_no, ...restMeta } = meta;
-        const logParams = {
-          ...restMeta,
-          manager_no: manager_no || undefined,
-          school_no: dto.schoolNo,
-          action_type: 'I' as const,
-          target_table: 'rnDevices',
-          target_id: dto.mac,
-          old_values: null,
-          new_values: JSON.stringify(dto),
-          reason: '센서 등록',
-        };
-        return logAction(makeLogParams(logParams), conn);
-      }),
-    );
-  }
+  //   // 5. 로그 기록 (rnDevices) - 병렬 처리
+  //   await Promise.all(
+  //     newDeviceDtos.map((dto) => {
+  //       const { manager_no, ...restMeta } = meta;
+  //       const logParams = {
+  //         ...restMeta,
+  //         manager_no: manager_no || undefined,
+  //         school_no: dto.schoolNo,
+  //         action_type: 'I' as const,
+  //         target_table: 'rnDevices',
+  //         target_id: dto.mac,
+  //         old_values: null,
+  //         new_values: JSON.stringify(dto),
+  //         reason: '센서 등록',
+  //       };
+  //       return logAction(makeLogParams(logParams), conn);
+  //     }),
+  //   );
+  // }
 }

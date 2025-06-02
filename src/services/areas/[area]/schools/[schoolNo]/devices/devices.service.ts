@@ -32,7 +32,14 @@ export async function getRnDevicesRelBySchoolNo(
     conn = await beginTransaction();
     const validatedParams = deviceListParamsSchema.parse(params);
 
-    const result = await findRnDevicesRelBySchoolNo(validatedParams);
+    const { devices, total } = await findRnDevicesRelBySchoolNo(validatedParams);
+
+    const pagination: Pagination = {
+      page: validatedParams.page,
+      pageSize: validatedParams.pageSize,
+      total,
+      totalPages: Math.ceil(total / validatedParams.pageSize) || 1,
+    };
 
     // school_no가 없으면 params에서 가져옴
     const school_no = meta.school_no ?? params.school_no;
@@ -47,14 +54,14 @@ export async function getRnDevicesRelBySchoolNo(
         target_table: 'rnDevicesRel',
         target_id: `${school_no}`,
         old_values: null,
-        new_values: JSON.stringify(result),
+        new_values: JSON.stringify({ devices, pagination }),
         reason: '센서 목록 조회',
       }),
       conn,
     );
 
     await commitTransaction(conn);
-    return result;
+    return { devices, pagination };
   } catch (error) {
     if (conn) {
       try {
