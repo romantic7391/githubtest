@@ -27,12 +27,7 @@ import { Device, DeviceCreate, DeviceBasic, DeviceDb, DeviceListParams } from '@
 // 학교의 센서 목록 조회
 export async function findRnDevicesRelBySchoolNo(params: DeviceListParams): Promise<{
   devices: Device[];
-  pagination: {
-    page: number;
-    pageSize: number;
-    total: number;
-    totalPages: number;
-  };
+  total: number;
 }> {
   const { school_no, page = 1, pageSize = 10, filters } = params;
   const offset = (page - 1) * pageSize;
@@ -130,16 +125,9 @@ export async function findRnDevicesRelBySchoolNo(params: DeviceListParams): Prom
     },
   }));
 
-  const totalPages = Math.ceil(total / pageSize);
-
   return {
     devices,
-    pagination: {
-      page,
-      pageSize,
-      total,
-      totalPages,
-    },
+    total,
   };
 }
 

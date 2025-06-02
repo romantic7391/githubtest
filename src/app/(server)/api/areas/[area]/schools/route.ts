@@ -1,5 +1,5 @@
 import { DEFAULT_ERROR_MESSAGE_500, DEFAULT_PAGE_SIZE } from '@/lib/default.constant';
-import type { BaseApiResponse, Pagination } from '@/types/common';
+import type { BaseApiResponse } from '@/types/common';
 import type { SchoolsApiResponse } from '@/types/school';
 import { NextRequest, NextResponse } from 'next/server';
 import { getRnSchoolsByArea } from '@/services/areas/[area]/schools/schools.service';
@@ -57,18 +57,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     };
 
     const { userAgent, ip } = getClientInfo(request);
-    const { schools, total } = await getRnSchoolsByArea(area, page, pageSize, filters, {
+    const { schools, pagination } = await getRnSchoolsByArea(area, page, pageSize, filters, {
       manager_no: 1, // 임시로 1로 설정
       ip,
       user_agent: userAgent,
     });
-
-    const pagination: Pagination = {
-      page,
-      pageSize,
-      total,
-      totalPages: Math.ceil(total / pageSize),
-    };
 
     return NextResponse.json(
       {

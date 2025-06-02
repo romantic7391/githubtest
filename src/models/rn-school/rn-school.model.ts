@@ -120,6 +120,22 @@ export async function findRnSchoolsByArea(
   return { schools, total };
 }
 
+// 타입별 학교 조회
+export async function findRnSchoolsByType(): Promise<School[]> {
+  const query = `
+      SELECT 
+          school_no,
+          sname,
+          school_type,
+          parent_no
+      FROM rnSchool
+      WHERE active = 'Y'
+      ORDER BY school_type `;
+
+  const result = await getAll<School>(query);
+  return result;
+}
+
 // 학교별 내용 조회
 export async function findSchoolBySchoolNo(school_no: number): Promise<School | null> {
   const query = `
