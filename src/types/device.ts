@@ -27,8 +27,8 @@ export const deviceRelSchema = z.object({
   extra: z.string().max(65535).nullable(),
   sdate: datetimeSchema.nullable(),
   edate: datetimeSchema.nullable(),
-  created: datetimeSchema.nullable(),
-  device: deviceSchema,
+  created: datetimeSchema.nullable().optional(),
+  device: deviceSchema.optional(),
 });
 
 /**
@@ -79,6 +79,7 @@ export const deviceCreateSchema = deviceRelSchema
   })
   .extend({
     schoolNo: z.number(),
+    device: deviceSchema.optional(),
   });
 
 /**

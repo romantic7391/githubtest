@@ -7,6 +7,8 @@ import {
 import { deviceRelSchema } from '@/types/device';
 import { getClientInfo } from '@/services/log-action/log-action.service';
 import { z } from 'zod';
+import { DEFAULT_ERROR_MESSAGE_500 } from '@/lib/default.constant';
+import type { BaseApiResponse } from '@/types/common';
 
 /**
  * 지역 학교 센서 장치 정보
@@ -45,9 +47,7 @@ export async function GET(
           {
             success: false,
             message: '데이터 검증에 실패했습니다.',
-            errors: validationError.errors,
-            rawData: device,
-          },
+          } satisfies BaseApiResponse,
           { status: 400 },
         );
       }
@@ -58,7 +58,7 @@ export async function GET(
     return NextResponse.json(
       {
         success: false,
-        message: '센서 조회 중 오류가 발생했습니다.',
+        message: DEFAULT_ERROR_MESSAGE_500,
         error: error instanceof Error ? error.message : String(error),
       },
       { status: 500 },
@@ -94,13 +94,14 @@ export async function PUT(
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { success: false, message: '데이터 검증에 실패했습니다.', errors: error.errors },
-        { status: 400 },
-      );
+      return NextResponse.json({ success: false, message: '데이터 검증에 실패했습니다.' } satisfies BaseApiResponse, {
+        status: 400,
+      });
     }
     console.error('[PUT] 센서 수정 에러:', error);
-    return NextResponse.json({ success: false, message: '센서 수정 중 오류가 발생했습니다.' }, { status: 500 });
+    return NextResponse.json({ success: false, message: DEFAULT_ERROR_MESSAGE_500 } satisfies BaseApiResponse, {
+      status: 500,
+    });
   }
 }
 
@@ -125,6 +126,8 @@ export async function DELETE(
     return NextResponse.json({ success: true, message: '센서가 성공적으로 삭제되었습니다.' });
   } catch (error) {
     console.error('[DELETE] 센서 삭제 에러:', error);
-    return NextResponse.json({ success: false, message: '센서 삭제 중 오류가 발생했습니다.' }, { status: 500 });
+    return NextResponse.json({ success: false, message: DEFAULT_ERROR_MESSAGE_500 } satisfies BaseApiResponse, {
+      status: 500,
+    });
   }
 }
