@@ -47,7 +47,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         {
           success: false,
           message: '데이터 검증에 실패했습니다.',
-          errors: error.errors,
         } satisfies BaseApiResponse,
         { status: 400 },
       );
