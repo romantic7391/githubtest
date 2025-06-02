@@ -1,3 +1,6 @@
+/**
+ * 페이지당 아이템 수 기본값
+ */
 export const DEFAULT_PAGE_SIZE = 8;
 
 export const DEFAULT_DATETIME_FORMAT = 'YYYY-MM-DD HH:mm:ss';

@@ -1,3 +1,4 @@
+import { REGEX_ALPHANUMERIC_UPPER } from '@/lib/regex.constant';
 import { baseApiResponseSchema, datetimeSchema, paginationSchema } from './common';
 import { z } from 'zod';
 
@@ -20,7 +21,17 @@ export const deviceSchema = z.object({
  * 학교 센서 장치
  */
 export const deviceRelSchema = z.object({
-  mac: z.string().min(1).max(16),
+  mac: z
+    .string()
+    .regex(REGEX_ALPHANUMERIC_UPPER, {
+      message: 'MAC 주소는 영문 대문자와 숫자만 입력할 수 있습니다.',
+    })
+    .min(1, {
+      message: 'MAC 주소는 최소 1자 이상 입력해야 합니다.',
+    })
+    .max(16, {
+      message: 'MAC 주소는 최대 16자까지 입력할 수 있습니다.',
+    }),
   name: z.string().max(65535).nullable(),
   summary: z.string().max(65535).nullable(),
   kind: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER).default(0),
@@ -28,7 +39,7 @@ export const deviceRelSchema = z.object({
   sdate: datetimeSchema.nullable(),
   edate: datetimeSchema.nullable(),
   created: datetimeSchema.nullable().optional(),
-  device: deviceSchema.optional(),
+  device: deviceSchema.nullish(),
 });
 
 /**
@@ -149,9 +160,7 @@ export type DeviceListParams = z.infer<typeof deviceListParamsSchema>;
 /**
  * 학교 센서 장치 폼
  */
-export const deviceRelFormSchema = deviceRelSchema.omit({ device: true }).extend({
-  device: deviceSchema.partial(),
-});
+export const deviceRelFormSchema = deviceRelSchema;
 
 /**
  * 학교 센서 장치 폼 타입
