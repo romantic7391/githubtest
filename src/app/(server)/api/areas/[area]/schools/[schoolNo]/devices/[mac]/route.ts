@@ -7,6 +7,7 @@ import {
 import { deviceRelSchema } from '@/types/device';
 import { getClientInfo } from '@/services/log-action/log-action.service';
 import { z } from 'zod';
+import { DEFAULT_ERROR_MESSAGE_500 } from '@/lib/default.constant';
 
 /**
  * 지역 학교 센서 장치 정보
@@ -58,7 +59,7 @@ export async function GET(
     return NextResponse.json(
       {
         success: false,
-        message: '센서 조회 중 오류가 발생했습니다.',
+        message: DEFAULT_ERROR_MESSAGE_500,
         error: error instanceof Error ? error.message : String(error),
       },
       { status: 500 },
@@ -100,7 +101,7 @@ export async function PUT(
       );
     }
     console.error('[PUT] 센서 수정 에러:', error);
-    return NextResponse.json({ success: false, message: '센서 수정 중 오류가 발생했습니다.' }, { status: 500 });
+    return NextResponse.json({ success: false, message: DEFAULT_ERROR_MESSAGE_500 }, { status: 500 });
   }
 }
 
@@ -125,6 +126,6 @@ export async function DELETE(
     return NextResponse.json({ success: true, message: '센서가 성공적으로 삭제되었습니다.' });
   } catch (error) {
     console.error('[DELETE] 센서 삭제 에러:', error);
-    return NextResponse.json({ success: false, message: '센서 삭제 중 오류가 발생했습니다.' }, { status: 500 });
+    return NextResponse.json({ success: false, message: DEFAULT_ERROR_MESSAGE_500 }, { status: 500 });
   }
 }
