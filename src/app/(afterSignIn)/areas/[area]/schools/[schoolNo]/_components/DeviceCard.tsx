@@ -98,10 +98,8 @@ export default function DeviceCard({
     }
 
     if (isCreateMode) {
-      console.log('create...');
       createDevice({ device: data });
     } else {
-      console.log('update...');
       updateDevice({ device: data });
     }
   }, 300);
