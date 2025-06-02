@@ -22,6 +22,7 @@ export default function DeviceList({ area, schoolNo }: { area: string; schoolNo:
   const pagination = data?.pagination ?? paginationSchema.parse({});
 
   useEffect(() => {
+    console.log('data?.items: ', data?.items);
     setDevices(data?.items ?? []);
   }, [data?.items]);
 
