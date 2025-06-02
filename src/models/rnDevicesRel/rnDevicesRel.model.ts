@@ -2,7 +2,7 @@ import { exec, getAll, getRow } from '@/lib/mariadb/query';
 import type { PoolConnection } from 'mariadb';
 import { updateDeviceMac } from '@/models/rnDevices/rnDevices.model';
 import { UpdateMacDto } from '@/interfaces/rnDevicesRel/rnDevicesRel.d';
-import { Device, DeviceCreate, DeviceBasic, DeviceDb, DeviceListParams } from '@/types/device';
+import { Device, DeviceCreate, DeviceBasic, DeviceDb, DeviceListParams, deviceDbSchema } from '@/types/device';
 
 // 학교별 내용 조회
 // export async function findBySchoolNo(school_no: number): Promise<findBySchoolNoVO[]> {
@@ -103,38 +103,9 @@ export async function findRnDevicesRelBySchoolNo(params: DeviceListParams): Prom
     LIMIT ? OFFSET ?
   `;
 
-  const devices = (await getAll<DeviceDb>(query, [...queryParams, pageSize, offset])).map((device) => ({
-    mac: device.mac,
-    name: device.name,
-    summary: device.summary,
-    kind: device.kind,
-    extra: device.extra,
-    sdate: device.sdate,
-    edate: device.edate,
-    created: device.created,
-    device:
-      device.model === null &&
-      device.ip === null &&
-      device.rip === null &&
-      device.splrate === null &&
-      device.interval === null &&
-      device.ver === null &&
-      device.tags === null &&
-      device.checkin === null &&
-      device.device_created === null
-        ? undefined
-        : {
-            model: device.model ?? '',
-            ip: device.ip,
-            rip: device.rip,
-            splrate: device.splrate ?? 0,
-            interval: device.interval ?? 0,
-            ver: device.ver ?? '',
-            tags: device.tags,
-            checkin: device.checkin,
-            created: device.device_created,
-          },
-  }));
+  const devices = (await getAll<DeviceDb>(query, [...queryParams, pageSize, offset])).map((device) =>
+    deviceDbSchema.parse(device),
+  );
 
   return {
     devices,
@@ -173,38 +144,7 @@ export async function findRnDeviceRelBySchoolNoAndMac(params: DeviceBasic): Prom
   const device = await getRow<DeviceDb>(query, [school_no, mac]);
   if (!device) return null;
 
-  return {
-    mac: device.mac,
-    name: device.name,
-    summary: device.summary,
-    kind: device.kind,
-    extra: device.extra,
-    sdate: device.sdate,
-    edate: device.edate,
-    created: device.created,
-    device:
-      device.model === null &&
-      device.ip === null &&
-      device.rip === null &&
-      device.splrate === null &&
-      device.interval === null &&
-      device.ver === null &&
-      device.tags === null &&
-      device.checkin === null &&
-      device.device_created === null
-        ? undefined
-        : {
-            model: device.model ?? '',
-            ip: device.ip,
-            rip: device.rip,
-            splrate: device.splrate ?? 0,
-            interval: device.interval ?? 0,
-            ver: device.ver ?? '',
-            tags: device.tags,
-            checkin: device.checkin,
-            created: device.device_created,
-          },
-  };
+  return deviceDbSchema.parse(device);
 }
 
 //학교별 Rel센서 등록
