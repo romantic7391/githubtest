@@ -54,8 +54,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     return NextResponse.json({
       success: true,
-      message: '',
-      data: result,
+      message: '학교 센서 장치 목록 조회 성공',
+      data: {
+        items: result.devices,
+        pagination: result.pagination,
+      },
     } satisfies DevicesApiResponse);
   } catch (error) {
     console.error('Error in GET /api/areas/[area]/schools/[schoolNo]/devices:', error);
