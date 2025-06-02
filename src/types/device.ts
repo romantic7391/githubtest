@@ -53,7 +53,7 @@ export type DeviceDb = z.infer<typeof deviceDbSchema>;
  */
 export const devicesApiResponseSchema = baseApiResponseSchema.extend({
   data: z.object({
-    devices: deviceRelSchema.array(),
+    items: deviceRelSchema.array(),
     pagination: paginationSchema,
   }),
 });

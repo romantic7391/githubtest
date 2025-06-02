@@ -108,7 +108,27 @@ export async function findRnDevicesRelBySchoolNo(params: DeviceListParams): Prom
     LIMIT ? OFFSET ?
   `;
 
-  const devices = await getAll<Device>(query, [...queryParams, pageSize, offset]);
+  const devices = (await getAll<DeviceDb>(query, [...queryParams, pageSize, offset])).map((device: DeviceDb) => ({
+    mac: device.mac,
+    name: device.name,
+    summary: device.summary,
+    kind: device.kind,
+    extra: device.extra,
+    sdate: device.sdate,
+    edate: device.edate,
+    created: device.created,
+    device: {
+      model: device.model,
+      ip: device.ip,
+      rip: device.rip,
+      splrate: device.splrate,
+      interval: device.interval,
+      ver: device.ver,
+      tags: device.tags,
+      checkin: device.checkin,
+      created: device.device_created,
+    },
+  }));
 
   const totalPages = Math.ceil(total / pageSize);
 
