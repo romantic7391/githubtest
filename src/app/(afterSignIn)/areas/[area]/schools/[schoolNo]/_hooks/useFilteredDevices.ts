@@ -17,7 +17,7 @@ interface UseFilteredDevicesProps {
 export default function useFilteredDevices({ area = 'all', schoolNo, page, pageSize }: UseFilteredDevicesProps) {
   function getInitialData(): DevicesApiResponse['data'] {
     return {
-      devices: [],
+      items: [],
       pagination: paginationSchema.parse({}),
     };
   }

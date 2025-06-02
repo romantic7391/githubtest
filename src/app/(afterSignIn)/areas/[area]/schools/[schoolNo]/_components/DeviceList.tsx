@@ -3,79 +3,43 @@
 import { DEFAULT_PAGE_SIZE } from '@/lib/default.constant';
 import useFilteredDevices from '../_hooks/useFilteredDevices';
 import { useEffect, useState } from 'react';
-import { useForm } from '@mantine/form';
 import { paginationSchema } from '@/types/common';
-import { DeviceRelForm, deviceRelFormSchema } from '@/types/device';
-import ZodErrorDisplay from '@/app/(afterSignIn)/_components/ZodErrorDisplay';
-import { Card, Grid, Stack } from '@mantine/core';
+import { Device } from '@/types/device';
+import { Grid, Stack } from '@mantine/core';
 import DevicePagination from './DevicePagination';
 import DeviceCard from './DeviceCard';
 
 export default function DeviceList({ area, schoolNo }: { area: string; schoolNo: number }) {
-  // const [searchType, setSearchType] = useState<string>('name');
-  // const [searchValue, setSearchValue] = useState<string>('');
   const [page, setPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(DEFAULT_PAGE_SIZE);
-  const { data } = useFilteredDevices({
+  const { data, refetch, isRefetching } = useFilteredDevices({
     area,
     schoolNo,
     page,
     pageSize,
   });
-  const devices = data?.devices ?? [];
+  const [devices, setDevices] = useState<Device[]>(data?.items ?? []);
   const pagination = data?.pagination ?? paginationSchema.parse({});
 
-  const form = useForm<{ devices: DeviceRelForm[] }>({
-    initialValues: {
-      devices,
-    },
-
-    validate: {
-      devices: {
-        mac: (value) => {
-          const { error } = deviceRelFormSchema.shape.mac.safeParse(value);
-          if (error) return <ZodErrorDisplay error={error} />;
-        },
-        summary: (value) => {
-          const { error } = deviceRelFormSchema.shape.summary.safeParse(value);
-          if (error) return <ZodErrorDisplay error={error} />;
-        },
-      },
-    },
-  });
+  useEffect(() => {
+    setDevices(data?.items ?? []);
+  }, [data?.items]);
 
   useEffect(() => {
-    form.setValues({
-      devices,
-    });
-    form.setInitialValues({
-      devices,
-    });
-  }, [devices]);
-
-  // useEffect(() => {
-  //   console.log('검색: ', searchType, searchValue);
-  // }, [searchType, searchValue]);
+    console.log('isRefetching: ', isRefetching);
+  }, [isRefetching]);
 
   return (
     <Stack>
-      {/* <DeviceSearchCard
-        searchType={searchType}
-        setSearchType={setSearchType}
-        setSearchValue={setSearchValue}
-      /> */}
-
       <Grid>
         {devices.map((device, index) => (
           <Grid.Col key={`${index}_${device.mac}`} span={{ base: 12, md: 6, xl: 3 }}>
-            <DeviceCard index={index} device={device} form={form} />
+            <DeviceCard device={device} refetch={refetch} />
           </Grid.Col>
         ))}
-        {pagination.page === pagination.totalPages && (
+        {page === pagination.totalPages && (
           <Grid.Col span={{ base: 12, md: 6, xl: 3 }}>
-            <Card withBorder h="100%" w="100%">
-              TODO: 장치 추가
-            </Card>
+            <DeviceCard device={undefined} refetch={refetch} />
           </Grid.Col>
         )}
       </Grid>
