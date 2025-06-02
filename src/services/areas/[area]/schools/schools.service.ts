@@ -3,6 +3,8 @@ import { paginationSchema } from '@/types/common';
 import { DEFAULT_PAGE_SIZE } from '@/lib/default.constant';
 import { logAction, makeLogParams } from '@/services/log-action/log-action.service';
 import { beginTransaction, commitTransaction, rollbackTransaction } from '@/lib/mariadb/query';
+import { School } from '@/types/school';
+import { Pagination } from '@/types/common';
 
 // 지역의 학교 목록
 export async function getRnSchoolsByArea(
@@ -16,8 +18,12 @@ export async function getRnSchoolsByArea(
     active?: 'Y' | 'N';
     administrationCode?: string;
   },
-  meta?: { manager_no: number; ip: string | null; user_agent: string | null },
-) {
+  meta?: {
+    manager_no: number;
+    ip: string | null;
+    user_agent: string | null;
+  },
+): Promise<{ schools: School[]; total: number; pagination: Pagination }> {
   let conn;
   try {
     conn = await beginTransaction();
@@ -55,7 +61,15 @@ export async function getRnSchoolsByArea(
     }
 
     await commitTransaction(conn);
-    return result;
+
+    const pagination: Pagination = {
+      page,
+      pageSize,
+      total: result.total,
+      totalPages: Math.ceil(result.total / pageSize) || 1,
+    };
+
+    return { schools: result.schools, total: result.total, pagination };
   } catch (error) {
     if (conn) await rollbackTransaction(conn);
     console.error('[getRnSchoolsByAreaService] 파라미터 검증 또는 DB 조회 에러:', error);

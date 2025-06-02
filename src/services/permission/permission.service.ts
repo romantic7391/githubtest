@@ -70,12 +70,7 @@ export async function checkPermission(
         }
         if (validatedGroupPermission.is_allowed === 'Y') {
           // 학교 번호가 일치하는 경우에만 Y 권한 허용
-          if (
-            schoolNo === 0 ||
-            validatedGroup.school_no === null ||
-            validatedGroup.school_no === 0 ||
-            validatedGroup.school_no === schoolNo
-          ) {
+          {
             allowFound = true;
             if (validatedGroupPermission.override === 'Y') {
               overrideFound = true;
