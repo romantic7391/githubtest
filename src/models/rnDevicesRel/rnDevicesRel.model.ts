@@ -70,7 +70,7 @@ export async function findRnDevicesRelBySchoolNo(params: DeviceListParams): Prom
   const countQuery = `
     SELECT COUNT(*) as total
     FROM rnDevicesRel AS rdr
-    JOIN rnDevices AS rd ON rdr.mac = rd.mac
+    LEFT JOIN rnDevices AS rd ON rdr.mac = rd.mac
     WHERE ${conditions.join(' AND ')}
   `;
   const countResult = await getRow<{ total: number }>(countQuery, queryParams);
@@ -97,13 +97,13 @@ export async function findRnDevicesRelBySchoolNo(params: DeviceListParams): Prom
       rd.checkin,
       rd.created as device_created
     FROM rnDevicesRel AS rdr
-    JOIN rnDevices AS rd ON rdr.mac = rd.mac
+    LEFT JOIN rnDevices AS rd ON rdr.mac = rd.mac
     WHERE ${conditions.join(' AND ')}
     ORDER BY rdr.mac
     LIMIT ? OFFSET ?
   `;
 
-  const devices = (await getAll<DeviceDb>(query, [...queryParams, pageSize, offset])).map((device: DeviceDb) => ({
+  const devices = (await getAll<DeviceDb>(query, [...queryParams, pageSize, offset])).map((device) => ({
     mac: device.mac,
     name: device.name,
     summary: device.summary,
@@ -112,17 +112,28 @@ export async function findRnDevicesRelBySchoolNo(params: DeviceListParams): Prom
     sdate: device.sdate,
     edate: device.edate,
     created: device.created,
-    device: {
-      model: device.model,
-      ip: device.ip,
-      rip: device.rip,
-      splrate: device.splrate,
-      interval: device.interval,
-      ver: device.ver,
-      tags: device.tags,
-      checkin: device.checkin,
-      created: device.device_created,
-    },
+    device:
+      device.model === null &&
+      device.ip === null &&
+      device.rip === null &&
+      device.splrate === null &&
+      device.interval === null &&
+      device.ver === null &&
+      device.tags === null &&
+      device.checkin === null &&
+      device.device_created === null
+        ? undefined
+        : {
+            model: device.model ?? '',
+            ip: device.ip,
+            rip: device.rip,
+            splrate: device.splrate ?? 0,
+            interval: device.interval ?? 0,
+            ver: device.ver ?? '',
+            tags: device.tags,
+            checkin: device.checkin,
+            created: device.device_created,
+          },
   }));
 
   return {
@@ -132,7 +143,7 @@ export async function findRnDevicesRelBySchoolNo(params: DeviceListParams): Prom
 }
 
 // 학교의 센서 정보 조회
-export async function findRnDeviceRelBySchoolNoAndMac(params: DeviceBasic): Promise<DeviceDb | null> {
+export async function findRnDeviceRelBySchoolNoAndMac(params: DeviceBasic): Promise<Device | null> {
   const { mac, school_no } = params;
 
   const query = `
@@ -155,11 +166,45 @@ export async function findRnDeviceRelBySchoolNoAndMac(params: DeviceBasic): Prom
       rd.checkin,
       rd.created as device_created
     FROM rnDevicesRel AS rdr
-     JOIN rnDevices AS rd ON rdr.mac = rd.mac
+    LEFT JOIN rnDevices AS rd ON rdr.mac = rd.mac
     WHERE rdr.school_no = ? AND rdr.mac = ?
   `;
 
-  return await getRow<DeviceDb>(query, [school_no, mac]);
+  const device = await getRow<DeviceDb>(query, [school_no, mac]);
+  if (!device) return null;
+
+  return {
+    mac: device.mac,
+    name: device.name,
+    summary: device.summary,
+    kind: device.kind,
+    extra: device.extra,
+    sdate: device.sdate,
+    edate: device.edate,
+    created: device.created,
+    device:
+      device.model === null &&
+      device.ip === null &&
+      device.rip === null &&
+      device.splrate === null &&
+      device.interval === null &&
+      device.ver === null &&
+      device.tags === null &&
+      device.checkin === null &&
+      device.device_created === null
+        ? undefined
+        : {
+            model: device.model ?? '',
+            ip: device.ip,
+            rip: device.rip,
+            splrate: device.splrate ?? 0,
+            interval: device.interval ?? 0,
+            ver: device.ver ?? '',
+            tags: device.tags,
+            checkin: device.checkin,
+            created: device.device_created,
+          },
+  };
 }
 
 //학교별 Rel센서 등록

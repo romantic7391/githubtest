@@ -45,7 +45,23 @@ export const deviceRelSchema = z.object({
 /**
  * DB에서 조회되는 센서 장치 구조
  */
-export const deviceDbSchema = deviceRelSchema.omit({ device: true }).merge(deviceSchema).extend({
+export const deviceDbSchema = z.object({
+  mac: z.string(),
+  name: z.string().nullable(),
+  summary: z.string().nullable(),
+  kind: z.number(),
+  extra: z.string().nullable(),
+  sdate: datetimeSchema.nullable(),
+  edate: datetimeSchema.nullable(),
+  created: datetimeSchema.nullable(),
+  model: z.string().nullable(),
+  ip: z.string().ip({ version: 'v4' }).nullable(),
+  rip: z.string().ip({ version: 'v4' }).nullable(),
+  splrate: z.number().nullable(),
+  interval: z.number().nullable(),
+  ver: z.string().nullable(),
+  tags: z.string().nullable(),
+  checkin: datetimeSchema.nullable(),
   device_created: datetimeSchema.nullable(),
 });
 
