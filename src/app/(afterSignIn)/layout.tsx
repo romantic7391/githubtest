@@ -5,6 +5,7 @@ import { useDisclosure } from '@mantine/hooks';
 import LeftNavigation from './_components/LeftNavigation';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import HeaderUserAvatar from './_components/HeaderUserAvatar';
 
 export default function AfterLoginLayout({ children }: { children: React.ReactNode }) {
   const [opened, { toggle }] = useDisclosure();
@@ -33,14 +34,19 @@ export default function AfterLoginLayout({ children }: { children: React.ReactNo
       }}
       padding={0}>
       <AppShell.Header>
-        <Group h="100%" px="md">
-          <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
-          <Anchor href="/" c="dark" underline="never">
-            <Group h="100%">
-              <Image src="/logo.svg" alt="(주)사랑넷 로고" w={57} />
-              <Title order={3}>공기질 관리자페이지</Title>
-            </Group>
-          </Anchor>
+        <Group h="100%" px="md" justify="space-between">
+          <Group>
+            <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
+            <Anchor href="/" c="dark" underline="never">
+              <Group h="100%">
+                <Image src="/logo.svg" alt="(주)사랑넷 로고" w={57} />
+                <Title order={3}>공기질 관리자페이지</Title>
+              </Group>
+            </Anchor>
+          </Group>
+          <Group>
+            <HeaderUserAvatar />
+          </Group>
         </Group>
       </AppShell.Header>
 
