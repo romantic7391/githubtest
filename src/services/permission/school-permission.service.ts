@@ -25,22 +25,22 @@ export async function getSchoolHierarchy(
   }
 
   // 3. 학교 유형에 따라 계층 구조 반환
-  const schoolType = targetSchool.administrationCode?.substring(0, 7);
+  const schoolType = targetSchool.schoolType;
   switch (schoolType) {
-    case 'cfc_001': // 시도교육청
+    case 'st_001': // 시도교육청
       return {
         current: targetSchool,
         lower: schools.filter((s) => s.parentNo === targetSchool.schoolNo),
       };
 
-    case 'cfc_002': // 교육청
+    case 'st_002': // 교육청
       return {
         current: targetSchool,
         upper: schools.find((s) => s.schoolNo === targetSchool.parentNo),
         lower: schools.filter((s) => s.parentNo === targetSchool.schoolNo),
       };
 
-    case 'cfc_003': // 학교
+    case 'st_003': // 학교
       const upperSchool = schools.find((s) => s.schoolNo === targetSchool.parentNo);
       return {
         current: targetSchool,

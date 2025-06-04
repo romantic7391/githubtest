@@ -6,7 +6,12 @@ import { getRow, getAll } from '@/lib/mariadb/query';
  */
 export async function findPermissionByName(name: string): Promise<Permission | null> {
   const query = `
-    SELECT permission_no, name, description, default_extra_condition, default_extra_limit
+    SELECT 
+      permission_no,
+      name,
+      description,
+      default_extra_condition,
+      default_extra_limit
     FROM permission
     WHERE name = ? AND deleted IS NULL
   `;

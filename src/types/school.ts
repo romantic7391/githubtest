@@ -49,13 +49,15 @@ export const schoolSchema = z.object({
     .default(502),
   useOrderSheet: z.enum(['Y', 'N']).default('N'),
   active: z.enum(['Y', 'N']).default('Y'),
-  administrationCode: z.coerce
+  administrationCode: z
     .string()
     .regex(REGEX_NUMBER, {
       message: '행정표준코드(기관)은 숫자만 입력할 수 있습니다.',
     })
     .max(50)
     .nullable(),
+  created: datetimeSchema.nullable(),
+  schoolType: z.string().max(30),
   parentNo: z
     .number({
       message: '상위 기관 번호는 자연수만 입력할 수 있습니다.',
@@ -64,8 +66,8 @@ export const schoolSchema = z.object({
       message: '상위 기관 번호는 1 이상의 자연수만 입력할 수 있습니다.',
     })
     .max(Number.MAX_SAFE_INTEGER)
+    .default(0)
     .nullable(),
-  created: datetimeSchema.nullable(),
 });
 /**
  * 학교
@@ -194,24 +196,17 @@ export const schoolFormSchema = schoolSchema.merge(
       }, schoolSchema.shape.administrationCode)
       .transform((val) => (val === '' ? null : val)),
 
-    parentNo: z
-      .preprocess((val) => {
-        if (val === '') return null;
-        return val;
-      }, schoolSchema.shape.parentNo)
-      .transform((val) => val),
+    parentNo: z.preprocess((val) => {
+      if (val === '') return null;
+      return val;
+    }, schoolSchema.shape.parentNo),
   }),
 );
 
-export const schoolDtoSchema = schoolSchema
-  .pick({
-    schoolNo: true,
-    area: true,
-  })
-  .transform((data) => ({
-    ...data,
-    schoolNo: data.schoolNo.toString(),
-  }));
+export const schoolDtoSchema = schoolSchema.pick({
+  schoolNo: true,
+  area: true,
+});
 /**
  * 학교 DTO
  */

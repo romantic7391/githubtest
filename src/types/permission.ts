@@ -3,50 +3,50 @@ import { z } from 'zod';
 // Manager 스키마
 export const ManagerSchema = z.object({
   no: z.number(),
-  schoolNo: z.number(),
-  loginId: z.string().max(16),
+  school_no: z.number(),
+  login_id: z.string().max(16),
   name: z.string().max(20),
   passwd: z.string().nullable(),
 });
 
 // ManagerGroup 스키마
 export const ManagerGroupSchema = z.object({
-  groupNo: z.number(),
+  group_no: z.number(),
   no: z.number(),
 });
 
 // Group 스키마
 export const GroupSchema = z.object({
-  groupNo: z.number(),
-  schoolNo: z.number().nullable(),
+  group_no: z.number(),
+  school_no: z.number().nullable(),
   name: z.string().max(20).optional(),
-  parentGroupNo: z.number().nullable(),
+  parent_group_no: z.number().nullable(),
 });
 
 // Permission 스키마
 export const PermissionSchema = z.object({
-  permissionNo: z.number(),
+  permission_no: z.number(),
   name: z.string().max(20),
   description: z.string().nullable(),
-  defaultExtraCondition: z.string().max(50).nullable(),
-  defaultExtraLimit: z.string().max(50).nullable(),
+  default_extra_condition: z.string().max(50).nullable(),
+  default_extra_limit: z.string().max(50).nullable(),
 });
 
 // GroupPermission 스키마
 export const GroupPermissionSchema = z.object({
-  groupNo: z.number(),
-  permissionNo: z.number(),
-  isAllowed: z.enum(['Y', 'N']).nullable(),
+  group_no: z.number(),
+  permission_no: z.number(),
+  is_allowed: z.enum(['Y', 'N']).nullable(),
   override: z.enum(['Y', 'N']).nullable(),
-  extraCondition: z.string().nullable(),
-  extraLimit: z.string().max(50).nullable(),
+  extra_condition: z.string().nullable(),
+  extra_limit: z.string().max(50).nullable(),
 });
 
 // CommonContext 스키마
 export const CommonContextSchema = z.object({
-  managerNo: z.number(),
+  manager_no: z.number(),
   ip: z.string(),
-  userAgent: z.string(),
+  user_agent: z.string(),
 });
 
 // SchoolHierarchy 스키마 (파라미터용)

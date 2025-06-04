@@ -6,16 +6,8 @@ import {
   getPermissionStatusReport,
 } from '@/models/permission/permission.model';
 import { GroupPermissionSchema, PermissionSchema, GroupSchema, ManagerGroupSchema } from '@/types/permission';
-import { getSchoolsByArea, getSchoolHierarchy } from '@/services/permission/school-permission.service';
+import { getSchoolHierarchy } from '@/services/permission/school-permission.service';
 import { School } from '@/types/school';
-
-/**
- * 학교 번호로 학교 정보 조회
- */
-async function findSchoolBySchoolNo(schoolNo: number): Promise<School | null> {
-  const schools = await getSchoolsByArea('all'); // 모든 지역의 학교 조회
-  return schools.find((s) => s.schoolNo === schoolNo) || null;
-}
 
 /**
  * 학교 계층 구조에 따른 권한 체크
@@ -30,27 +22,39 @@ async function checkPermissionByHierarchy(
   },
   permissionName: string,
 ): Promise<{ allowed: 'Y' | 'N'; override: 'Y' | 'N' | null; extraCondition: string | null }> {
+  console.log('권한 체크 계층 구조:', {
+    current: schoolHierarchy.current.schoolNo,
+    upper: schoolHierarchy.upper?.schoolNo,
+    upperUpper: schoolHierarchy.upperUpper?.schoolNo,
+  });
+
   // 1. 권한 번호 조회
   const permission = await findPermissionByName(permissionName);
   if (!permission) return { allowed: 'N', override: null, extraCondition: null };
 
   // Zod로 권한 데이터 검증
   const validatedPermission = PermissionSchema.parse(permission);
-  const permissionNo = validatedPermission.permissionNo;
+  const permissionNo = validatedPermission.permission_no;
+  console.log('권한 정보:', { permissionName, permissionNo });
 
   // 2. 사용자가 속한 모든 그룹 조회 (현재 학교와 상위 기관 모두 포함)
   const userGroups = await findManagerGroups(managerNo, schoolHierarchy.current.schoolNo);
+  console.log('현재 학교 그룹:', userGroups);
+
   if (schoolHierarchy.upper) {
     const upperGroups = await findManagerGroups(managerNo, schoolHierarchy.upper.schoolNo);
     userGroups.push(...upperGroups);
+    console.log('상위 기관 그룹:', upperGroups);
   }
   if (schoolHierarchy.upperUpper) {
     const upperUpperGroups = await findManagerGroups(managerNo, schoolHierarchy.upperUpper.schoolNo);
     userGroups.push(...upperUpperGroups);
+    console.log('상위상위 기관 그룹:', upperUpperGroups);
   }
 
   // Zod로 그룹 데이터 검증
   const validatedGroups = userGroups.map((group) => ManagerGroupSchema.parse(group));
+  console.log('검증된 그룹 목록:', validatedGroups);
 
   // 3. 각 그룹별로 계층적으로 parentGroupNo를 따라 올라가며 권한 체크
   let finalAllowed: 'Y' | 'N' = 'N';
@@ -58,10 +62,12 @@ async function checkPermissionByHierarchy(
   let finalExtraCondition: string | null = null;
 
   for (const managerGroup of validatedGroups) {
-    let currentGroupNo = managerGroup.groupNo;
+    let currentGroupNo = managerGroup.group_no;
     let allowFound = false;
     let overrideFound = false;
     const extraConditions: string[] = [];
+
+    console.log('그룹 체크 시작:', { currentGroupNo });
 
     // 계층적으로 parentGroupNo를 따라 올라감
     while (currentGroupNo) {
@@ -70,27 +76,39 @@ async function checkPermissionByHierarchy(
 
       // Zod로 그룹 데이터 검증
       const validatedGroup = GroupSchema.parse(group);
+      console.log('현재 체크 중인 그룹:', {
+        groupNo: currentGroupNo,
+        name: validatedGroup.name,
+        parentGroupNo: validatedGroup.parent_group_no,
+      });
 
       const groupPermission = await findGroupPermission(currentGroupNo, permissionNo);
       if (groupPermission) {
         // Zod로 그룹 권한 데이터 검증
         const validatedGroupPermission = GroupPermissionSchema.parse(groupPermission);
+        console.log('그룹 권한 정보:', {
+          groupNo: currentGroupNo,
+          permissionNo,
+          isAllowed: validatedGroupPermission.is_allowed,
+          override: validatedGroupPermission.override,
+        });
 
         // Deny 우선 원칙: N을 만나면 즉시 권한 거부
-        if (validatedGroupPermission.isAllowed === 'N') {
+        if (validatedGroupPermission.is_allowed === 'N') {
+          console.log('권한 거부 발견:', { groupNo: currentGroupNo });
           return { allowed: 'N', override: null, extraCondition: null };
         }
-        if (validatedGroupPermission.isAllowed === 'Y') {
+        if (validatedGroupPermission.is_allowed === 'Y') {
           allowFound = true;
           if (validatedGroupPermission.override === 'Y') {
             overrideFound = true;
           }
-          if (validatedGroupPermission.extraCondition) {
-            extraConditions.push(validatedGroupPermission.extraCondition);
+          if (validatedGroupPermission.extra_condition) {
+            extraConditions.push(validatedGroupPermission.extra_condition);
           }
         }
       }
-      currentGroupNo = validatedGroup.parentGroupNo ?? 0;
+      currentGroupNo = validatedGroup.parent_group_no ?? 0;
       if (!currentGroupNo || currentGroupNo === 0) break;
     }
 
@@ -105,6 +123,7 @@ async function checkPermissionByHierarchy(
     }
   }
 
+  console.log('최종 권한 체크 결과:', { finalAllowed, finalOverride, finalExtraCondition });
   return { allowed: finalAllowed, override: finalOverride, extraCondition: finalExtraCondition };
 }
 
@@ -122,15 +141,15 @@ export async function checkPermission(
 ): Promise<{ allowed: 'Y' | 'N'; override: 'Y' | 'N' | null; extraCondition: string | null }> {
   console.log('권한 체크 시작:', { managerNo, schoolNo, permissionName });
 
-  // 1. 학교 정보 조회
-  const school = await findSchoolBySchoolNo(schoolNo);
-  if (!school || !school.area) return { allowed: 'N', override: null, extraCondition: null };
+  // 1. 학교 계층 구조 조회 (한 번에 모든 정보를 가져옴)
+  const schoolHierarchy = await getSchoolHierarchy('all', schoolNo);
+  console.log('학교 계층 구조 조회 결과:', schoolHierarchy);
+  if (!schoolHierarchy) {
+    console.log('학교 계층 구조 없음');
+    return { allowed: 'N', override: null, extraCondition: null };
+  }
 
-  // 2. 학교 계층 구조 조회
-  const schoolHierarchy = await getSchoolHierarchy(school.area, schoolNo);
-  if (!schoolHierarchy) return { allowed: 'N', override: null, extraCondition: null };
-
-  // 3. 계층 구조에 따른 권한 체크
+  // 2. 계층 구조에 따른 권한 체크
   return checkPermissionByHierarchy(managerNo, schoolHierarchy, permissionName);
 }
 

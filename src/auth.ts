@@ -35,11 +35,21 @@ export const config: NextAuthConfig = {
         password: {},
       },
 
-      authorize: async () => {
-        return {
-          id: '',
-          managerNo: 1,
-        } satisfies User;
+      authorize: async (credentials) => {
+        if (!credentials?.signInId || !credentials?.password) {
+          return null;
+        }
+
+        // TODO: 실제 로그인 로직 구현
+        // 임시로 테스트 계정만 허용
+        if (credentials.signInId === 'test' && credentials.password === 'test') {
+          return {
+            id: credentials.signInId,
+            managerNo: 1,
+          } satisfies User;
+        }
+
+        return null;
       },
     }),
   ],

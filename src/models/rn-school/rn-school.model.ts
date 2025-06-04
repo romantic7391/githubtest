@@ -7,7 +7,7 @@ import type { PoolConnection } from 'mariadb';
 export async function existsRnSchoolByScode(scode: string): Promise<boolean> {
   const query = `
     SELECT 1 
-    FROM rnschool
+    FROM rnSchool
     WHERE scode = ?
     LIMIT 1
   `;
@@ -19,7 +19,7 @@ export async function existsRnSchoolByScode(scode: string): Promise<boolean> {
 export async function existsRnSchoolByAdministrationCode(administrationcode: string): Promise<boolean> {
   const query = `
     SELECT 1 
-    FROM rnschool
+    FROM rnSchool
     WHERE administrationcode = ?
     LIMIT 1
   `;
@@ -31,7 +31,7 @@ export async function existsRnSchoolByAdministrationCode(administrationcode: str
 export async function getRnSchoolByScode(scode: string): Promise<Record<string, unknown> | null> {
   const query = `
     SELECT * 
-    FROM rnschool
+    FROM rnSchool
     WHERE scode = ?
   `;
   return getRow(query, [scode]);
@@ -89,7 +89,7 @@ export async function findRnSchoolsByArea(
   // 전체 개수 조회
   const countQuery = `
     SELECT COUNT(*) as total
-    FROM rnschool as rs
+    FROM rnSchool as rs
     WHERE ${conditions.join(' AND ')}
   `;
   const totalResult = await getRow<{ total: number }>(countQuery, params);
@@ -109,7 +109,7 @@ export async function findRnSchoolsByArea(
       rs.active,
       rs.administrationcode AS administrationCode,
       rs.created
-    FROM rnschool as rs
+    FROM rnSchool as rs
     WHERE ${conditions.join(' AND ')}
     ORDER BY rs.school_no ASC
     LIMIT ? OFFSET ?
@@ -124,14 +124,27 @@ export async function findRnSchoolsByArea(
 export async function findRnSchoolsByAreas(area: string): Promise<School[]> {
   const query = `
     SELECT 
-    school_no,
-    sname,
-    school_type,
-    parent_no
-    FROM rnSchool AS r
-    WHERE r.area = ?
+      rs.school_no AS schoolNo,
+      rs.sname,
+      rs.scode,
+      rs.area,
+      rs.modbus,
+      rs.modbus_host AS modbusHost,
+      rs.modbus_port AS modbusPort,
+      rs.use_os AS useOrderSheet,
+      rs.active,
+      rs.administrationcode AS administrationCode,
+      rs.created,
+      rs.school_type AS schoolType,
+      rs.parent_no AS parentNo
+    FROM rnSchool AS rs
+    ${area !== 'all' ? 'WHERE rs.area = ?' : ''}
   `;
-  const result = await getAll<School>(query, [area]);
+  const params = area !== 'all' ? [area] : [];
+  console.log('실행할 쿼리:', query);
+  console.log('파라미터:', params);
+  const result = await getAll<School>(query, params);
+  console.log('쿼리 결과:', result);
   return result;
 }
 
@@ -149,12 +162,17 @@ export async function findSchoolBySchoolNo(school_no: number): Promise<School | 
       rs.use_os AS useOrderSheet,
       rs.active,
       rs.administrationcode AS administrationCode,
-      rs.created
-      FROM rnschool AS rs
+      rs.created,
+      rs.school_type AS schoolType,
+      rs.parent_no AS parentNo
+      FROM rnSchool AS rs
       WHERE rs.school_no = ?
       LIMIT 1;
   `;
+  console.log('실행할 쿼리:', query);
+  console.log('파라미터:', school_no);
   const result = await getRow<School>(query, [school_no]);
+  console.log('쿼리 결과:', result);
 
   return result;
 }
@@ -162,7 +180,7 @@ export async function findSchoolBySchoolNo(school_no: number): Promise<School | 
 // 2. 등록 (Create)
 export async function insertRnSchool(dto: SchoolCreate) {
   const query = `
-    INSERT INTO rnschool
+    INSERT INTO rnSchool
     (sname, scode, area, modbus, modbus_host, modbus_port, use_os, parent_no, administrationcode)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
@@ -184,7 +202,7 @@ export async function insertRnSchool(dto: SchoolCreate) {
 // 3. 수정 (Update)
 export async function updateRnSchool(dto: School, conn?: PoolConnection) {
   const query = `
-    UPDATE rnschool
+    UPDATE rnSchool
     SET scode = ?, sname = ?, area = ?, administrationCode = ?
     WHERE school_no = ?
   `;
@@ -194,6 +212,6 @@ export async function updateRnSchool(dto: School, conn?: PoolConnection) {
 
 // 4. 삭제 (Delete)
 export async function deleteRnSchool(schoolNo: number, conn?: PoolConnection) {
-  const query = `DELETE FROM rnschool WHERE school_no = ?`;
+  const query = `DELETE FROM rnSchool WHERE school_no = ?`;
   return exec(query, [schoolNo], conn);
 }

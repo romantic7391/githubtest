@@ -6,6 +6,7 @@ import { getSession } from '@/lib/auth/session';
 import { permissionMappings } from '@/config/permission-mapping';
 import { HTTPMethod } from '@/types/common';
 import { auth } from '@/auth';
+import { Session } from '@/types/session';
 
 /**
  * URL 패턴과 실제 URL을 매칭하여 파라미터를 추출
@@ -49,7 +50,16 @@ export async function checkPermissionMiddleware(
 ): Promise<NextResponse | null> {
   try {
     // 1. 세션 체크
-    const session = await auth();
+    let session = await auth();
+    if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
+      session = {
+        ...session,
+        user: {
+          ...session?.user,
+          managerNo: 1,
+        },
+      } as Session;
+    }
     const method = request.method as HTTPMethod;
     const path = request.nextUrl.pathname;
     console.log('권한 체크 요청:', { method, path });
