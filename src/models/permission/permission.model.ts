@@ -1,5 +1,6 @@
 import { Permission, Group, ManagerGroup, GroupPermission } from '@/types/permission';
 import { getRow, getAll, exec } from '@/lib/mariadb/query';
+import { PoolConnection } from 'mariadb';
 
 /**
  * 권한 정보 조회
@@ -86,23 +87,23 @@ export async function getPermissionStatusReport(permissionName: string) {
   return getAll(query, [permissionName]);
 }
 
-export async function insertPermission(dto: Permission) {
+export async function insertPermission(dto: Permission, connection?: PoolConnection) {
   const query = `
     INSERT INTO \`permission\` (name, description, default_extra_condition, default_extra_limit) VALUES (?, ?, ?, ?);
   `;
   const params = [dto.name, dto.description, dto.default_extra_condition, dto.default_extra_limit];
-  return exec(query, params);
+  return exec(query, params, connection);
 }
 
-export async function updatePermission(dto: Permission) {
+export async function updatePermission(dto: Permission, connection?: PoolConnection) {
   const query = `
     UPDATE \`permission\` SET name = ?, description = ?, default_extra_condition = ?, default_extra_limit = ? WHERE permission_no = ?
   `;
   const params = [dto.name, dto.description, dto.default_extra_condition, dto.default_extra_limit, dto.permission_no];
-  return exec(query, params);
+  return exec(query, params, connection);
 }
 
-export async function deletePermission(permissionNo: number) {
+export async function deletePermission(permissionNo: number, connection?: PoolConnection) {
   const query = `DELETE FROM \`permission\` WHERE permission_no = ?`;
-  return exec(query, [permissionNo]);
+  return exec(query, [permissionNo], connection);
 }

@@ -19,7 +19,7 @@ export const ManagerGroupSchema = z.object({
 export const GroupSchema = z.object({
   group_no: z.number(),
   school_no: z.number().nullable(),
-  name: z.string().max(20).optional(),
+  name: z.string().max(20),
   parent_group_no: z.number().nullable(),
 });
 

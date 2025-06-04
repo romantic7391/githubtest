@@ -6,7 +6,7 @@ import {
   getPermissionStatusReport,
 } from '@/models/permission/permission.model';
 import { GroupPermissionSchema, PermissionSchema, GroupSchema, ManagerGroupSchema } from '@/types/permission';
-import { getSchoolHierarchy } from '@/services/permission/school-permission.service';
+import { getSchoolHierarchy } from '@/services/permission-check/school-permission.service';
 import { School } from '@/types/school';
 
 /**

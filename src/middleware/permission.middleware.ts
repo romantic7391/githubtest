@@ -1,7 +1,7 @@
 /* eslint-disable */
 // @ts-nocheck
 import { NextRequest, NextResponse } from 'next/server';
-import { checkPermission, checkPermissions } from '@/services/permission/permission.service';
+import { checkPermission, checkPermissions } from '@/services/permission-check/permission.service';
 import { getSession } from '@/lib/auth/session';
 import { permissionMappings } from '@/config/permission-mapping';
 import { HTTPMethod } from '@/types/common';
