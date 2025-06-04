@@ -1,21 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createGroupS, updateGroupS, deleteGroupS } from '@/services/permission-admin/group.service';
+import {
+  createManagerGroupS,
+  updateManagerGroupS,
+  deleteManagerGroupS,
+} from '@/services/permission-admin/manager-group.service';
 import { getSession } from '@/lib/auth/session';
 import { handleZodError, handleError } from '@/utils/error.utils';
 import {
-  createGroupSchema,
-  updateGroupSchema,
-  groupCreateOrUpdateApiResponseSchema,
-  groupSchema,
+  createManagerGroupSchema,
+  updateManagerGroupSchema,
+  managerGroupCreateOrUpdateApiResponseSchema,
+  managerGroupSchema,
 } from '@/types/permission';
 
 /**
- * 그룹 생성
+ * 관리자 그룹 생성
  */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const validatedData = createGroupSchema.parse(body);
+    const validatedData = createManagerGroupSchema.parse(body);
     const session = await getSession(request);
 
     if (!session) {
@@ -29,20 +33,19 @@ export async function POST(request: NextRequest) {
     }
 
     // 서비스 함수에 전달할 데이터 변환
-    const groupData = groupSchema.parse({
+    const managerGroupData = managerGroupSchema.parse({
       ...validatedData,
-      group_no: 0, // 임시 값, DB에서 자동 생성됨
       created: null,
     });
 
-    const result = await createGroupS(groupData, {
+    const result = await createManagerGroupS(managerGroupData, {
       manager_no: session.manager_no,
       ip: request.headers.get('x-forwarded-for') || '',
       user_agent: request.headers.get('user-agent') || '',
     });
 
     return NextResponse.json(
-      groupCreateOrUpdateApiResponseSchema.parse({
+      managerGroupCreateOrUpdateApiResponseSchema.parse({
         success: true,
         data: result,
       }),
@@ -50,17 +53,17 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     const zodError = handleZodError(error);
     if (zodError) return zodError;
-    return handleError(error, '그룹 생성');
+    return handleError(error, '관리자 그룹 생성');
   }
 }
 
 /**
- * 그룹 수정
+ * 관리자 그룹 수정
  */
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const validatedData = updateGroupSchema.parse(body);
+    const validatedData = updateManagerGroupSchema.parse(body);
     const session = await getSession(request);
 
     if (!session) {
@@ -74,19 +77,19 @@ export async function PUT(request: NextRequest) {
     }
 
     // 서비스 함수에 전달할 데이터 변환
-    const groupData = groupSchema.parse({
+    const managerGroupData = managerGroupSchema.parse({
       ...validatedData,
       created: null,
     });
 
-    const result = await updateGroupS(groupData, {
+    const result = await updateManagerGroupS(managerGroupData, {
       manager_no: session.manager_no,
       ip: request.headers.get('x-forwarded-for') || '',
       user_agent: request.headers.get('user-agent') || '',
     });
 
     return NextResponse.json(
-      groupCreateOrUpdateApiResponseSchema.parse({
+      managerGroupCreateOrUpdateApiResponseSchema.parse({
         success: true,
         data: result,
       }),
@@ -94,12 +97,12 @@ export async function PUT(request: NextRequest) {
   } catch (error) {
     const zodError = handleZodError(error);
     if (zodError) return zodError;
-    return handleError(error, '그룹 수정');
+    return handleError(error, '관리자 그룹 수정');
   }
 }
 
 /**
- * 그룹 삭제
+ * 관리자 그룹 삭제
  */
 export async function DELETE(request: NextRequest) {
   try {
@@ -128,19 +131,19 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const result = await deleteGroupS(Number(groupNo), {
+    const result = await deleteManagerGroupS(Number(groupNo), {
       manager_no: session.manager_no,
       ip: request.headers.get('x-forwarded-for') || '',
       user_agent: request.headers.get('user-agent') || '',
     });
 
     return NextResponse.json(
-      groupCreateOrUpdateApiResponseSchema.parse({
+      managerGroupCreateOrUpdateApiResponseSchema.parse({
         success: true,
         data: result,
       }),
     );
   } catch (error) {
-    return handleError(error, '그룹 삭제');
+    return handleError(error, '관리자 그룹 삭제');
   }
 }

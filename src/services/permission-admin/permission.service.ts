@@ -2,90 +2,103 @@ import { insertPermission, updatePermission, deletePermission } from '@/models/p
 import { Permission } from '@/types/permission';
 import { logAction, makeLogParams } from '@/services/log-action/log-action.service';
 import { beginTransaction, commitTransaction, rollbackTransaction } from '@/lib/mariadb/query';
-import { handleError } from '@/utils/error.utils';
+import { LogMeta } from '@/types/history';
 
-export async function createPermissionS(permission: Permission, managerNo: number, ip: string, userAgent: string) {
-  const connection = await beginTransaction();
+// 권한 생성
+export async function createPermissionS(permission: Permission, meta: LogMeta) {
+  let conn;
   try {
     // 1. 권한 생성
-    const result = await insertPermission(permission, connection);
+    conn = await beginTransaction();
+
+    const result = await insertPermission(permission, conn);
 
     // 2. 로그 기록
     await logAction(
       makeLogParams({
-        manager_no: managerNo,
-        ip,
-        user_agent: userAgent,
+        manager_no: meta.manager_no,
+        ip: meta.ip,
+        user_agent: meta.user_agent,
         action_type: 'I',
         target_table: 'permission',
         target_id: result.insertId.toString(),
         new_values: JSON.stringify(permission),
         reason: `권한 생성: ${permission.name}`,
       }),
-      connection,
+      conn,
     );
 
-    await commitTransaction(connection);
+    await commitTransaction(conn);
     return result;
   } catch (error) {
-    await rollbackTransaction(connection);
-    throw handleError(error, 'createPermissionS');
+    if (conn) {
+      await rollbackTransaction(conn);
+    }
+    throw error;
   }
 }
 
-export async function updatePermissionS(permission: Permission, managerNo: number, ip: string, userAgent: string) {
-  const connection = await beginTransaction();
+// 권한 수정
+export async function updatePermissionS(permission: Permission, meta: LogMeta) {
+  let conn;
   try {
     // 1. 권한 수정
-    const result = await updatePermission(permission, connection);
+    conn = await beginTransaction();
+    const result = await updatePermission(permission, conn);
 
     // 2. 로그 기록
     await logAction(
       makeLogParams({
-        manager_no: managerNo,
-        ip,
-        user_agent: userAgent,
+        manager_no: meta.manager_no,
+        ip: meta.ip,
+        user_agent: meta.user_agent,
         action_type: 'U',
         target_table: 'permission',
         target_id: permission.permission_no.toString(),
         new_values: JSON.stringify(permission),
         reason: `권한 수정: ${permission.name}`,
       }),
-      connection,
+      conn,
     );
 
-    await commitTransaction(connection);
+    await commitTransaction(conn);
     return result;
   } catch (error) {
-    await rollbackTransaction(connection);
-    throw handleError(error, 'updatePermissionS');
+    if (conn) {
+      await rollbackTransaction(conn);
+    }
+    throw error;
   }
 }
 
-export async function deletePermissionS(permissionNo: number, managerNo: number, ip: string, userAgent: string) {
-  const connection = await beginTransaction();
+// 권한 삭제
+export async function deletePermissionS(permissionNo: number, meta: LogMeta) {
+  let conn;
   try {
     // 1. 권한 삭제
-    const result = await deletePermission(permissionNo, connection);
+    conn = await beginTransaction();
+    const result = await deletePermission(permissionNo, conn);
 
     // 2. 로그 기록
     await logAction(
       makeLogParams({
-        manager_no: managerNo,
-        ip,
-        user_agent: userAgent,
+        manager_no: meta.manager_no,
+        ip: meta.ip,
+        user_agent: meta.user_agent,
         action_type: 'D',
         target_table: 'permission',
         target_id: permissionNo.toString(),
         reason: `권한 삭제: permission_no ${permissionNo}`,
       }),
-      connection,
+      conn,
     );
 
-    await commitTransaction(connection);
+    await commitTransaction(conn);
     return result;
   } catch (error) {
-    await rollbackTransaction(connection);
-    throw handleError(error, 'deletePermissionS');
+    if (conn) {
+      await rollbackTransaction(conn);
+    }
+    throw error;
   }
 }
