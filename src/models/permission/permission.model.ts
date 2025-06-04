@@ -1,5 +1,5 @@
 import { Permission, Group, ManagerGroup, GroupPermission } from '@/types/permission';
-import { getRow, getAll } from '@/lib/mariadb/query';
+import { getRow, getAll, exec } from '@/lib/mariadb/query';
 
 /**
  * 권한 정보 조회
@@ -84,4 +84,25 @@ export async function getPermissionStatusReport(permissionName: string) {
     ORDER BY g.group_no
   `;
   return getAll(query, [permissionName]);
+}
+
+export async function insertPermission(dto: Permission) {
+  const query = `
+    INSERT INTO \`permission\` (name, description, default_extra_condition, default_extra_limit) VALUES (?, ?, ?, ?);
+  `;
+  const params = [dto.name, dto.description, dto.default_extra_condition, dto.default_extra_limit];
+  return exec(query, params);
+}
+
+export async function updatePermission(dto: Permission) {
+  const query = `
+    UPDATE \`permission\` SET name = ?, description = ?, default_extra_condition = ?, default_extra_limit = ? WHERE permission_no = ?
+  `;
+  const params = [dto.name, dto.description, dto.default_extra_condition, dto.default_extra_limit, dto.permission_no];
+  return exec(query, params);
+}
+
+export async function deletePermission(permissionNo: number) {
+  const query = `DELETE FROM \`permission\` WHERE permission_no = ?`;
+  return exec(query, [permissionNo]);
 }
