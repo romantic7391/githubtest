@@ -9,12 +9,7 @@ import { getSession } from '@/lib/auth/session';
 import { DEFAULT_ERROR_MESSAGE_500 } from '@/lib/default.constant';
 import type { BaseApiResponse } from '@/types/common';
 import { paginationSchema } from '@/types/common';
-import {
-  createManagerGroupSchema,
-  updateManagerGroupSchema,
-  managerGroupSchema,
-  managerGroupCreateOrUpdateApiResponseSchema,
-} from '@/types/permission';
+import { createManagerGroupSchema, updateManagerGroupSchema, managerGroupSchema } from '@/types/permission';
 import { getClientInfo } from '@/services/log-action/log-action.service';
 
 /**
@@ -49,10 +44,12 @@ export async function GET(request: NextRequest, { params }: { params: { managerN
 
     const result = await getManagerGroupsS(managerNo, pagination, filters);
     return NextResponse.json(
-      managerGroupCreateOrUpdateApiResponseSchema.parse({
+      {
         success: true,
+        message: '관리자 그룹 목록을 성공적으로 조회했습니다.',
         data: result,
-      }),
+      } satisfies BaseApiResponse,
+      { status: 200 },
     );
   } catch (error) {
     console.error('[GET] 관리자 그룹 목록 조회 에러:', error);
@@ -100,10 +97,12 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(
-      managerGroupCreateOrUpdateApiResponseSchema.parse({
+      {
         success: true,
+        message: '관리자 그룹이 성공적으로 생성되었습니다.',
         data: result,
-      }),
+      } satisfies BaseApiResponse,
+      { status: 200 },
     );
   } catch (error) {
     console.error('[POST] 관리자 그룹 생성 에러:', error);
@@ -151,10 +150,12 @@ export async function PUT(request: NextRequest) {
     });
 
     return NextResponse.json(
-      managerGroupCreateOrUpdateApiResponseSchema.parse({
+      {
         success: true,
+        message: '관리자 그룹이 성공적으로 수정되었습니다.',
         data: result,
-      }),
+      } satisfies BaseApiResponse,
+      { status: 200 },
     );
   } catch (error) {
     console.error('[PUT] 관리자 그룹 수정 에러:', error);
@@ -207,10 +208,12 @@ export async function DELETE(request: NextRequest) {
     });
 
     return NextResponse.json(
-      managerGroupCreateOrUpdateApiResponseSchema.parse({
+      {
         success: true,
+        message: '관리자 그룹이 성공적으로 삭제되었습니다.',
         data: result,
-      }),
+      } satisfies BaseApiResponse,
+      { status: 200 },
     );
   } catch (error) {
     console.error('[DELETE] 관리자 그룹 삭제 에러:', error);

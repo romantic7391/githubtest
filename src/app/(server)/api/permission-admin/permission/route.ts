@@ -7,12 +7,7 @@ import {
 } from '@/services/permission-admin/permission.service';
 import { getSession } from '@/lib/auth/session';
 import { handleZodError, handleError } from '@/utils/error.utils';
-import {
-  createPermissionSchema,
-  updatePermissionSchema,
-  permissionCreateOrUpdateApiResponseSchema,
-  permissionSchema,
-} from '@/types/permission';
+import { createPermissionSchema, updatePermissionSchema, permissionSchema } from '@/types/permission';
 import { BaseApiResponse, paginationSchema } from '@/types/common';
 
 /**
@@ -51,11 +46,14 @@ export async function GET(request: NextRequest) {
       },
     );
 
-    return NextResponse.json({
-      success: true,
-      message: '권한 목록을 성공적으로 조회했습니다.',
-      data: result,
-    } satisfies BaseApiResponse);
+    return NextResponse.json(
+      {
+        success: true,
+        message: '권한 목록을 성공적으로 조회했습니다.',
+        data: result,
+      } satisfies BaseApiResponse,
+      { status: 200 },
+    );
   } catch (error) {
     const zodError = handleZodError(error);
     if (zodError) return zodError;
@@ -96,10 +94,12 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(
-      permissionCreateOrUpdateApiResponseSchema.parse({
+      {
         success: true,
+        message: '권한이 성공적으로 생성되었습니다.',
         data: result,
-      }),
+      } satisfies BaseApiResponse,
+      { status: 200 },
     );
   } catch (error) {
     const zodError = handleZodError(error);
@@ -140,11 +140,12 @@ export async function PUT(request: NextRequest) {
     });
 
     return NextResponse.json(
-      permissionCreateOrUpdateApiResponseSchema.parse({
+      {
         success: true,
         message: '권한이 성공적으로 수정되었습니다.',
         data: result,
-      }),
+      } satisfies BaseApiResponse,
+      { status: 200 },
     );
   } catch (error) {
     const zodError = handleZodError(error);
