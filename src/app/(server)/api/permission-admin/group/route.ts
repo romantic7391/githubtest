@@ -1,3 +1,4 @@
+import type { BaseApiResponse } from '@/types/common';
 import { NextRequest, NextResponse } from 'next/server';
 import { createGroupS, updateGroupS, deleteGroupS } from '@/services/permission-admin/group.service';
 import { getSession } from '@/lib/auth/session';
@@ -128,17 +129,18 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const result = await deleteGroupS(Number(groupNo), {
+    await deleteGroupS(Number(groupNo), {
       manager_no: session.manager_no,
       ip: request.headers.get('x-forwarded-for') || '',
       user_agent: request.headers.get('user-agent') || '',
     });
 
     return NextResponse.json(
-      groupCreateOrUpdateApiResponseSchema.parse({
+      {
         success: true,
-        data: result,
-      }),
+        message: '그룹이 성공적으로 삭제되었습니다.',
+      } satisfies BaseApiResponse,
+      { status: 200 },
     );
   } catch (error) {
     return handleError(error, '그룹 삭제');
