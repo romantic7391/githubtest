@@ -50,10 +50,14 @@ export async function GET(request: NextRequest, { params }: { params: { groupNo:
 /**
  * 그룹 생성
  */
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ groupNo: string }> }) {
   try {
+    const { groupNo } = await params;
     const body = await request.json();
-    const validatedData = createGroupSchema.parse(body);
+    const validatedData = createGroupSchema.parse({
+      ...body,
+      group_no: parseInt(groupNo, 10),
+    });
     const session = await getSession(request);
 
     if (!session) {
