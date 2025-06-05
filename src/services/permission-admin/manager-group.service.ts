@@ -1,9 +1,20 @@
-import { insertManagerGroup, updateManagerGroup, deleteManagerGroup } from '@/models/manager-group/manager-group.model';
+import {
+  insertManagerGroup,
+  findManagerGroups,
+  updateManagerGroup,
+  deleteManagerGroup,
+} from '@/models/manager-group/manager-group.model';
 
 import { ManagerGroup } from '@/types/permission';
 import { LogMeta } from '@/types/history';
 import { logAction, makeLogParams } from '@/services/log-action/log-action.service';
 import { beginTransaction, commitTransaction, rollbackTransaction } from '@/lib/mariadb/query';
+import { Pagination } from '@/types/common';
+
+// 관리자 그룹 목록 조회
+export async function getManagerGroupsS(managerNo: number, pagination: Pagination, filters?: { groupNo?: number }) {
+  return findManagerGroups(managerNo, pagination, filters);
+}
 
 // 관리자 그룹 생성
 export async function createManagerGroupS(managerGroup: ManagerGroup, meta: LogMeta) {
@@ -21,9 +32,9 @@ export async function createManagerGroupS(managerGroup: ManagerGroup, meta: LogM
         user_agent: meta.user_agent,
         action_type: 'I',
         target_table: 'managerGroup',
-        target_id: result.insertId.toString(),
+        target_id: `${managerGroup.no}_${managerGroup.group_no}`,
         new_values: JSON.stringify(managerGroup),
-        reason: `관리자 그룹 생성: group_no ${managerGroup.group_no}`,
+        reason: `관리자 그룹 생성: manager_no ${managerGroup.no}, group_no ${managerGroup.group_no}`,
       }),
       conn,
     );
@@ -54,9 +65,9 @@ export async function updateManagerGroupS(managerGroup: ManagerGroup, meta: LogM
         user_agent: meta.user_agent,
         action_type: 'U',
         target_table: 'managerGroup',
-        target_id: managerGroup.group_no.toString(),
+        target_id: `${managerGroup.no}_${managerGroup.group_no}`,
         new_values: JSON.stringify(managerGroup),
-        reason: `관리자 그룹 수정: group_no ${managerGroup.group_no}`,
+        reason: `관리자 그룹 수정: manager_no ${managerGroup.no}, group_no ${managerGroup.group_no}`,
       }),
       conn,
     );
@@ -72,15 +83,12 @@ export async function updateManagerGroupS(managerGroup: ManagerGroup, meta: LogM
 }
 
 // 관리자 그룹 삭제
-export async function deleteManagerGroupS(groupNo: number, meta: LogMeta) {
+export async function deleteManagerGroupS(no: number, group_no: number, meta: LogMeta) {
   let conn;
   try {
     // 1. 관리자 그룹 삭제
     conn = await beginTransaction();
-    if (!meta.manager_no) {
-      throw new Error('관리자 번호가 필요합니다.');
-    }
-    const result = await deleteManagerGroup(meta.manager_no, groupNo, conn);
+    const result = await deleteManagerGroup(no, group_no, conn);
 
     // 2. 로그 기록
     await logAction(
@@ -90,8 +98,8 @@ export async function deleteManagerGroupS(groupNo: number, meta: LogMeta) {
         user_agent: meta.user_agent,
         action_type: 'D',
         target_table: 'managerGroup',
-        target_id: groupNo.toString(),
-        reason: `관리자 그룹 삭제: group_no ${groupNo}`,
+        target_id: `${no}_${group_no}`,
+        reason: `관리자 그룹 삭제: manager_no ${no}, group_no ${group_no}`,
       }),
       conn,
     );

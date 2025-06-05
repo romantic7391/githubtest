@@ -76,7 +76,7 @@ export async function deleteGroupS(groupNo: number, meta: LogMeta) {
   try {
     // 1. 그룹 삭제
     conn = await beginTransaction();
-    const result = await deleteGroup(groupNo, conn);
+    const result = await deleteGroup(groupNo);
 
     // 2. 로그 기록
     await logAction(

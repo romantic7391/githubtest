@@ -3,15 +3,69 @@ import {
   createManagerGroupS,
   updateManagerGroupS,
   deleteManagerGroupS,
+  getManagerGroupsS,
 } from '@/services/permission-admin/manager-group.service';
 import { getSession } from '@/lib/auth/session';
-import { handleZodError, handleError } from '@/utils/error.utils';
+import { DEFAULT_ERROR_MESSAGE_500 } from '@/lib/default.constant';
+import type { BaseApiResponse } from '@/types/common';
+import { paginationSchema } from '@/types/common';
 import {
   createManagerGroupSchema,
   updateManagerGroupSchema,
-  managerGroupCreateOrUpdateApiResponseSchema,
   managerGroupSchema,
+  managerGroupCreateOrUpdateApiResponseSchema,
 } from '@/types/permission';
+import { getClientInfo } from '@/services/log-action/log-action.service';
+
+/**
+ * 관리자 그룹 목록 조회
+ */
+export async function GET(request: NextRequest, { params }: { params: { managerNo: string } }) {
+  try {
+    const session = await getSession(request);
+
+    if (!session) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: '인증되지 않은 요청입니다.',
+        } satisfies BaseApiResponse,
+        { status: 401 },
+      );
+    }
+
+    const managerNo = Number(params.managerNo);
+    const searchParams = request.nextUrl.searchParams;
+    const page = Number(searchParams.get('page')) || 1;
+    const pageSize = Number(searchParams.get('pageSize')) || 10;
+    const groupNo = searchParams.get('groupNo');
+
+    const pagination = paginationSchema.parse({
+      page,
+      pageSize,
+    });
+
+    const filters = groupNo ? { groupNo: Number(groupNo) } : undefined;
+
+    const result = await getManagerGroupsS(managerNo, pagination, filters);
+    return NextResponse.json(
+      managerGroupCreateOrUpdateApiResponseSchema.parse({
+        success: true,
+        data: result,
+      }),
+    );
+  } catch (error) {
+    console.error('[GET] 관리자 그룹 목록 조회 에러:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        message: DEFAULT_ERROR_MESSAGE_500,
+        errors: [error instanceof Error ? error.message : String(error)],
+      } satisfies BaseApiResponse,
+      { status: 500 },
+    );
+  }
+}
 
 /**
  * 관리자 그룹 생성
@@ -27,7 +81,7 @@ export async function POST(request: NextRequest) {
         {
           success: false,
           message: '인증되지 않은 요청입니다.',
-        },
+        } satisfies BaseApiResponse,
         { status: 401 },
       );
     }
@@ -38,10 +92,11 @@ export async function POST(request: NextRequest) {
       created: null,
     });
 
+    const { userAgent, ip } = getClientInfo(request);
     const result = await createManagerGroupS(managerGroupData, {
       manager_no: session.manager_no,
-      ip: request.headers.get('x-forwarded-for') || '',
-      user_agent: request.headers.get('user-agent') || '',
+      ip,
+      user_agent: userAgent,
     });
 
     return NextResponse.json(
@@ -51,9 +106,15 @@ export async function POST(request: NextRequest) {
       }),
     );
   } catch (error) {
-    const zodError = handleZodError(error);
-    if (zodError) return zodError;
-    return handleError(error, '관리자 그룹 생성');
+    console.error('[POST] 관리자 그룹 생성 에러:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        message: DEFAULT_ERROR_MESSAGE_500,
+        errors: [error instanceof Error ? error.message : String(error)],
+      } satisfies BaseApiResponse,
+      { status: 500 },
+    );
   }
 }
 
@@ -71,7 +132,7 @@ export async function PUT(request: NextRequest) {
         {
           success: false,
           message: '인증되지 않은 요청입니다.',
-        },
+        } satisfies BaseApiResponse,
         { status: 401 },
       );
     }
@@ -82,10 +143,11 @@ export async function PUT(request: NextRequest) {
       created: null,
     });
 
+    const { userAgent, ip } = getClientInfo(request);
     const result = await updateManagerGroupS(managerGroupData, {
       manager_no: session.manager_no,
-      ip: request.headers.get('x-forwarded-for') || '',
-      user_agent: request.headers.get('user-agent') || '',
+      ip,
+      user_agent: userAgent,
     });
 
     return NextResponse.json(
@@ -95,9 +157,15 @@ export async function PUT(request: NextRequest) {
       }),
     );
   } catch (error) {
-    const zodError = handleZodError(error);
-    if (zodError) return zodError;
-    return handleError(error, '관리자 그룹 수정');
+    console.error('[PUT] 관리자 그룹 수정 에러:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        message: DEFAULT_ERROR_MESSAGE_500,
+        errors: [error instanceof Error ? error.message : String(error)],
+      } satisfies BaseApiResponse,
+      { status: 500 },
+    );
   }
 }
 
@@ -114,7 +182,7 @@ export async function DELETE(request: NextRequest) {
         {
           success: false,
           message: '그룹 번호는 필수입니다.',
-        },
+        } satisfies BaseApiResponse,
         { status: 400 },
       );
     }
@@ -126,15 +194,16 @@ export async function DELETE(request: NextRequest) {
         {
           success: false,
           message: '인증되지 않은 요청입니다.',
-        },
+        } satisfies BaseApiResponse,
         { status: 401 },
       );
     }
 
-    const result = await deleteManagerGroupS(Number(groupNo), {
+    const { userAgent, ip } = getClientInfo(request);
+    const result = await deleteManagerGroupS(session.manager_no, Number(groupNo), {
       manager_no: session.manager_no,
-      ip: request.headers.get('x-forwarded-for') || '',
-      user_agent: request.headers.get('user-agent') || '',
+      ip,
+      user_agent: userAgent,
     });
 
     return NextResponse.json(
@@ -144,6 +213,14 @@ export async function DELETE(request: NextRequest) {
       }),
     );
   } catch (error) {
-    return handleError(error, '관리자 그룹 삭제');
+    console.error('[DELETE] 관리자 그룹 삭제 에러:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        message: DEFAULT_ERROR_MESSAGE_500,
+        errors: [error instanceof Error ? error.message : String(error)],
+      } satisfies BaseApiResponse,
+      { status: 500 },
+    );
   }
 }

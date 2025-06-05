@@ -5,7 +5,7 @@ import {
   findGroupPermission,
   getPermissionStatusReport,
 } from '@/models/permission/permission.model';
-import { GroupPermissionSchema, PermissionSchema, GroupSchema, ManagerGroupSchema } from '@/types/permission';
+import { groupPermissionSchema, permissionSchema, groupSchema, managerGroupSchema } from '@/types/permission';
 import { getSchoolHierarchy } from '@/services/permission-check/school-permission.service';
 import { School } from '@/types/school';
 
@@ -33,7 +33,7 @@ async function checkPermissionByHierarchy(
   if (!permission) return { allowed: 'N', override: null, extraCondition: null };
 
   // Zod로 권한 데이터 검증
-  const validatedPermission = PermissionSchema.parse(permission);
+  const validatedPermission = permissionSchema.parse(permission);
   const permissionNo = validatedPermission.permission_no;
   console.log('권한 정보:', { permissionName, permissionNo });
 
@@ -53,7 +53,7 @@ async function checkPermissionByHierarchy(
   }
 
   // Zod로 그룹 데이터 검증
-  const validatedGroups = userGroups.map((group) => ManagerGroupSchema.parse(group));
+  const validatedGroups = userGroups.map((group) => managerGroupSchema.parse(group));
   console.log('검증된 그룹 목록:', validatedGroups);
 
   // 3. 각 그룹별로 계층적으로 parentGroupNo를 따라 올라가며 권한 체크
@@ -75,7 +75,7 @@ async function checkPermissionByHierarchy(
       if (!group) break;
 
       // Zod로 그룹 데이터 검증
-      const validatedGroup = GroupSchema.parse(group);
+      const validatedGroup = groupSchema.parse(group);
       console.log('현재 체크 중인 그룹:', {
         groupNo: currentGroupNo,
         name: validatedGroup.name,
@@ -85,7 +85,7 @@ async function checkPermissionByHierarchy(
       const groupPermission = await findGroupPermission(currentGroupNo, permissionNo);
       if (groupPermission) {
         // Zod로 그룹 권한 데이터 검증
-        const validatedGroupPermission = GroupPermissionSchema.parse(groupPermission);
+        const validatedGroupPermission = groupPermissionSchema.parse(groupPermission);
         console.log('그룹 권한 정보:', {
           groupNo: currentGroupNo,
           permissionNo,
