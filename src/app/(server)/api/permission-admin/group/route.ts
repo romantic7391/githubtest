@@ -1,6 +1,6 @@
 import type { BaseApiResponse } from '@/types/common';
 import { NextRequest, NextResponse } from 'next/server';
-import { createGroupS, updateGroupS, deleteGroupS } from '@/services/permission-admin/group.service';
+import { createGroupS, updateGroupS, deleteGroupS, getGroupS } from '@/services/permission-admin/group.service';
 import { getSession } from '@/lib/auth/session';
 import { handleZodError, handleError } from '@/utils/error.utils';
 import {
@@ -9,6 +9,43 @@ import {
   groupCreateOrUpdateApiResponseSchema,
   groupSchema,
 } from '@/types/permission';
+
+/**
+ * 그룹 조회
+ */
+export async function GET(request: NextRequest, { params }: { params: { groupNo: string } }) {
+  try {
+    const { groupNo } = params;
+    const session = await getSession(request);
+
+    if (!session) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: '인증되지 않은 요청입니다.',
+        },
+        { status: 401 },
+      );
+    }
+
+    const result = await getGroupS(Number(groupNo), {
+      manager_no: session.manager_no,
+      ip: request.headers.get('x-forwarded-for') || '',
+      user_agent: request.headers.get('user-agent') || '',
+    });
+
+    return NextResponse.json(
+      groupCreateOrUpdateApiResponseSchema.parse({
+        success: true,
+        data: result,
+        message: '그룹이 성공적으로 조회되었습니다.',
+      }),
+      { status: 200 },
+    );
+  } catch (error) {
+    return handleError(error, '그룹 조회');
+  }
+}
 
 /**
  * 그룹 생성
@@ -29,10 +66,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 서비스 함수에 전달할 데이터 변환
     const groupData = groupSchema.parse({
       ...validatedData,
-      group_no: 0, // 임시 값, DB에서 자동 생성됨
+      group_no: 0,
       created: null,
     });
 
@@ -46,7 +82,9 @@ export async function POST(request: NextRequest) {
       groupCreateOrUpdateApiResponseSchema.parse({
         success: true,
         data: result,
+        message: '그룹이 성공적으로 생성되었습니다.',
       }),
+      { status: 200 },
     );
   } catch (error) {
     const zodError = handleZodError(error);
@@ -58,8 +96,9 @@ export async function POST(request: NextRequest) {
 /**
  * 그룹 수정
  */
-export async function PUT(request: NextRequest) {
+export async function PUT(request: NextRequest, { params }: { params: { groupNo: string } }) {
   try {
+    const { groupNo } = params;
     const body = await request.json();
     const validatedData = updateGroupSchema.parse(body);
     const session = await getSession(request);
@@ -74,9 +113,9 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // 서비스 함수에 전달할 데이터 변환
     const groupData = groupSchema.parse({
       ...validatedData,
+      group_no: Number(groupNo),
       created: null,
     });
 
@@ -90,7 +129,9 @@ export async function PUT(request: NextRequest) {
       groupCreateOrUpdateApiResponseSchema.parse({
         success: true,
         data: result,
+        message: '그룹이 성공적으로 수정되었습니다.',
       }),
+      { status: 200 },
     );
   } catch (error) {
     const zodError = handleZodError(error);
@@ -102,21 +143,9 @@ export async function PUT(request: NextRequest) {
 /**
  * 그룹 삭제
  */
-export async function DELETE(request: NextRequest) {
+export async function DELETE(request: NextRequest, { params }: { params: { groupNo: string } }) {
   try {
-    const { searchParams } = new URL(request.url);
-    const groupNo = searchParams.get('group_no');
-
-    if (!groupNo) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: '그룹 번호는 필수입니다.',
-        },
-        { status: 400 },
-      );
-    }
-
+    const { groupNo } = params;
     const session = await getSession(request);
 
     if (!session) {
