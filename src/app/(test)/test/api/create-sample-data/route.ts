@@ -4,14 +4,30 @@ import { createRnSchool } from '@/services/areas/[area]/schools/create/create.se
 import { getClientInfo } from '@/services/log-action/log-action.service';
 import { createRnDevicesRel } from '@/services/areas/[area]/schools/[schoolNo]/devices/create/craete.service';
 import { findLastScholNo } from './csd.model';
+import { z } from 'zod';
 
 export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
+
+    const schoolCount = z.coerce
+      .number()
+      .positive()
+      .max(Number.MAX_SAFE_INTEGER)
+      .default(10)
+      .parse(searchParams.get('school-count'));
+    const deviceCount = z.coerce
+      .number()
+      .positive()
+      .max(Number.MAX_SAFE_INTEGER)
+      .default(100)
+      .parse(searchParams.get('device-count'));
+
     const lastSchoolNo = await findLastScholNo();
 
-    const schools = createSchool(10, { from: lastSchoolNo + 1 });
+    const schools = createSchool(schoolCount, { from: lastSchoolNo + 1 });
     const schoolNos = schools.map((school) => school.schoolNo);
-    const devices = createDevice(100, { from: Math.min(...schoolNos), to: Math.max(...schoolNos) });
+    const devices = createDevice(deviceCount, { from: Math.min(...schoolNos), to: Math.max(...schoolNos) });
 
     const { userAgent, ip } = getClientInfo(request);
 
@@ -40,7 +56,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: {
-        schools,
+        schools: schools.map((school) => school.sname),
+        devices: devices.map((device) => device.mac),
       },
     });
   } catch (error) {

@@ -3,7 +3,7 @@
 import { type Device, deviceRelFormSchema, deviceRelSchema } from '@/types/device';
 import { Autocomplete, Badge, Card, Grid, Group, LoadingOverlay, Select, TextInput, Title } from '@mantine/core';
 import { useEffect, useState } from 'react';
-import { DEVICE_KINDS } from '@/lib/device.config';
+import { DEVICE_KINDS } from '@/lib/device.constant';
 import { useClickOutside, useDebouncedCallback } from '@mantine/hooks';
 import { useForm } from '@mantine/form';
 import ZodErrorDisplay from '@/app/(afterSignIn)/_components/ZodErrorDisplay';
@@ -49,7 +49,7 @@ export default function DeviceCard({
       sdate: '',
       edate: '',
       created: '',
-      device: null,
+      device: undefined,
     },
 
     validate: {
@@ -61,6 +61,21 @@ export default function DeviceCard({
       summary: (value) => {
         if (isCreateMode && value === '') return null;
         const { error } = deviceRelFormSchema.shape.summary.safeParse(value);
+        if (error) return <ZodErrorDisplay error={error} />;
+      },
+      name: (value) => {
+        if (isCreateMode) return null;
+        const { error } = deviceRelFormSchema.shape.name.safeParse(value);
+        if (error) return <ZodErrorDisplay error={error} />;
+      },
+      kind: (value) => {
+        if (isCreateMode) return null;
+        const { error } = deviceRelFormSchema.shape.kind.safeParse(Number(value));
+        if (error) return <ZodErrorDisplay error={error} />;
+      },
+      device: (value) => {
+        if (isCreateMode) return undefined;
+        const { error } = deviceRelFormSchema.shape.device.safeParse(value);
         if (error) return <ZodErrorDisplay error={error} />;
       },
     },
@@ -85,15 +100,18 @@ export default function DeviceCard({
   // 입력 후 입력값 검증 및 저장 시도. 약간 딜레이 줌.
   const onValuesChange = useDebouncedCallback((values) => {
     if (form.values.name === '' || form.values.mac === '' || form.values.summary === '') return;
-    const { success, data } = deviceRelSchema.safeParse({
+    const { success, error, data } = deviceRelSchema.safeParse({
       ...values,
       summary: values.summary === '' ? null : values.summary,
       kind: Number(values.kind),
+      extra: values.extra === '' ? null : values.extra,
       created: values.created === '' ? null : values.created,
       sdate: values.sdate === '' ? null : values.sdate,
       edate: values.edate === '' ? null : values.edate,
+      device: values.device === null ? undefined : values.device,
     });
     if (!success) {
+      console.error(error.issues.map((issue) => issue.message));
       return;
     }
 

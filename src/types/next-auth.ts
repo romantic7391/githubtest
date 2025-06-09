@@ -13,10 +13,9 @@ import { z } from 'zod';
 export const userSchema = z.object({
   managerNo: z.number(),
   schoolNo: z.number(),
-  login_id: z.string(),
+  signInId: z.string(),
   name: z.string(),
   schoolType: z.string(),
-  permissions: z.array(z.number()).optional(), // 권한 번호 목록
 });
 
 // Zod 스키마로부터 타입 추론
@@ -27,26 +26,18 @@ declare module 'next-auth' {
   interface User {
     managerNo: number;
     schoolNo: number;
-    login_id: string;
+    signInId: string;
     name: string;
     schoolType: string;
-    permissions?: number[]; // 권한 번호 목록
   }
 
   interface Session extends DefaultSession {
-    user: {
-      managerNo: number;
-      schoolNo: number;
-      login_id: string;
-      name: string;
-      schoolType: string;
-      permissions?: number[]; // 권한 번호 목록
-    } & DefaultSession['user'];
+    user: {} & DefaultSession['user'];
   }
 }
 
 declare module 'next-auth/jwt' {
   interface JWT extends DefaultJWT {
-    user: User;
+    user: {} & DefaultSession['user'];
   }
 }

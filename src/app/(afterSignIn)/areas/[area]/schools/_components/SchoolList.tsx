@@ -64,6 +64,7 @@ export default function SchoolList({ sname, scode, page, pageSize }: SchoolListP
             onChange={(value) => {
               if (!value) return;
               const params = new URLSearchParams(searchParams);
+              params.set('page', '1');
               params.set('pageSize', value);
               router.replace(`${pathname}?${params.toString()}`);
             }}
