@@ -57,7 +57,6 @@ export const schoolSchema = z.object({
     .max(50)
     .nullable(),
   created: datetimeSchema.nullable(),
-  schoolType: z.string().max(30),
   parentNo: z
     .number({
       message: '상위 기관 번호는 자연수만 입력할 수 있습니다.',

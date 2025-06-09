@@ -21,7 +21,6 @@ export async function getSchoolHierarchy(
       current: {
         schoolNo: 0,
         sname: '사랑',
-        schoolType: 'st_000',
         parentNo: null,
         area: 'daegu',
       } as School,

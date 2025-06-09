@@ -135,7 +135,6 @@ export async function findRnSchoolsByAreas(area: string): Promise<School[]> {
       rs.active,
       rs.administrationcode AS administrationCode,
       rs.created,
-      rs.school_type AS schoolType,
       rs.parent_no AS parentNo
     FROM rnSchool AS rs
     WHERE rs.area = ?
@@ -163,7 +162,6 @@ export async function findSchoolBySchoolNo(school_no: number): Promise<School | 
       rs.active,
       rs.administrationcode AS administrationCode,
       rs.created,
-      rs.school_type AS schoolType,
       rs.parent_no AS parentNo
       FROM rnSchool AS rs
       WHERE rs.school_no = ?
