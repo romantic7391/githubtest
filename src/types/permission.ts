@@ -1,58 +1,265 @@
 import { z } from 'zod';
+import { baseApiResponseSchema, datetimeSchema, paginationSchema } from './common';
 
-// Manager 스키마
-export const ManagerSchema = z.object({
-  no: z.number(),
-  school_no: z.number(),
+/**
+ * 관리자
+ */
+export const managerSchema = z.object({
+  no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
+  school_no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
   login_id: z.string().max(16),
   name: z.string().max(20),
   passwd: z.string().nullable(),
+  created: datetimeSchema.nullable(),
 });
 
-// ManagerGroup 스키마
-export const ManagerGroupSchema = z.object({
-  group_no: z.number(),
-  no: z.number(),
+/**
+ * 관리자 그룹
+ */
+export const managerGroupSchema = z.object({
+  group_no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
+  no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
+  created: datetimeSchema.nullable(),
 });
 
-// Group 스키마
-export const GroupSchema = z.object({
-  group_no: z.number(),
-  school_no: z.number().nullable(),
-  name: z.string().max(20).optional(),
-  parent_group_no: z.number().nullable(),
+/**
+ * 그룹
+ */
+export const groupSchema = z.object({
+  group_no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
+  school_no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER).nullable(),
+  name: z.string().max(20),
+  parent_group_no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER).nullable(),
+  created: datetimeSchema.nullable(),
 });
 
-// Permission 스키마
-export const PermissionSchema = z.object({
-  permission_no: z.number(),
+/**
+ * 권한
+ */
+export const permissionSchema = z.object({
+  permission_no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
   name: z.string().max(20),
   description: z.string().nullable(),
   default_extra_condition: z.string().max(50).nullable(),
   default_extra_limit: z.string().max(50).nullable(),
+  created: datetimeSchema.nullable(),
 });
 
-// GroupPermission 스키마
-export const GroupPermissionSchema = z.object({
-  group_no: z.number(),
-  permission_no: z.number(),
+/**
+ * 그룹 권한
+ */
+export const groupPermissionSchema = z.object({
+  group_no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
+  permission_no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
   is_allowed: z.enum(['Y', 'N']).nullable(),
   override: z.enum(['Y', 'N']).nullable(),
   extra_condition: z.string().nullable(),
   extra_limit: z.string().max(50).nullable(),
+  created: datetimeSchema.nullable(),
 });
 
-// CommonContext 스키마
-export const CommonContextSchema = z.object({
-  manager_no: z.number(),
+/**
+ * 그룹 생성 스키마
+ */
+export const createGroupSchema = z.object({
+  name: z.string().min(1, '그룹 이름은 필수입니다.').max(20),
+  school_no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER).nullable(),
+  parent_group_no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER).nullable(),
+});
+
+/**
+ * 그룹 수정 스키마
+ */
+export const updateGroupSchema = createGroupSchema.extend({
+  group_no: z.number().min(1, '그룹 번호는 필수입니다.').max(Number.MAX_SAFE_INTEGER),
+});
+
+/**
+ * 권한 생성 스키마
+ */
+export const createPermissionSchema = z.object({
+  name: z.string().min(1, '권한 이름은 필수입니다.').max(20),
+  description: z.string().max(50).nullable(),
+  default_extra_condition: z.string().max(50).nullable(),
+  default_extra_limit: z.string().max(50).nullable(),
+});
+
+/**
+ * 권한 수정 스키마
+ */
+export const updatePermissionSchema = createPermissionSchema.extend({
+  permission_no: z.number().min(1, '권한 번호는 필수입니다.').max(Number.MAX_SAFE_INTEGER),
+});
+
+/**
+ * 공통 컨텍스트
+ */
+export const commonContextSchema = z.object({
+  manager_no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
   ip: z.string(),
   user_agent: z.string(),
 });
 
+/**
+ * 학교 계층 구조
+ */
+export const schoolHierarchySchema = z.object({
+  current: z.object({
+    schoolNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
+    name: z.string(),
+    area: z.string(),
+  }),
+  upper: z
+    .object({
+      schoolNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
+      name: z.string(),
+      area: z.string(),
+    })
+    .optional(),
+  upperUpper: z
+    .object({
+      schoolNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
+      name: z.string(),
+      area: z.string(),
+    })
+    .optional(),
+  lower: z
+    .array(
+      z.object({
+        schoolNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
+        name: z.string(),
+        area: z.string(),
+      }),
+    )
+    .optional(),
+});
+
+/**
+ * 권한 체크 결과
+ */
+export const permissionCheckResultSchema = z.object({
+  allowed: z.enum(['Y', 'N']),
+  override: z.enum(['Y', 'N']).nullable(),
+  extraCondition: z.string().nullable(),
+});
+
+// API 응답 스키마
+export const groupsApiResponseSchema = baseApiResponseSchema.extend({
+  data: z.object({
+    groups: groupSchema.array(),
+    pagination: paginationSchema,
+  }),
+});
+
+export const groupApiResponseSchema = baseApiResponseSchema.extend({
+  data: groupSchema,
+});
+
+export const groupCreateOrUpdateApiResponseSchema = baseApiResponseSchema.extend({
+  data: groupSchema.pick({ group_no: true }),
+});
+
+export const permissionApiResponseSchema = baseApiResponseSchema.extend({
+  data: permissionSchema,
+});
+
+export const permissionsApiResponseSchema = baseApiResponseSchema.extend({
+  data: z.object({
+    permissions: permissionSchema.array(),
+    pagination: paginationSchema,
+  }),
+});
+
+export const permissionCreateOrUpdateApiResponseSchema = baseApiResponseSchema.extend({
+  data: z.object({
+    permission_no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
+  }),
+});
+
+/**
+ * 그룹 권한 생성 스키마
+ */
+export const createGroupPermissionSchema = z.object({
+  group_no: z.number().min(1, '그룹 번호는 필수입니다.').max(Number.MAX_SAFE_INTEGER),
+  permission_no: z.number().min(1, '권한 번호는 필수입니다.').max(Number.MAX_SAFE_INTEGER),
+  is_allowed: z.enum(['Y', 'N']).nullable(),
+  override: z.enum(['Y', 'N']).nullable(),
+  extra_condition: z.string().max(50).nullable(),
+  extra_limit: z.string().max(50).nullable(),
+});
+
+/**
+ * 그룹 권한 수정 스키마
+ */
+export const updateGroupPermissionSchema = createGroupPermissionSchema;
+
+export const groupPermissionApiResponseSchema = baseApiResponseSchema.extend({
+  data: groupPermissionSchema,
+});
+
+export const groupPermissionsApiResponseSchema = baseApiResponseSchema.extend({
+  data: z.object({
+    groupPermissions: groupPermissionSchema.array(),
+    pagination: paginationSchema,
+  }),
+});
+
+export const groupPermissionCreateOrUpdateApiResponseSchema = baseApiResponseSchema.extend({
+  data: z.object({
+    group_no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
+    permission_no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
+  }),
+});
+
+/**
+ * 관리자 그룹 생성 스키마
+ */
+export const createManagerGroupSchema = z.object({
+  group_no: z.number().min(1, '그룹 번호는 필수입니다.').max(Number.MAX_SAFE_INTEGER),
+  no: z.number().min(1, '관리자 번호는 필수입니다.').max(Number.MAX_SAFE_INTEGER),
+});
+
+/**
+ * 관리자 그룹 수정 스키마
+ */
+export const updateManagerGroupSchema = createManagerGroupSchema;
+
+export const managerGroupApiResponseSchema = baseApiResponseSchema.extend({
+  data: managerGroupSchema,
+});
+
+export const managerGroupsApiResponseSchema = baseApiResponseSchema.extend({
+  data: z.object({
+    managerGroups: managerGroupSchema.array(),
+    pagination: paginationSchema,
+  }),
+});
+
+export const managerGroupCreateOrUpdateApiResponseSchema = baseApiResponseSchema.extend({
+  data: z.object({
+    group_no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
+    no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
+  }),
+});
+
 // 타입 추론
-export type Manager = z.infer<typeof ManagerSchema>;
-export type ManagerGroup = z.infer<typeof ManagerGroupSchema>;
-export type Group = z.infer<typeof GroupSchema>;
-export type Permission = z.infer<typeof PermissionSchema>;
-export type GroupPermission = z.infer<typeof GroupPermissionSchema>;
-export type CommonContext = z.infer<typeof CommonContextSchema>;
+export type Manager = z.infer<typeof managerSchema>;
+export type ManagerGroup = z.infer<typeof managerGroupSchema>;
+export type Group = z.infer<typeof groupSchema>;
+export type Permission = z.infer<typeof permissionSchema>;
+export type GroupPermission = z.infer<typeof groupPermissionSchema>;
+export type CommonContext = z.infer<typeof commonContextSchema>;
+export type SchoolHierarchy = z.infer<typeof schoolHierarchySchema>;
+export type PermissionCheckResult = z.infer<typeof permissionCheckResultSchema>;
+export type GroupsApiResponse = z.infer<typeof groupsApiResponseSchema>;
+export type GroupApiResponse = z.infer<typeof groupApiResponseSchema>;
+export type GroupCreateOrUpdateApiResponse = z.infer<typeof groupCreateOrUpdateApiResponseSchema>;
+export type PermissionApiResponse = z.infer<typeof permissionApiResponseSchema>;
+export type PermissionsApiResponse = z.infer<typeof permissionsApiResponseSchema>;
+export type PermissionCreateOrUpdateApiResponse = z.infer<typeof permissionCreateOrUpdateApiResponseSchema>;
+export type GroupPermissionApiResponse = z.infer<typeof groupPermissionApiResponseSchema>;
+export type GroupPermissionsApiResponse = z.infer<typeof groupPermissionsApiResponseSchema>;
+export type GroupPermissionCreateOrUpdateApiResponse = z.infer<typeof groupPermissionCreateOrUpdateApiResponseSchema>;
+export type ManagerGroupApiResponse = z.infer<typeof managerGroupApiResponseSchema>;
+export type ManagerGroupsApiResponse = z.infer<typeof managerGroupsApiResponseSchema>;
+export type ManagerGroupCreateOrUpdateApiResponse = z.infer<typeof managerGroupCreateOrUpdateApiResponseSchema>;

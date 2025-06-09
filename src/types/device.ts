@@ -45,9 +45,62 @@ export const deviceRelSchema = z.object({
 /**
  * DB에서 조회되는 센서 장치 구조
  */
-export const deviceDbSchema = deviceRelSchema.omit({ device: true }).merge(deviceSchema).extend({
-  device_created: datetimeSchema.nullable(),
-});
+export const deviceDbSchema = z
+  .object({
+    mac: z.string(),
+    name: z.string().nullable(),
+    summary: z.string().nullable(),
+    kind: z.number(),
+    extra: z.string().nullable(),
+    sdate: datetimeSchema.nullable(),
+    edate: datetimeSchema.nullable(),
+    created: datetimeSchema.nullable(),
+    model: z.string().nullable(),
+    ip: z.string().ip({ version: 'v4' }).nullable(),
+    rip: z.string().ip({ version: 'v4' }).nullable(),
+    splrate: z.number().nullable(),
+    interval: z.number().nullable(),
+    ver: z.string().nullable(),
+    tags: z.string().nullable(),
+    checkin: datetimeSchema.nullable(),
+    device_created: datetimeSchema.nullable(),
+  })
+  .transform((data) => {
+    const device =
+      data.model === null &&
+      data.ip === null &&
+      data.rip === null &&
+      data.splrate === null &&
+      data.interval === null &&
+      data.ver === null &&
+      data.tags === null &&
+      data.checkin === null &&
+      data.device_created === null
+        ? undefined
+        : {
+            model: data.model ?? '',
+            ip: data.ip,
+            rip: data.rip,
+            splrate: data.splrate ?? 0,
+            interval: data.interval ?? 0,
+            ver: data.ver ?? '',
+            tags: data.tags,
+            checkin: data.checkin,
+            created: data.device_created,
+          };
+
+    return {
+      mac: data.mac,
+      name: data.name,
+      summary: data.summary,
+      kind: data.kind,
+      extra: data.extra,
+      sdate: data.sdate,
+      edate: data.edate,
+      created: data.created,
+      device,
+    } as Device;
+  });
 
 /**
  * 학교 센서 장치
