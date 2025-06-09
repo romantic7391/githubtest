@@ -46,7 +46,7 @@ function matchPath(pattern: string, path: string): Record<string, string> | null
  */
 export async function checkPermissionMiddleware(
   request: NextRequest,
-  { params }: { params: Promise<{ schoolNo: number; area: string | null }> },
+  { params }: { params: Promise<{ schoolNo: number | null; area: string | null }> },
 ): Promise<NextResponse | null> {
   try {
     // 1. 세션 체크
@@ -57,9 +57,22 @@ export async function checkPermissionMiddleware(
         user: {
           ...session?.user,
           managerNo: 1,
+          schoolNo: 1, // 개발 환경에서 테스트용 schoolNo
         },
       } as Session;
     }
+
+    // 세션이 없으면 에러
+    if (!session?.user?.managerNo || !session?.user?.schoolNo) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: '인증이 필요합니다.',
+        },
+        { status: 401 },
+      );
+    }
+
     const method = request.method as HTTPMethod;
     const path = request.nextUrl.pathname;
     console.log('권한 체크 요청:', { method, path });
@@ -69,25 +82,17 @@ export async function checkPermissionMiddleware(
 
     if (!mapping) {
       console.log('권한 매핑을 찾을 수 없음');
-      // 권한 매핑이 없는 경우 (권한 체크가 필요없는 엔드포인트)
       return null;
     }
 
     console.log('찾은 권한 매핑:', mapping);
 
-    // 3. URL 파라미터에서 schoolNo 추출
-    let schoolNo = 0;
-    if (mapping.params?.schoolNo) {
-      const pathParams = matchPath(mapping.path, path);
-      console.log('경로 파라미터:', pathParams);
-      if (pathParams && mapping.params.schoolNo in pathParams) {
-        schoolNo = Number(pathParams[mapping.params.schoolNo]);
-        console.log('설정된 schoolNo:', schoolNo);
-      }
-    }
-
-    // 4. 권한 체크
-    const { allowed, override } = await checkPermissions(session.user.managerNo, schoolNo, mapping.permissions);
+    // 3. 권한 체크 (세션의 schoolNo 사용)
+    const { allowed, override } = await checkPermissions(
+      session.user.managerNo,
+      session.user.schoolNo,
+      mapping.permissions,
+    );
 
     if (allowed === 'N') {
       console.log('권한 없음:', { allowed, override });
