@@ -1,9 +1,13 @@
+DROP DATABASE IF EXISTS airdb;
+CREATE DATABASE IF NOT EXISTS airdb
+	CHARACTER SET = 'utf8mb4'
+	COLLATE = 'utf8mb4_uca1400_ai_ci';
 
+USE airdb;
 
 /*
 지역 좌표 테이블
 */
-
 CREATE TABLE `AreaData` (
 	`area_no` BIGINT(20) NOT NULL AUTO_INCREMENT,
 	`area` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8mb4_uca1400_ai_ci',
@@ -14,7 +18,7 @@ CREATE TABLE `AreaData` (
 )
 COLLATE='utf8mb4_uca1400_ai_ci'
 ENGINE=InnoDB
-AUTO_INCREMENT=15
+AUTO_INCREMENT=0
 ;
 
 
@@ -35,7 +39,7 @@ CREATE TABLE `group` (
 COMMENT='그룹'
 COLLATE='utf8mb4_general_ci'
 ENGINE=InnoDB
-AUTO_INCREMENT=301
+AUTO_INCREMENT=0
 ;
 
 
@@ -57,6 +61,7 @@ CREATE TABLE `groupPermission` (
 COMMENT='그룹 권한'
 COLLATE='utf8mb4_general_ci'
 ENGINE=InnoDB
+AUTO_INCREMENT=0
 ;
 
 
@@ -82,7 +87,7 @@ CREATE TABLE `history` (
 COMMENT='이력테이블'
 COLLATE='utf8mb4_general_ci'
 ENGINE=InnoDB
-AUTO_INCREMENT=285
+AUTO_INCREMENT=0
 ;
 
 
@@ -103,7 +108,7 @@ CREATE TABLE `manager` (
 COMMENT='사용자'
 COLLATE='utf8mb4_general_ci'
 ENGINE=InnoDB
-AUTO_INCREMENT=6
+AUTO_INCREMENT=0
 ;
 
 
@@ -121,6 +126,7 @@ CREATE TABLE `managerGroup` (
 COMMENT='사용자 그룹'
 COLLATE='utf8mb4_general_ci'
 ENGINE=InnoDB
+AUTO_INCREMENT=0
 ;
 
 
@@ -142,7 +148,7 @@ CREATE TABLE `permission` (
 COMMENT='권한'
 COLLATE='utf8mb4_general_ci'
 ENGINE=InnoDB
-AUTO_INCREMENT=209
+AUTO_INCREMENT=0
 ;
 
 
@@ -163,6 +169,7 @@ CREATE TABLE `rnData` (
 )
 COLLATE='utf8mb3_unicode_ci'
 ENGINE=InnoDB
+AUTO_INCREMENT=0
 ;
 
 
@@ -185,6 +192,7 @@ CREATE TABLE `rnDevices` (
 )
 COLLATE='utf8mb3_unicode_ci'
 ENGINE=InnoDB
+AUTO_INCREMENT=0
 ;
 
 
@@ -207,6 +215,7 @@ CREATE TABLE `rnDevicesRel` (
 )
 COLLATE='utf8mb3_unicode_ci'
 ENGINE=InnoDB
+AUTO_INCREMENT=0
 ;
 
 
@@ -233,5 +242,5 @@ CREATE TABLE `rnSchool` (
 )
 COLLATE='utf8mb3_unicode_ci'
 ENGINE=InnoDB
-AUTO_INCREMENT=52
+AUTO_INCREMENT=0
 ;
