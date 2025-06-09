@@ -8,8 +8,8 @@ export default function Page() {
       <button
         onClick={() =>
           signIn('credentials', {
-            id: 'id',
-            password: 'password',
+            signInId: 'test',
+            password: 'test',
           })
         }>
         로그인

@@ -10,10 +10,10 @@ export const config: NextAuthConfig = {
       console.log(`[auth][debug] ${message} ${metadata}`);
     },
     warn: (code) => {
-      console.log(`[auth][warn] ${code}`);
+      console.warn(`[auth][warn] ${code}`);
     },
     error: (error) => {
-      console.log(`[auth][error] ${error}`);
+      console.error(`[auth][error] ${error}`);
     },
   },
   trustHost: process.env.AUTH_TRUST === 'true',
@@ -36,15 +36,17 @@ export const config: NextAuthConfig = {
       },
 
       authorize: async (credentials) => {
+        console.log('credentials', credentials);
         if (!credentials?.signInId || !credentials?.password) {
           return null;
         }
 
+        console.log('credentials', credentials);
         // TODO: 실제 로그인 로직 구현
         // 임시로 테스트 계정만 허용
         if (credentials.signInId === 'test' && credentials.password === 'test') {
           return {
-            id: credentials.signInId,
+            id: '',
             managerNo: 1,
             schoolNo: 1,
             signInId: credentials.signInId,
