@@ -61,7 +61,7 @@ export async function checkPermissionMiddleware(
         user: {
           ...session?.user,
           managerNo: 1,
-          schoolNo: 38,
+          schoolNo: 42,
         },
       } as Session;
       console.log('개발환경 세션 설정 후:', session);
@@ -99,7 +99,30 @@ export async function checkPermissionMiddleware(
     const mapping = permissionMappings.find((m) => m.method === method && matchPath(m.path, path));
     if (!mapping) return null;
 
-    // 3. 권한 체크
+    // 3. 지역 기반 접근 제어 (가장 먼저 체크)
+    const resolvedParams = await params;
+    if (resolvedParams.area) {
+      // 사용자의 학교 정보 조회
+      const userSchool = await getSchoolBySchoolNo(session.user.schoolNo, {
+        manager_no: session.user.managerNo,
+        ip: request.headers.get('x-forwarded-for') || request.ip,
+        user_agent: request.headers.get('user-agent'),
+      });
+
+      if (!userSchool) {
+        return NextResponse.json({ success: false, message: '학교 정보를 찾을 수 없습니다.' }, { status: 404 });
+      }
+
+      // URL의 지역과 사용자의 학교 지역 비교
+      if (userSchool.area !== resolvedParams.area) {
+        return NextResponse.json(
+          { success: false, message: `다른 지역의 학교 정보에 접근할 수 없습니다.` },
+          { status: 403 },
+        );
+      }
+    }
+
+    // 4. 권한 체크
     const { allowed, override } = await checkPermissions(
       session.user.managerNo,
       session.user.schoolNo,
@@ -114,39 +137,6 @@ export async function checkPermissionMiddleware(
         },
         { status: 403 },
       );
-    }
-
-    // 4. 지역 기반 접근 제어 (권한이 있는 경우에만 실행)
-    const resolvedParams = await params;
-    if (resolvedParams.schoolNo) {
-      // 0번 학교는 모든 지역 접근 가능
-      if (session.user.schoolNo === 0) {
-        return null;
-      }
-
-      const [userSchool, targetSchool] = await Promise.all([
-        getSchoolBySchoolNo(session.user.schoolNo, {
-          manager_no: session.user.managerNo,
-          ip: request.headers.get('x-forwarded-for') || request.ip,
-          user_agent: request.headers.get('user-agent'),
-        }),
-        getSchoolBySchoolNo(Number(resolvedParams.schoolNo), {
-          manager_no: session.user.managerNo,
-          ip: request.headers.get('x-forwarded-for') || request.ip,
-          user_agent: request.headers.get('user-agent'),
-        }),
-      ]);
-
-      if (!userSchool || !targetSchool) {
-        return NextResponse.json({ success: false, message: '학교 정보를 찾을 수 없습니다.' }, { status: 404 });
-      }
-
-      if (userSchool.area !== targetSchool.area) {
-        return NextResponse.json(
-          { success: false, message: `다른 지역(${targetSchool.area})의 학교 정보에 접근할 수 없습니다.` },
-          { status: 403 },
-        );
-      }
     }
 
     return null;
