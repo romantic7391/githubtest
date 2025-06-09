@@ -12,15 +12,15 @@ export async function GET(request: NextRequest) {
 
     const schoolCount = z.coerce
       .number()
-      .positive()
+      .nonnegative()
       .max(Number.MAX_SAFE_INTEGER)
-      .default(10)
+      .default(0)
       .parse(searchParams.get('school-count'));
     const deviceCount = z.coerce
       .number()
-      .positive()
+      .nonnegative()
       .max(Number.MAX_SAFE_INTEGER)
-      .default(100)
+      .default(0)
       .parse(searchParams.get('device-count'));
 
     const lastSchoolNo = await findLastScholNo();
