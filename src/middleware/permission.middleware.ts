@@ -7,6 +7,7 @@ import { permissionMappings } from '@/config/permission-mapping';
 import { HTTPMethod } from '@/types/common';
 import { auth } from '@/auth';
 import { Session } from '@/types/session';
+import { getSchoolBySchoolNo } from '@/services/areas/[area]/schools/[schoolNo]/[schoolNo].service';
 
 /**
  * URL 패턴과 실제 URL을 매칭하여 파라미터를 추출
@@ -105,6 +106,53 @@ export async function checkPermissionMiddleware(
         },
         { status: 403 },
       );
+    }
+
+    // 4. 지역 기반 접근 제어 추가 (권한이 있는 경우에만 실행)
+    const resolvedParams = await params;
+    if (resolvedParams.schoolNo) {
+      // 1. 사용자의 학교 정보 조회
+      const userSchool = await getSchoolBySchoolNo(session.user.schoolNo, {
+        manager_no: session.user.managerNo,
+        ip: request.headers.get('x-forwarded-for') || request.ip,
+        user_agent: request.headers.get('user-agent'),
+      });
+      if (!userSchool) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: '사용자의 학교 정보를 찾을 수 없습니다.',
+          },
+          { status: 404 },
+        );
+      }
+
+      // 2. 조회/수정/삭제하려는 학교 정보 조회
+      const targetSchool = await getSchoolBySchoolNo(Number(resolvedParams.schoolNo), {
+        manager_no: session.user.managerNo,
+        ip: request.headers.get('x-forwarded-for') || request.ip,
+        user_agent: request.headers.get('user-agent'),
+      });
+      if (!targetSchool) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: '대상 학교 정보를 찾을 수 없습니다.',
+          },
+          { status: 404 },
+        );
+      }
+
+      // 3. 사용자의 지역과 대상 학교의 지역이 다른 경우
+      if (userSchool.area !== targetSchool.area) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: `다른 지역(${targetSchool.area})의 학교 정보에 접근할 수 없습니다.`,
+          },
+          { status: 403 },
+        );
+      }
     }
 
     return null; // 권한이 있는 경우 null 반환하여 다음 미들웨어로 진행

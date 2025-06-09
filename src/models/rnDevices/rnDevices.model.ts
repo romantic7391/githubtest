@@ -27,9 +27,13 @@ export async function insertRnDevices(
   return await exec(query, params, conn);
 }
 
-export async function findDeviceByMac(mac: string, conn?: PoolConnection) {
-  const query = 'SELECT mac FROM rnDevices WHERE mac = ?';
-  return await getRow<{ mac: string }>(query, [mac], undefined, conn);
+export async function findDeviceByMac(mac: string, school_no: number, conn?: PoolConnection) {
+  const query = 'SELECT * FROM rnDevicesRel WHERE mac = ? AND school_no = ?';
+  console.log('[findDeviceByMac] 쿼리:', query);
+  console.log('[findDeviceByMac] 파라미터:', [mac, school_no]);
+  const result = await getRow<{ mac: string }>(query, [mac, school_no], undefined, conn);
+  console.log('[findDeviceByMac] 결과:', result);
+  return result;
 }
 
 // rnDevices mac 주소 검증

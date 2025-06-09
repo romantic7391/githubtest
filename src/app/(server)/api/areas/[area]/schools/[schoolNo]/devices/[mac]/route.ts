@@ -74,12 +74,12 @@ export async function PUT(
   { params }: { params: Promise<{ area: string; schoolNo: string; mac: string }> },
 ) {
   try {
-    const { mac, schoolNo } = await params;
+    const { mac: oldMac, schoolNo } = await params;
     const body = await request.json();
 
     // Zod로 요청 데이터 검증
     const validatedData = deviceRelSchema.parse(body);
-    const dto = { ...validatedData, mac, school_no: parseInt(schoolNo, 10) };
+    const dto = { ...validatedData, oldMac, school_no: parseInt(schoolNo, 10) };
 
     const { userAgent, ip } = getClientInfo(request);
     const result = await updateDevice(dto, {

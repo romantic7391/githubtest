@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { baseApiResponseSchema, datetimeSchema, paginationSchema } from './common';
+import { baseApiResponseSchema, paginationSchema } from './common';
 
 /**
  * 관리자
@@ -10,7 +10,7 @@ export const managerSchema = z.object({
   login_id: z.string().max(16),
   name: z.string().max(20),
   passwd: z.string().nullable(),
-  created: datetimeSchema.nullable(),
+  // created: datetimeSchema.nullable(),
 });
 
 /**
@@ -19,7 +19,7 @@ export const managerSchema = z.object({
 export const managerGroupSchema = z.object({
   group_no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
   no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
-  created: datetimeSchema.nullable(),
+  // created: datetimeSchema.nullable(),
 });
 
 /**
@@ -28,9 +28,9 @@ export const managerGroupSchema = z.object({
 export const groupSchema = z.object({
   group_no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
   school_no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER).nullable(),
-  name: z.string().max(20),
+  name: z.string().max(20).optional(),
   parent_group_no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER).nullable(),
-  created: datetimeSchema.nullable(),
+  // created: datetimeSchema.nullable(),
 });
 
 /**
@@ -42,7 +42,7 @@ export const permissionSchema = z.object({
   description: z.string().nullable(),
   default_extra_condition: z.string().max(50).nullable(),
   default_extra_limit: z.string().max(50).nullable(),
-  created: datetimeSchema.nullable(),
+  // created: datetimeSchema.nullable(),
 });
 
 /**
@@ -55,7 +55,7 @@ export const groupPermissionSchema = z.object({
   override: z.enum(['Y', 'N']).nullable(),
   extra_condition: z.string().nullable(),
   extra_limit: z.string().max(50).nullable(),
-  created: datetimeSchema.nullable(),
+  // created: datetimeSchema.nullable(),
 });
 
 /**
