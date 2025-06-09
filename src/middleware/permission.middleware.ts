@@ -61,7 +61,7 @@ export async function checkPermissionMiddleware(
         user: {
           ...session?.user,
           managerNo: 5,
-          schoolNo: 42,
+          schoolNo: 0,
         },
       } as Session;
       console.log('개발환경 세션 설정 후:', session);
@@ -101,7 +101,7 @@ export async function checkPermissionMiddleware(
 
     // 3. 지역 기반 접근 제어 (가장 먼저 체크)
     const resolvedParams = await params;
-    if (resolvedParams.area) {
+    if (resolvedParams.area && session.user.schoolNo !== 0) {
       // 사용자의 학교 정보 조회
       const userSchool = await getSchoolBySchoolNo(session.user.schoolNo, {
         manager_no: session.user.managerNo,

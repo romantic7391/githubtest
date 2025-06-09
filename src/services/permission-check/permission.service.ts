@@ -52,7 +52,7 @@ export async function checkPermission(
   console.log('현재 학교 그룹:', userGroups);
 
   // 5. 상위 기관이 있는 경우에만 상위 기관 그룹 조회
-  if (userSchool.parentNo) {
+  if (!isAdminSchool && userSchool.parentNo) {
     const upperGroups = await findManagerGroups(managerNo, userSchool.parentNo);
     userGroups.push(...upperGroups);
     console.log('상위 기관 그룹:', upperGroups);
