@@ -12,10 +12,20 @@ declare module 'next-auth' {
   // Auth.js 사용자 타입
   interface User {
     managerNo: number;
+    schoolNo: number;
+    signInId: string;
+    name: string;
+    schoolType: string;
   }
 
   interface Session extends DefaultSession {
-    user: {} & DefaultSession['user'];
+    user: {
+      managerNo: number;
+      schoolNo: number;
+      signInId: string;
+      name: string;
+      schoolType: string;
+    } & DefaultSession['user'];
   }
 }
 
@@ -30,6 +40,12 @@ declare module 'next-auth/adapters' {
 
 declare module 'next-auth/jwt' {
   interface JWT extends DefaultJWT {
-    user: {} & DefaultSession['user'];
+    user: {
+      managerNo: number;
+      schoolNo: number;
+      signInId: string;
+      name: string;
+      schoolType: string;
+    } & DefaultSession['user'];
   }
 }

@@ -27,6 +27,12 @@ export async function getSchoolHierarchy(
   // 3. 학교 유형에 따라 계층 구조 반환
   const schoolType = targetSchool.schoolType;
   switch (schoolType) {
+    case 'st_000': // 관리자
+      return {
+        current: targetSchool,
+        lower: schools.filter((s) => s.parentNo === targetSchool.schoolNo),
+      };
+
     case 'st_001': // 시도교육청
       return {
         current: targetSchool,

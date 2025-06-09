@@ -52,43 +52,54 @@ export async function checkPermissionMiddleware(
   try {
     // 1. 세션 체크
     let session = await auth();
+    console.log('초기 세션:', session);
+    console.log('환경변수:', process.env.WORKING_ON_BACKEND_DEVELOPMENT);
+
     if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
       session = {
         ...session,
         user: {
           ...session?.user,
           managerNo: 1,
-          schoolNo: 1, // 개발 환경에서 테스트용 schoolNo
+          schoolNo: 38,
         },
       } as Session;
+      console.log('개발환경 세션 설정 후:', session);
     }
 
-    // 세션이 없으면 에러
-    if (!session?.user?.managerNo || !session?.user?.schoolNo) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: '인증이 필요합니다.',
+    console.log('세션 체크:', {
+      sessionExists: !!session,
+      userExists: !!session?.user,
+      managerNo: session?.user?.managerNo,
+      schoolNo: session?.user?.schoolNo,
+      fullUser: session?.user,
+    });
+
+    if (session?.user?.managerNo === undefined || session?.user?.schoolNo === undefined) {
+      console.log('세션 체크 실패 상세:', {
+        managerNoCheck: {
+          exists: session?.user?.managerNo !== undefined,
+          value: session?.user?.managerNo,
+          type: typeof session?.user?.managerNo,
         },
-        { status: 401 },
-      );
+        schoolNoCheck: {
+          exists: session?.user?.schoolNo !== undefined,
+          value: session?.user?.schoolNo,
+          type: typeof session?.user?.schoolNo,
+        },
+        fullSession: JSON.stringify(session, null, 2),
+      });
+      return NextResponse.json({ success: false, message: '인증이 필요합니다.' }, { status: 401 });
     }
 
     const method = request.method as HTTPMethod;
     const path = request.nextUrl.pathname;
-    console.log('권한 체크 요청:', { method, path });
 
     // 2. 권한 매핑 찾기
     const mapping = permissionMappings.find((m) => m.method === method && matchPath(m.path, path));
+    if (!mapping) return null;
 
-    if (!mapping) {
-      console.log('권한 매핑을 찾을 수 없음');
-      return null;
-    }
-
-    console.log('찾은 권한 매핑:', mapping);
-
-    // 3. 권한 체크 (세션의 schoolNo 사용)
+    // 3. 권한 체크
     const { allowed, override } = await checkPermissions(
       session.user.managerNo,
       session.user.schoolNo,
@@ -96,74 +107,51 @@ export async function checkPermissionMiddleware(
     );
 
     if (allowed === 'N') {
-      console.log('권한 없음:', { allowed, override });
       return NextResponse.json(
         {
           success: false,
-          message: override
-            ? '상위 그룹에서 권한이 거부되었지만, 하위 그룹에서 오버라이드되었습니다. 관리자에게 문의하세요.'
-            : '권한이 없습니다.',
+          message: override ? '권한이 거부되었습니다. 관리자에게 문의하세요.' : '권한이 없습니다.',
         },
         { status: 403 },
       );
     }
 
-    // 4. 지역 기반 접근 제어 추가 (권한이 있는 경우에만 실행)
+    // 4. 지역 기반 접근 제어 (권한이 있는 경우에만 실행)
     const resolvedParams = await params;
     if (resolvedParams.schoolNo) {
-      // 1. 사용자의 학교 정보 조회
-      const userSchool = await getSchoolBySchoolNo(session.user.schoolNo, {
-        manager_no: session.user.managerNo,
-        ip: request.headers.get('x-forwarded-for') || request.ip,
-        user_agent: request.headers.get('user-agent'),
-      });
-      if (!userSchool) {
-        return NextResponse.json(
-          {
-            success: false,
-            message: '사용자의 학교 정보를 찾을 수 없습니다.',
-          },
-          { status: 404 },
-        );
+      // 0번 학교는 모든 지역 접근 가능
+      if (session.user.schoolNo === 0) {
+        return null;
       }
 
-      // 2. 조회/수정/삭제하려는 학교 정보 조회
-      const targetSchool = await getSchoolBySchoolNo(Number(resolvedParams.schoolNo), {
-        manager_no: session.user.managerNo,
-        ip: request.headers.get('x-forwarded-for') || request.ip,
-        user_agent: request.headers.get('user-agent'),
-      });
-      if (!targetSchool) {
-        return NextResponse.json(
-          {
-            success: false,
-            message: '대상 학교 정보를 찾을 수 없습니다.',
-          },
-          { status: 404 },
-        );
+      const [userSchool, targetSchool] = await Promise.all([
+        getSchoolBySchoolNo(session.user.schoolNo, {
+          manager_no: session.user.managerNo,
+          ip: request.headers.get('x-forwarded-for') || request.ip,
+          user_agent: request.headers.get('user-agent'),
+        }),
+        getSchoolBySchoolNo(Number(resolvedParams.schoolNo), {
+          manager_no: session.user.managerNo,
+          ip: request.headers.get('x-forwarded-for') || request.ip,
+          user_agent: request.headers.get('user-agent'),
+        }),
+      ]);
+
+      if (!userSchool || !targetSchool) {
+        return NextResponse.json({ success: false, message: '학교 정보를 찾을 수 없습니다.' }, { status: 404 });
       }
 
-      // 3. 사용자의 지역과 대상 학교의 지역이 다른 경우
       if (userSchool.area !== targetSchool.area) {
         return NextResponse.json(
-          {
-            success: false,
-            message: `다른 지역(${targetSchool.area})의 학교 정보에 접근할 수 없습니다.`,
-          },
+          { success: false, message: `다른 지역(${targetSchool.area})의 학교 정보에 접근할 수 없습니다.` },
           { status: 403 },
         );
       }
     }
 
-    return null; // 권한이 있는 경우 null 반환하여 다음 미들웨어로 진행
+    return null;
   } catch (error) {
     console.error('[checkPermissionMiddleware] 권한 체크 중 오류 발생:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: '권한 체크 중 오류가 발생했습니다.',
-      },
-      { status: 500 },
-    );
+    return NextResponse.json({ success: false, message: '권한 체크 중 오류가 발생했습니다.' }, { status: 500 });
   }
 }

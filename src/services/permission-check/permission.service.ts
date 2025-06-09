@@ -149,6 +149,12 @@ export async function checkPermission(
     return { allowed: 'N', override: null, extraCondition: null };
   }
 
+  // st_000 타입(관리자)은 모든 권한 허용
+  if (schoolHierarchy.current.schoolType === 'st_000') {
+    console.log('관리자 학교 - 모든 권한 허용');
+    return { allowed: 'Y', override: 'Y', extraCondition: null };
+  }
+
   // 2. 계층 구조에 따른 권한 체크
   return checkPermissionByHierarchy(managerNo, schoolHierarchy, permissionName);
 }
