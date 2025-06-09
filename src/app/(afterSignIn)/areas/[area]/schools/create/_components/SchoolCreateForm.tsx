@@ -6,7 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useMemo, useState, Fragment, useEffect } from 'react';
 import { ZodError } from 'zod';
 import useCreateSchool from '../_hooks/useCreateSchool';
-import { Anchor, Button, Group, NumberInput, Radio, Select, Stack, Text, TextInput } from '@mantine/core';
+import { Anchor, Button, Group, NumberInput, Radio, Stack, Text, TextInput } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconAlertCircleFilled, IconCheck } from '@tabler/icons-react';
 import { DEFAULT_NOTIFICATION_AUTOCLOSE_MS } from '@/lib/default.constant';
@@ -26,7 +26,6 @@ export default function SchoolCreateForm() {
       sname: '',
       scode: '',
       area: '',
-      schoolType: '학교',
       useOrderSheet: 'Y',
       active: 'Y',
       administrationCode: null,
@@ -41,7 +40,6 @@ export default function SchoolCreateForm() {
         if (error) return showError(error);
       },
       scode: (value) => {
-        console.log('scode', schoolCreateSchema.shape.scode.maxLength);
         const { error } = schoolCreateSchema.shape.scode.safeParse(value);
         if (error) return showError(error);
       },
@@ -51,6 +49,10 @@ export default function SchoolCreateForm() {
       },
       administrationCode: (value) => {
         const { error } = schoolCreateSchema.shape.administrationCode.safeParse(value === '' ? null : value);
+        if (error) return showError(error);
+      },
+      modbus: (value) => {
+        const { error } = schoolCreateSchema.shape.modbus.safeParse(Number(value));
         if (error) return showError(error);
       },
       modbusHost: (value) => {
@@ -65,8 +67,12 @@ export default function SchoolCreateForm() {
         const { error } = schoolCreateSchema.shape.parentNo.safeParse(value === '' ? null : value);
         if (error) return showError(error);
       },
-      schoolType: (value) => {
-        const { error } = schoolCreateSchema.shape.schoolType.safeParse(value);
+      useOrderSheet: (value) => {
+        const { error } = schoolCreateSchema.shape.useOrderSheet.safeParse(value);
+        if (error) return showError(error);
+      },
+      active: (value) => {
+        const { error } = schoolCreateSchema.shape.active.safeParse(value);
         if (error) return showError(error);
       },
     },
@@ -90,7 +96,6 @@ export default function SchoolCreateForm() {
       modbusHost: values.modbusHost || null,
       useOrderSheet: values.useOrderSheet as 'Y' | 'N',
       active: values.active as 'Y' | 'N',
-      schoolType: values.schoolType,
     };
     createSchool(submitValue);
 
@@ -180,15 +185,6 @@ export default function SchoolCreateForm() {
           label="지역 영문 이름"
           placeholder="학교 검색 시 자동으로 입력됩니다."
           {...form.getInputProps('area')}
-        />
-        <Select
-          withAsterisk
-          label="학교 유형"
-          name="schoolType"
-          placeholder="학교 유형을 선택해주세요."
-          data={['학교', '교육지원청', '교육청']}
-          allowDeselect={false}
-          {...form.getInputProps('schoolType')}
         />
 
         <TextInput

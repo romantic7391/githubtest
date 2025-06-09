@@ -1,28 +1,18 @@
 import { HTTPStatusError } from '@/lib/common.error';
 import { isJsonResponse } from '@/lib/util/common.util';
-import { Device } from '@/types/device';
 import { useMutation } from '@tanstack/react-query';
 
-interface UseUpdateDeviceParams {
+interface UseDeleteDeviceParams {
   area: string;
   schoolNo: number;
-  mac: string; // 원본 MAC
+  mac: string;
 }
 
-interface UpdateDeviceParams {
-  device: Device;
-}
-
-export default function useUpdateDevice({ area, schoolNo, mac }: UseUpdateDeviceParams) {
-  async function updateData({ device }: UpdateDeviceParams) {
+export default function useDeleteDevice({ area, schoolNo, mac }: UseDeleteDeviceParams) {
+  async function deleteData() {
     const requestUrl = new URL(`/api/areas/${area}/schools/${schoolNo}/devices/${mac}`, window.location.origin);
-    const body = JSON.stringify(device);
     const response = await fetch(requestUrl, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body,
+      method: 'DELETE',
     });
 
     if (!isJsonResponse(response)) {
@@ -39,7 +29,7 @@ export default function useUpdateDevice({ area, schoolNo, mac }: UseUpdateDevice
   }
 
   return useMutation({
-    mutationFn: updateData,
+    mutationFn: deleteData,
     throwOnError: () => {
       return false;
     },
