@@ -28,9 +28,11 @@ export async function findManagerGroups(managerNo: number, schoolNo: number): Pr
     SELECT mg.group_no, mg.no
     FROM managerGroup mg
     JOIN manager m ON mg.no = m.no
+    JOIN \`group\` g ON mg.group_no = g.group_no
     WHERE mg.no = ? 
       AND mg.deleted IS NULL
-      AND (m.school_no = ? OR m.school_no = 0);
+      AND (m.school_no = ? OR m.school_no = 0)
+    ORDER BY CASE WHEN g.school_no = 0 THEN 0 ELSE 1 END, g.group_no;
   `;
   return getAll<ManagerGroup>(query, [managerNo, schoolNo]);
 }
