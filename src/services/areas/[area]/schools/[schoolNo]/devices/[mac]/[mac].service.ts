@@ -21,29 +21,6 @@ export async function getDevice(
     const device = await findRnDeviceRelBySchoolNoAndMac(params);
     if (!device) return null;
 
-    // 데이터 구조 변환
-    const transformedDevice: Device = {
-      mac: device.mac,
-      name: device.name,
-      summary: device.summary,
-      kind: device.kind,
-      extra: device.extra,
-      sdate: device.sdate,
-      edate: device.edate,
-      created: device.created,
-      device: {
-        model: device.model,
-        ip: device.ip,
-        rip: device.rip,
-        splrate: device.splrate,
-        interval: device.interval,
-        ver: device.ver,
-        tags: device.tags,
-        checkin: device.checkin,
-        created: device.device_created,
-      },
-    };
-
     // 로그 기록
     await logAction(
       makeLogParams({
@@ -55,14 +32,14 @@ export async function getDevice(
         target_table: 'rndevicesrel',
         target_id: params.mac,
         old_values: null,
-        new_values: JSON.stringify(transformedDevice),
+        new_values: JSON.stringify(device),
         reason: '센서 정보 조회',
       }),
       conn,
     );
 
     await commitTransaction(conn);
-    return transformedDevice;
+    return device;
   } catch (error) {
     if (conn) {
       try {

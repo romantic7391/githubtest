@@ -80,3 +80,8 @@ export type Pagination = z.infer<typeof paginationSchema>;
 export const datetimeSchema = z.string().transform((v) => dayjs(v).format(DEFAULT_DATETIME_FORMAT));
 
 export type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+
+export interface BaseApiResponse1 {
+  success: boolean;
+  message: string;
+}
