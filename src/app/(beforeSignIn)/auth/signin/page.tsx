@@ -1,19 +1,15 @@
-'use client';
+import { Metadata } from 'next';
+import { Container } from '@mantine/core';
+import SignInForm from './_components/SignInForm';
 
-import { signIn } from 'next-auth/react';
+export const metadata: Metadata = {
+  title: '로그인',
+};
 
 export default function Page() {
   return (
-    <>
-      <button
-        onClick={() =>
-          signIn('credentials', {
-            signInId: 'test',
-            password: 'test',
-          })
-        }>
-        로그인
-      </button>
-    </>
+    <Container fluid w="100vw" h="100vh" bg="blue.1" p="lg" m={0}>
+      <SignInForm />
+    </Container>
   );
 }
