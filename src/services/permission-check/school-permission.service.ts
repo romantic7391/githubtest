@@ -2,8 +2,8 @@ import { findRnSchoolsByAreas } from '@/models/rn-school/rn-school.model';
 import { School } from '@/types/school';
 
 export async function getSchoolsByArea(area: string): Promise<School[]> {
-  const schools = await findRnSchoolsByAreas(area);
-  return schools;
+  // findRnSchoolsByAreas 모델이 이미 지역으로 필터링을 하고 있음
+  return findRnSchoolsByAreas(area);
 }
 
 export async function getSchoolHierarchy(
@@ -15,40 +15,34 @@ export async function getSchoolHierarchy(
   upperUpper?: School;
   lower?: School[];
 }> {
-  // 1. 지역의 모든 학교 조회
+  // 0번 학교는 계층 구조가 없음
+  if (targetSchoolNo === 0) {
+    return {
+      current: {
+        schoolNo: 0,
+        sname: '사랑',
+        parentNo: null,
+        area: 'daegu',
+      } as School,
+    };
+  }
+
+  // 1. 해당 지역의 학교만 조회
   const schools = await getSchoolsByArea(area);
 
   // 2. 대상 학교 찾기
   const targetSchool = schools.find((s) => s.schoolNo === targetSchoolNo);
   if (!targetSchool) {
-    throw new Error('School not found');
+    console.log('학교를 찾을 수 없음:', { area, targetSchoolNo, schools });
+    throw new Error(`학교를 찾을 수 없습니다. (학교번호: ${targetSchoolNo}, 지역: ${area})`);
   }
 
-  // 3. 학교 유형에 따라 계층 구조 반환
-  const schoolType = targetSchool.schoolType;
-  switch (schoolType) {
-    case 'st_001': // 시도교육청
-      return {
-        current: targetSchool,
-        lower: schools.filter((s) => s.parentNo === targetSchool.schoolNo),
-      };
-
-    case 'st_002': // 교육청
-      return {
-        current: targetSchool,
-        upper: schools.find((s) => s.schoolNo === targetSchool.parentNo),
-        lower: schools.filter((s) => s.parentNo === targetSchool.schoolNo),
-      };
-
-    case 'st_003': // 학교
-      const upperSchool = schools.find((s) => s.schoolNo === targetSchool.parentNo);
-      return {
-        current: targetSchool,
-        upper: upperSchool,
-        upperUpper: upperSchool ? schools.find((s) => s.schoolNo === upperSchool.parentNo) : undefined,
-      };
-
-    default:
-      throw new Error('Invalid school type');
-  }
+  // 3. 계층 구조는 parentNo로 파악
+  const upperSchool = targetSchool.parentNo ? schools.find((s) => s.schoolNo === targetSchool.parentNo) : undefined;
+  return {
+    current: targetSchool,
+    upper: upperSchool,
+    upperUpper: upperSchool?.parentNo ? schools.find((s) => s.schoolNo === upperSchool.parentNo) : undefined,
+    lower: schools.filter((s) => s.parentNo === targetSchool.schoolNo),
+  };
 }

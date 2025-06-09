@@ -3,6 +3,7 @@ import {
   findRnDeviceRelBySchoolNoAndMac,
   updateRnDevicesRel,
   softDeleteRnDevicesRel,
+  updateMac,
 } from '@/models/rnDevicesRel/rnDevicesRel.model';
 import { findDeviceByMac, softDeleteRnDevice } from '@/models/rnDevices/rnDevices.model';
 import { logAction, makeLogParams } from '@/services/log-action/log-action.service';
@@ -65,41 +66,44 @@ export async function getDevice(
  * 지역 학교 센서 수정
  */
 export async function updateDevice(
-  dto: DeviceBasic & Omit<Device, 'mac'>,
+  dto: DeviceBasic & Device,
   meta: { manager_no: number; ip: string | null; user_agent: string | null },
 ): Promise<{ mac: string }> {
   let conn;
   try {
     conn = await beginTransaction();
+
+    // oldMac이 없는 경우 에러
+    if (!dto.oldMac) {
+      throw new Error('기존 MAC 주소가 필요합니다.');
+    }
+
     // 센서 존재 여부 확인
-    const oldDevice = await findDeviceByMac(dto.mac);
+    const oldDevice = await findDeviceByMac(dto.oldMac, dto.school_no);
+    if (!oldDevice) {
+      throw new Error('센서를 찾을 수 없습니다.');
+    }
+
+    // MAC 주소가 변경된 경우
+    if (dto.mac !== dto.oldMac) {
+      await updateMac(
+        [
+          {
+            school_no: dto.school_no,
+            oldMac: dto.oldMac,
+            newMac: dto.mac,
+          },
+        ],
+        conn,
+      );
+    }
 
     // rnDevicesRel 테이블 업데이트
-    await updateRnDevicesRel([dto], conn);
-
-    // rnDevices 테이블 업데이트
-    // const deviceData: Device = {
-    //   mac: dto.mac,
-    //   name: dto.name,
-    //   summary: dto.summary,
-    //   kind: dto.kind,
-    //   extra: dto.extra,
-    //   sdate: dto.sdate,
-    //   edate: dto.edate,
-    //   created: dto.created,
-    //   device: {
-    //     model: dto.device.model,
-    //     ip: dto.device.ip,
-    //     rip: dto.device.rip,
-    //     splrate: dto.device.splrate,
-    //     interval: dto.device.interval,
-    //     ver: dto.device.ver,
-    //     tags: dto.device.tags,
-    //     checkin: dto.device.checkin,
-    //     created: dto.device.created,
-    //   },
-    // };
-    // await updateDeviceFn([deviceData], conn);
+    const updateData = {
+      ...dto,
+      oldMac: dto.oldMac,
+    };
+    await updateRnDevicesRel([updateData], conn);
 
     // 로그 기록
     await logAction(
@@ -152,7 +156,7 @@ export async function deleteDevice(
   try {
     conn = await beginTransaction();
     // 센서 존재 여부 확인
-    const oldDevice = await findDeviceByMac(params.mac);
+    const oldDevice = await findDeviceByMac(params.mac, params.school_no);
 
     // rnDevicesRel 테이블에서 삭제
     await softDeleteRnDevicesRel([{ mac: params.mac, school_no: params.school_no }], conn);

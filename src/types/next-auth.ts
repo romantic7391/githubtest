@@ -15,7 +15,6 @@ export const userSchema = z.object({
   schoolNo: z.number(),
   signInId: z.string(),
   name: z.string(),
-  schoolType: z.string(),
 });
 
 // Zod 스키마로부터 타입 추론
@@ -28,7 +27,6 @@ declare module 'next-auth' {
     schoolNo: number;
     signInId: string;
     name: string;
-    schoolType: string;
   }
 
   interface Session extends DefaultSession {

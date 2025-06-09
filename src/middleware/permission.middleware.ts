@@ -7,6 +7,7 @@ import { permissionMappings } from '@/config/permission-mapping';
 import { HTTPMethod } from '@/types/common';
 import { auth } from '@/auth';
 import { Session } from '@/types/session';
+import { getSchoolBySchoolNo } from '@/services/areas/[area]/schools/[schoolNo]/[schoolNo].service';
 
 /**
  * URL 패턴과 실제 URL을 매칭하여 파라미터를 추출
@@ -46,71 +47,101 @@ function matchPath(pattern: string, path: string): Record<string, string> | null
  */
 export async function checkPermissionMiddleware(
   request: NextRequest,
-  { params }: { params: Promise<{ schoolNo: number; area: string | null }> },
+  { params }: { params: Promise<{ schoolNo: number | null; area: string | null }> },
 ): Promise<NextResponse | null> {
   try {
     // 1. 세션 체크
     let session = await auth();
+    console.log('초기 세션:', session);
+    console.log('환경변수:', process.env.WORKING_ON_BACKEND_DEVELOPMENT);
+
     if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
       session = {
         ...session,
         user: {
           ...session?.user,
-          managerNo: 1,
+          managerNo: 5,
+          schoolNo: 0,
         },
       } as Session;
+      console.log('개발환경 세션 설정 후:', session);
     }
+
+    console.log('세션 체크:', {
+      sessionExists: !!session,
+      userExists: !!session?.user,
+      managerNo: session?.user?.managerNo,
+      schoolNo: session?.user?.schoolNo,
+      fullUser: session?.user,
+    });
+
+    if (session?.user?.managerNo === undefined || session?.user?.schoolNo === undefined) {
+      console.log('세션 체크 실패 상세:', {
+        managerNoCheck: {
+          exists: session?.user?.managerNo !== undefined,
+          value: session?.user?.managerNo,
+          type: typeof session?.user?.managerNo,
+        },
+        schoolNoCheck: {
+          exists: session?.user?.schoolNo !== undefined,
+          value: session?.user?.schoolNo,
+          type: typeof session?.user?.schoolNo,
+        },
+        fullSession: JSON.stringify(session, null, 2),
+      });
+      return NextResponse.json({ success: false, message: '인증이 필요합니다.' }, { status: 401 });
+    }
+
     const method = request.method as HTTPMethod;
     const path = request.nextUrl.pathname;
-    console.log('권한 체크 요청:', { method, path });
 
     // 2. 권한 매핑 찾기
     const mapping = permissionMappings.find((m) => m.method === method && matchPath(m.path, path));
+    if (!mapping) return null;
 
-    if (!mapping) {
-      console.log('권한 매핑을 찾을 수 없음');
-      // 권한 매핑이 없는 경우 (권한 체크가 필요없는 엔드포인트)
-      return null;
-    }
+    // 3. 지역 기반 접근 제어 (가장 먼저 체크)
+    const resolvedParams = await params;
+    if (resolvedParams.area && session.user.schoolNo !== 0) {
+      // 사용자의 학교 정보 조회
+      const userSchool = await getSchoolBySchoolNo(session.user.schoolNo, {
+        manager_no: session.user.managerNo,
+        ip: request.headers.get('x-forwarded-for') || request.ip,
+        user_agent: request.headers.get('user-agent'),
+      });
 
-    console.log('찾은 권한 매핑:', mapping);
+      if (!userSchool) {
+        return NextResponse.json({ success: false, message: '학교 정보를 찾을 수 없습니다.' }, { status: 404 });
+      }
 
-    // 3. URL 파라미터에서 schoolNo 추출
-    let schoolNo = 0;
-    if (mapping.params?.schoolNo) {
-      const pathParams = matchPath(mapping.path, path);
-      console.log('경로 파라미터:', pathParams);
-      if (pathParams && mapping.params.schoolNo in pathParams) {
-        schoolNo = Number(pathParams[mapping.params.schoolNo]);
-        console.log('설정된 schoolNo:', schoolNo);
+      // URL의 지역과 사용자의 학교 지역 비교
+      if (userSchool.area !== resolvedParams.area) {
+        return NextResponse.json(
+          { success: false, message: `다른 지역의 학교 정보에 접근할 수 없습니다.` },
+          { status: 403 },
+        );
       }
     }
 
     // 4. 권한 체크
-    const { allowed, override } = await checkPermissions(session.user.managerNo, schoolNo, mapping.permissions);
+    const { allowed, override } = await checkPermissions(
+      session.user.managerNo,
+      session.user.schoolNo,
+      mapping.permissions,
+    );
 
     if (allowed === 'N') {
-      console.log('권한 없음:', { allowed, override });
       return NextResponse.json(
         {
           success: false,
-          message: override
-            ? '상위 그룹에서 권한이 거부되었지만, 하위 그룹에서 오버라이드되었습니다. 관리자에게 문의하세요.'
-            : '권한이 없습니다.',
+          message: override ? '권한이 거부되었습니다. 관리자에게 문의하세요.' : '권한이 없습니다.',
         },
         { status: 403 },
       );
     }
 
-    return null; // 권한이 있는 경우 null 반환하여 다음 미들웨어로 진행
+    return null;
   } catch (error) {
     console.error('[checkPermissionMiddleware] 권한 체크 중 오류 발생:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: '권한 체크 중 오류가 발생했습니다.',
-      },
-      { status: 500 },
-    );
+    return NextResponse.json({ success: false, message: '권한 체크 중 오류가 발생했습니다.' }, { status: 500 });
   }
 }

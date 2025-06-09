@@ -135,12 +135,11 @@ export async function findRnSchoolsByAreas(area: string): Promise<School[]> {
       rs.active,
       rs.administrationcode AS administrationCode,
       rs.created,
-      rs.school_type AS schoolType,
       rs.parent_no AS parentNo
     FROM rnSchool AS rs
-    ${area !== 'all' ? 'WHERE rs.area = ?' : ''}
+    WHERE rs.area = ?
   `;
-  const params = area !== 'all' ? [area] : [];
+  const params = [area];
   console.log('실행할 쿼리:', query);
   console.log('파라미터:', params);
   const result = await getAll<School>(query, params);
@@ -163,7 +162,6 @@ export async function findSchoolBySchoolNo(school_no: number): Promise<School | 
       rs.active,
       rs.administrationcode AS administrationCode,
       rs.created,
-      rs.school_type AS schoolType,
       rs.parent_no AS parentNo
       FROM rnSchool AS rs
       WHERE rs.school_no = ?
