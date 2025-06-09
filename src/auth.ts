@@ -36,12 +36,10 @@ export const config: NextAuthConfig = {
       },
 
       authorize: async (credentials) => {
-        console.log('credentials', credentials);
         if (!credentials?.signInId || !credentials?.password) {
           return null;
         }
 
-        console.log('credentials', credentials);
         // TODO: 실제 로그인 로직 구현
         // 임시로 테스트 계정만 허용
         if (credentials.signInId === 'test' && credentials.password === 'test') {
