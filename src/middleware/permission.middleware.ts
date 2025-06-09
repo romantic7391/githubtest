@@ -60,8 +60,8 @@ export async function checkPermissionMiddleware(
         ...session,
         user: {
           ...session?.user,
-          managerNo: 1,
-          schoolNo: 42,
+          managerNo: 5,
+          schoolNo: 0,
         },
       } as Session;
       console.log('개발환경 세션 설정 후:', session);

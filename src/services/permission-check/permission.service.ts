@@ -41,10 +41,10 @@ export async function checkPermission(
     return { allowed: 'N', override: null, extraCondition: null };
   }
 
-  // 3. st_000 타입(관리자)은 모든 권한 허용
-  if (userSchool.schoolType === 'st_000') {
-    console.log('관리자 학교 - 모든 권한 허용');
-    return { allowed: 'Y', override: 'Y', extraCondition: null };
+  // 3. school_no가 0인 경우 URL 체크는 무시
+  const isAdminSchool = userSchool.schoolNo === 0;
+  if (isAdminSchool) {
+    console.log('전체 접근 가능 학교(school_no: 0) - URL 체크 무시');
   }
 
   // 4. 사용자가 속한 그룹 조회 (현재 학교만)
