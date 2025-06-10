@@ -73,7 +73,11 @@ export async function insertGroup(dto: Group, conn?: PoolConnection): Promise<{ 
     VALUES (?, ?, ?)
   `;
   const params = [dto.parent_group_no, dto.school_no, dto.name];
-  const result = await exec(query, params, conn);
+  const result = await exec(
+    query,
+    params.map((param) => param ?? null),
+    conn,
+  );
   return { insertId: result.insertId };
 }
 
@@ -87,7 +91,11 @@ export async function updateGroup(dto: Group, conn?: PoolConnection): Promise<vo
     WHERE group_no = ? AND deleted IS NULL
   `;
   const params = [dto.parent_group_no, dto.school_no, dto.name, dto.group_no];
-  await exec(query, params, conn);
+  await exec(
+    query,
+    params.map((param) => param ?? null),
+    conn,
+  );
 }
 
 // 그룹 삭제

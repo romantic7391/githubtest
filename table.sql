@@ -14,7 +14,7 @@ CREATE TABLE `AreaData` (
 )
 COLLATE='utf8mb4_uca1400_ai_ci'
 ENGINE=InnoDB
-AUTO_INCREMENT=15
+AUTO_INCREMENT=0
 ;
 
 
@@ -35,7 +35,7 @@ CREATE TABLE `group` (
 COMMENT='그룹'
 COLLATE='utf8mb4_general_ci'
 ENGINE=InnoDB
-AUTO_INCREMENT=301
+AUTO_INCREMENT=0
 ;
 
 
@@ -82,7 +82,7 @@ CREATE TABLE `history` (
 COMMENT='이력테이블'
 COLLATE='utf8mb4_general_ci'
 ENGINE=InnoDB
-AUTO_INCREMENT=285
+AUTO_INCREMENT=0
 ;
 
 
@@ -91,20 +91,24 @@ AUTO_INCREMENT=285
 */
 
 CREATE TABLE `manager` (
-	`no` BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'manager PK',
-	`school_no` BIGINT(20) UNSIGNED NOT NULL COMMENT 'rnSchool PK',
-	`login_id` VARCHAR(16) NOT NULL COMMENT 'login_id' COLLATE 'utf8mb4_general_ci',
-	`name` VARCHAR(20) NOT NULL COMMENT '이름' COLLATE 'utf8mb4_general_ci',
-	`passwd` TEXT NULL DEFAULT NULL COMMENT '비밀번호 (해시된)' COLLATE 'utf8mb4_general_ci',
-	`created` DATETIME NOT NULL DEFAULT current_timestamp(),
-	`updated` DATETIME NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-	PRIMARY KEY (`no`) USING BTREE
-)
-COMMENT='사용자'
-COLLATE='utf8mb4_general_ci'
+  `no` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '사용자 번호',
+  `school_no` bigint(20) unsigned NOT NULL COMMENT '학교 번호',
+  `login_id` varchar(16) NOT NULL COMMENT '로그인 아이디',
+  `name` varchar(20) NOT NULL COMMENT '이름',
+  `passwd` text DEFAULT NULL COMMENT '비밀번호 (해시된)',
+  `salt` varchar(255) DEFAULT NULL COMMENT '비밀번호 salt',
+  `last_passwd_changed` datetime DEFAULT NULL COMMENT '마지막 비밀번호 변경 일시',
+  `login_attempt_count` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '로그인 시도 횟수',
+  `approved` tinyint(1) unsigned NOT NULL DEFAULT 0 COMMENT '계정 승인 여부',
+  `locked` tinyint(1) unsigned NOT NULL DEFAULT 0 COMMENT '계정 잠금 여부',
+  `created` datetime NOT NULL DEFAULT current_timestamp(),
+  `updated` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`no`) USING BTREE
+) 
+COMMENT='사용자';
 ENGINE=InnoDB
-AUTO_INCREMENT=6
-;
+AUTO_INCREMENT=0
+DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci 
 
 
 /*
@@ -142,7 +146,7 @@ CREATE TABLE `permission` (
 COMMENT='권한'
 COLLATE='utf8mb4_general_ci'
 ENGINE=InnoDB
-AUTO_INCREMENT=209
+AUTO_INCREMENT=0
 ;
 
 
@@ -233,5 +237,5 @@ CREATE TABLE `rnSchool` (
 )
 COLLATE='utf8mb3_unicode_ci'
 ENGINE=InnoDB
-AUTO_INCREMENT=52
+AUTO_INCREMENT=0
 ;
