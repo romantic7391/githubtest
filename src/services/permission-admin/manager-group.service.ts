@@ -9,11 +9,21 @@ import { ManagerGroup, ManagerGroupCreateOrUpdateResponse } from '@/types/permis
 import { LogMeta } from '@/types/history';
 import { logAction, makeLogParams } from '@/services/log-action/log-action.service';
 import { beginTransaction, commitTransaction, rollbackTransaction } from '@/lib/mariadb/query';
-import { Pagination } from '@/types/common';
+import { Pagination, paginationSchema } from '@/types/common';
 
 // 관리자 그룹 목록 조회
 export async function getManagerGroupsS(managerNo: number, pagination: Pagination, filters?: { groupNo?: number }) {
-  return findManagerGroups(managerNo, pagination, filters);
+  const result = await findManagerGroups(managerNo, pagination, filters);
+
+  return {
+    ...result,
+    pagination: paginationSchema.parse({
+      page: pagination.page,
+      pageSize: pagination.pageSize,
+      total: result.total,
+      totalPages: Math.ceil(result.total / pagination.pageSize),
+    }),
+  };
 }
 
 // 관리자 그룹 생성

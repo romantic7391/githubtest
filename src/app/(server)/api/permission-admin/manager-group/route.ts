@@ -20,8 +20,13 @@ import { getClientInfo } from '@/services/log-action/log-action.service';
 /**
  * 관리자 그룹 목록 조회
  */
-export async function GET(request: NextRequest, { params }: { params: { managerNo: string } }) {
+export async function GET(request: NextRequest) {
   try {
+    // 개발 환경에서 테스트를 위해 헤더 설정
+    if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
+      request.headers.set('x-manager-no', '1');
+    }
+
     const session = await getSession(request);
 
     if (!session) {
@@ -34,7 +39,6 @@ export async function GET(request: NextRequest, { params }: { params: { managerN
       );
     }
 
-    const managerNo = Number(params.managerNo);
     const searchParams = request.nextUrl.searchParams;
     const page = Number(searchParams.get('page')) || 1;
     const pageSize = Number(searchParams.get('pageSize')) || 10;
@@ -47,17 +51,17 @@ export async function GET(request: NextRequest, { params }: { params: { managerN
 
     const filters = groupNo ? { groupNo: Number(groupNo) } : undefined;
 
-    const result = await getManagerGroupsS(managerNo, pagination, filters);
+    const result = await getManagerGroupsS(session.manager_no, pagination, filters);
     return NextResponse.json(
       {
         success: true,
-        message: '관리자 그룹 목록을 성공적으로 조회했습니다.',
+        message: '관리자 그룹 목록을 조회했습니다.',
         data: result,
       } satisfies BaseApiResponse,
       { status: 200 },
     );
   } catch (error) {
-    console.error('[GET] 관리자 그룹 목록 조회 에러:', error);
+    console.error('관리자 그룹 목록 조회 에러:', error);
     return NextResponse.json(
       {
         success: false,

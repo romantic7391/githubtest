@@ -63,15 +63,15 @@ export const groupPermissionSchema = z.object({
  */
 export const createGroupSchema = z.object({
   name: z.string().min(1, '그룹 이름은 필수입니다.').max(20),
-  school_no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER).nullable(),
-  parent_group_no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER).nullable(),
+  schoolNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER).nullable(),
+  parentGroupNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER).nullable(),
 });
 
 /**
  * 그룹 수정 스키마
  */
 export const updateGroupSchema = createGroupSchema.extend({
-  group_no: z.number().min(1, '그룹 번호는 필수입니다.').max(Number.MAX_SAFE_INTEGER),
+  groupNo: z.number().min(1, '그룹 번호는 필수입니다.').max(Number.MAX_SAFE_INTEGER),
 });
 
 /**
@@ -99,6 +99,8 @@ export const commonContextSchema = z.object({
   ip: z.string(),
   user_agent: z.string(),
 });
+
+export type CommonContext = z.infer<typeof commonContextSchema>;
 
 /**
  * 학교 계층 구조
@@ -156,7 +158,9 @@ export const groupApiResponseSchema = baseApiResponseSchema.extend({
 });
 
 export const groupCreateOrUpdateApiResponseSchema = baseApiResponseSchema.extend({
-  data: groupSchema.pick({ group_no: true }),
+  data: z.object({
+    groupNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
+  }),
 });
 
 export const permissionApiResponseSchema = baseApiResponseSchema.extend({

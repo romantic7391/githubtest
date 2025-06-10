@@ -1,21 +1,19 @@
 import type { BaseApiResponse } from '@/types/common';
 import { NextRequest, NextResponse } from 'next/server';
-import { createGroupS, updateGroupS, deleteGroupS, getGroupS } from '@/services/permission-admin/group.service';
+import { createGroupS, getGroupsS } from '@/services/permission-admin/group.service';
 import { getSession } from '@/lib/auth/session';
 import { handleZodError, handleError } from '@/utils/error.utils';
-import {
-  createGroupSchema,
-  updateGroupSchema,
-  groupCreateOrUpdateApiResponseSchema,
-  groupSchema,
-} from '@/types/permission';
+import { createGroupSchema, groupCreateOrUpdateApiResponseSchema, groupSchema } from '@/types/permission';
+import { paginationSchema } from '@/types/common';
 
 /**
- * 그룹 조회
+ * 그룹 목록 조회
  */
-export async function GET(request: NextRequest, { params }: { params: { groupNo: string } }) {
+export async function GET(request: NextRequest) {
   try {
-    const { groupNo } = params;
+    if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
+      request.headers.set('x-manager-no', '1');
+    }
     const session = await getSession(request);
 
     if (!session) {
@@ -28,37 +26,53 @@ export async function GET(request: NextRequest, { params }: { params: { groupNo:
       );
     }
 
-    const result = await getGroupS(Number(groupNo), {
-      manager_no: session.manager_no,
-      ip: request.headers.get('x-forwarded-for') || '',
-      user_agent: request.headers.get('user-agent') || '',
+    const searchParams = request.nextUrl.searchParams;
+    const page = Number(searchParams.get('page')) || 1;
+    const pageSize = Number(searchParams.get('pageSize')) || 10;
+    const name = searchParams.get('name') || undefined;
+    const schoolNo = searchParams.get('schoolNo') ? Number(searchParams.get('schoolNo')) : undefined;
+
+    const pagination = paginationSchema.parse({
+      page,
+      pageSize,
     });
 
+    const filters = {
+      name,
+      schoolNo,
+    };
+
+    const result = await getGroupsS(pagination, filters);
+
     return NextResponse.json(
-      groupCreateOrUpdateApiResponseSchema.parse({
+      {
         success: true,
+        message: '그룹 목록을 조회했습니다.',
         data: result,
-        message: '그룹이 성공적으로 조회되었습니다.',
-      }),
+      } satisfies BaseApiResponse,
       { status: 200 },
     );
   } catch (error) {
-    return handleError(error, '그룹 조회');
+    return handleError(error, '그룹 목록 조회');
   }
 }
 
 /**
  * 그룹 생성
  */
-export async function POST(request: NextRequest, { params }: { params: Promise<{ groupNo: string }> }) {
+export async function POST(request: NextRequest) {
   try {
-    const { groupNo } = await params;
     const body = await request.json();
-    const validatedData = createGroupSchema.parse({
-      ...body,
-      group_no: parseInt(groupNo, 10),
-    });
+    console.log('Request body:', body);
+
+    const validatedData = createGroupSchema.parse(body);
+    console.log('Validated data:', validatedData);
+
+    if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
+      request.headers.set('x-manager-no', '1');
+    }
     const session = await getSession(request);
+    console.log('Session:', session);
 
     if (!session) {
       return NextResponse.json(
@@ -75,107 +89,29 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       group_no: 0,
       created: null,
     });
+    console.log('Group data:', groupData);
 
     const result = await createGroupS(groupData, {
       manager_no: session.manager_no,
       ip: request.headers.get('x-forwarded-for') || '',
       user_agent: request.headers.get('user-agent') || '',
     });
+    console.log('Create result:', result);
 
     return NextResponse.json(
       groupCreateOrUpdateApiResponseSchema.parse({
         success: true,
-        data: result,
+        data: {
+          group_no: result.insertId,
+        },
         message: '그룹이 성공적으로 생성되었습니다.',
       }),
       { status: 200 },
     );
   } catch (error) {
+    console.error('Error in POST /api/permission-admin/group:', error);
     const zodError = handleZodError(error);
     if (zodError) return zodError;
     return handleError(error, '그룹 생성');
-  }
-}
-
-/**
- * 그룹 수정
- */
-export async function PUT(request: NextRequest, { params }: { params: { groupNo: string } }) {
-  try {
-    const { groupNo } = params;
-    const body = await request.json();
-    const validatedData = updateGroupSchema.parse(body);
-    const session = await getSession(request);
-
-    if (!session) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: '인증되지 않은 요청입니다.',
-        },
-        { status: 401 },
-      );
-    }
-
-    const groupData = groupSchema.parse({
-      ...validatedData,
-      group_no: Number(groupNo),
-      created: null,
-    });
-
-    const result = await updateGroupS(groupData, {
-      manager_no: session.manager_no,
-      ip: request.headers.get('x-forwarded-for') || '',
-      user_agent: request.headers.get('user-agent') || '',
-    });
-
-    return NextResponse.json(
-      groupCreateOrUpdateApiResponseSchema.parse({
-        success: true,
-        data: result,
-        message: '그룹이 성공적으로 수정되었습니다.',
-      }),
-      { status: 200 },
-    );
-  } catch (error) {
-    const zodError = handleZodError(error);
-    if (zodError) return zodError;
-    return handleError(error, '그룹 수정');
-  }
-}
-
-/**
- * 그룹 삭제
- */
-export async function DELETE(request: NextRequest, { params }: { params: { groupNo: string } }) {
-  try {
-    const { groupNo } = params;
-    const session = await getSession(request);
-
-    if (!session) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: '인증되지 않은 요청입니다.',
-        },
-        { status: 401 },
-      );
-    }
-
-    await deleteGroupS(Number(groupNo), {
-      manager_no: session.manager_no,
-      ip: request.headers.get('x-forwarded-for') || '',
-      user_agent: request.headers.get('user-agent') || '',
-    });
-
-    return NextResponse.json(
-      {
-        success: true,
-        message: '그룹이 성공적으로 삭제되었습니다.',
-      } satisfies BaseApiResponse,
-      { status: 200 },
-    );
-  } catch (error) {
-    return handleError(error, '그룹 삭제');
   }
 }

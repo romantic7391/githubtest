@@ -12,6 +12,7 @@ import { checkPermissionMiddleware } from '@/middleware/permission.middleware';
 import { handleError, handleZodError } from '@/utils/error.utils';
 import { auth } from '@/auth';
 import { Session } from 'next-auth';
+
 /**
  * 공통 컨텍스트 정보 가져오기
  */
