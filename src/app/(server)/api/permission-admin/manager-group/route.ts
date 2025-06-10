@@ -9,7 +9,12 @@ import { getSession } from '@/lib/auth/session';
 import { DEFAULT_ERROR_MESSAGE_500 } from '@/lib/default.constant';
 import type { BaseApiResponse } from '@/types/common';
 import { paginationSchema } from '@/types/common';
-import { createManagerGroupSchema, updateManagerGroupSchema, managerGroupSchema } from '@/types/permission';
+import {
+  createManagerGroupSchema,
+  updateManagerGroupSchema,
+  managerGroupSchema,
+  managerGroupCreateOrUpdateApiResponseSchema,
+} from '@/types/permission';
 import { getClientInfo } from '@/services/log-action/log-action.service';
 
 /**
@@ -82,6 +87,10 @@ export async function POST(request: NextRequest) {
         { status: 401 },
       );
     }
+    // 개발 환경에서 테스트를 위해 헤더 설정
+    if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
+      request.headers.set('x-manager-no', '1');
+    }
 
     // 서비스 함수에 전달할 데이터 변환
     const managerGroupData = managerGroupSchema.parse({
@@ -124,6 +133,12 @@ export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
     const validatedData = updateManagerGroupSchema.parse(body);
+
+    // 개발 환경에서 테스트를 위해 헤더 설정
+    if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
+      request.headers.set('x-manager-no', '1');
+    }
+
     const session = await getSession(request);
 
     if (!session) {
@@ -138,22 +153,30 @@ export async function PUT(request: NextRequest) {
 
     // 서비스 함수에 전달할 데이터 변환
     const managerGroupData = managerGroupSchema.parse({
-      ...validatedData,
+      no: validatedData.no,
+      groupNo: validatedData.groupNo,
       created: null,
     });
 
     const { userAgent, ip } = getClientInfo(request);
-    const result = await updateManagerGroupS(managerGroupData, {
-      manager_no: session.manager_no,
-      ip,
-      user_agent: userAgent,
-    });
+    const result = await updateManagerGroupS(
+      managerGroupData,
+      validatedData.originalNo,
+      validatedData.originalGroupNo,
+      {
+        manager_no: session.manager_no,
+        ip,
+        user_agent: userAgent,
+      },
+    );
+
+    const responseData = managerGroupCreateOrUpdateApiResponseSchema.shape.data.parse(result);
 
     return NextResponse.json(
       {
         success: true,
         message: '관리자 그룹이 성공적으로 수정되었습니다.',
-        data: result,
+        data: responseData,
       } satisfies BaseApiResponse,
       { status: 200 },
     );
@@ -176,7 +199,7 @@ export async function PUT(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const groupNo = searchParams.get('group_no');
+    const groupNo = searchParams.get('groupNo');
 
     if (!groupNo) {
       return NextResponse.json(

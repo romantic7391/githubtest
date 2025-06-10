@@ -3,8 +3,9 @@ import {
   updatePermission,
   deletePermission,
   findPermissions,
+  findPermission,
 } from '@/models/permission/permission.model';
-import { Permission } from '@/types/permission';
+import { Permission, PermissionCreateOrUpdateResponse } from '@/types/permission';
 import { logAction, makeLogParams } from '@/services/log-action/log-action.service';
 import { beginTransaction, commitTransaction, rollbackTransaction } from '@/lib/mariadb/query';
 import { LogMeta } from '@/types/history';
@@ -44,7 +45,10 @@ export async function getPermissionsS(pagination: Pagination, meta: LogMeta, fil
 }
 
 // 권한 생성
-export async function createPermissionS(permission: Permission, meta: LogMeta) {
+export async function createPermissionS(
+  permission: Permission,
+  meta: LogMeta,
+): Promise<PermissionCreateOrUpdateResponse> {
   let conn;
   try {
     // 1. 권한 생성
@@ -61,7 +65,7 @@ export async function createPermissionS(permission: Permission, meta: LogMeta) {
         action_type: 'I',
         target_table: 'permission',
         target_id: result.insertId.toString(),
-        old_values: null,
+        old_values: JSON.stringify({}),
         new_values: JSON.stringify(permission),
         reason: `권한 생성: ${permission.name}`,
       }),
@@ -69,7 +73,11 @@ export async function createPermissionS(permission: Permission, meta: LogMeta) {
     );
 
     await commitTransaction(conn);
-    return result;
+    return {
+      permissionNo: result.insertId,
+      name: permission.name,
+      description: permission.description,
+    };
   } catch (error) {
     if (conn) {
       await rollbackTransaction(conn);
@@ -80,12 +88,15 @@ export async function createPermissionS(permission: Permission, meta: LogMeta) {
 }
 
 // 권한 수정
-export async function updatePermissionS(permission: Permission, meta: LogMeta) {
+export async function updatePermissionS(
+  permission: Permission,
+  meta: LogMeta,
+): Promise<PermissionCreateOrUpdateResponse> {
   let conn;
   try {
     // 1. 권한 수정
     conn = await beginTransaction();
-    const result = await updatePermission(permission, conn);
+    await updatePermission(permission, conn);
 
     // 2. 로그 기록
     await logAction(
@@ -96,7 +107,7 @@ export async function updatePermissionS(permission: Permission, meta: LogMeta) {
         action_type: 'U',
         target_table: 'permission',
         target_id: permission.permission_no.toString(),
-        old_values: null,
+        old_values: JSON.stringify({}),
         new_values: JSON.stringify(permission),
         reason: `권한 수정: ${permission.name}`,
       }),
@@ -104,7 +115,11 @@ export async function updatePermissionS(permission: Permission, meta: LogMeta) {
     );
 
     await commitTransaction(conn);
-    return result;
+    return {
+      permissionNo: permission.permission_no,
+      name: permission.name,
+      description: permission.description,
+    };
   } catch (error) {
     if (conn) {
       await rollbackTransaction(conn);
@@ -145,6 +160,40 @@ export async function deletePermissionS(permissionNo: number, meta: LogMeta) {
       await rollbackTransaction(conn);
     }
     console.error('권한 삭제 중 오류 발생:', error);
+    throw error;
+  }
+}
+
+// 권한 조회
+export async function getPermissionS(permissionNo: number, meta: LogMeta): Promise<PermissionCreateOrUpdateResponse> {
+  try {
+    const permission = await findPermission(permissionNo);
+    if (!permission) {
+      throw new Error('권한을 찾을 수 없습니다.');
+    }
+
+    // 로그 기록
+    await logAction(
+      makeLogParams({
+        manager_no: meta.manager_no,
+        ip: meta.ip,
+        user_agent: meta.user_agent,
+        action_type: 'S',
+        target_table: 'permission',
+        target_id: permissionNo.toString(),
+        old_values: null,
+        new_values: JSON.stringify(permission),
+        reason: `권한 조회: ${permission.name}`,
+      }),
+    );
+
+    return {
+      permissionNo: permission.permission_no,
+      name: permission.name,
+      description: permission.description,
+    };
+  } catch (error) {
+    console.error('권한 조회 중 오류 발생:', error);
     throw error;
   }
 }

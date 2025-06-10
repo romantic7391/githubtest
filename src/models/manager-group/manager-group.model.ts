@@ -35,7 +35,7 @@ export async function findManagerGroups(
   const query = `
     SELECT 
       no as manager_no,
-      group_no,
+      group_no as groupNo,
       created,
       updated
     FROM managerGroup
@@ -54,21 +54,28 @@ export async function insertManagerGroup(dto: ManagerGroup, conn?: PoolConnectio
   const query = `
     INSERT INTO \`managerGroup\` (no, group_no) VALUES (?, ?);
   `;
-  const params = [dto.no, dto.group_no];
+  const params = [dto.no, dto.groupNo];
   return exec(query, params, conn);
 }
 
 // 관리자 그룹 수정
-export async function updateManagerGroup(dto: ManagerGroup, conn?: PoolConnection) {
+export async function updateManagerGroup(
+  dto: ManagerGroup,
+  originalNo: number,
+  originalGroupNo: number,
+  conn?: PoolConnection,
+) {
   const query = `
-    UPDATE \`managerGroup\` SET no = ?, group_no = ? WHERE no = ? AND group_no = ?
+    UPDATE \`managerGroup\` 
+    SET no = ?, group_no = ? 
+    WHERE no = ? AND group_no = ?
   `;
-  const params = [dto.no, dto.group_no, dto.group_no];
+  const params = [dto.no, dto.groupNo, originalNo, originalGroupNo];
   return exec(query, params, conn);
 }
 
 // 관리자 그룹 삭제
-export async function deleteManagerGroup(no: number, group_no: number, conn?: PoolConnection) {
+export async function deleteManagerGroup(no: number, groupNo: number, conn?: PoolConnection) {
   const query = `DELETE FROM \`managerGroup\` WHERE no = ? AND group_no = ?`;
-  return exec(query, [no, group_no], conn);
+  return exec(query, [no, groupNo], conn);
 }

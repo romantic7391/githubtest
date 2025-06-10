@@ -17,7 +17,7 @@ export const managerSchema = z.object({
  * 관리자 그룹
  */
 export const managerGroupSchema = z.object({
-  group_no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
+  groupNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
   no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
   // created: datetimeSchema.nullable(),
 });
@@ -38,8 +38,8 @@ export const groupSchema = z.object({
  */
 export const permissionSchema = z.object({
   permission_no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
-  name: z.string().max(20),
-  description: z.string().nullable(),
+  name: z.string().min(1, '권한 이름은 필수입니다.').max(50),
+  description: z.string().max(200).nullable(),
   default_extra_condition: z.string().max(50).nullable(),
   default_extra_limit: z.string().max(50).nullable(),
   // created: datetimeSchema.nullable(),
@@ -172,7 +172,9 @@ export const permissionsApiResponseSchema = baseApiResponseSchema.extend({
 
 export const permissionCreateOrUpdateApiResponseSchema = baseApiResponseSchema.extend({
   data: z.object({
-    permission_no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
+    permissionNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
+    name: z.string().min(1).max(50),
+    description: z.string().max(200).nullable(),
   }),
 });
 
@@ -215,14 +217,17 @@ export const groupPermissionCreateOrUpdateApiResponseSchema = baseApiResponseSch
  * 관리자 그룹 생성 스키마
  */
 export const createManagerGroupSchema = z.object({
-  group_no: z.number().min(1, '그룹 번호는 필수입니다.').max(Number.MAX_SAFE_INTEGER),
+  groupNo: z.number().min(1, '그룹 번호는 필수입니다.').max(Number.MAX_SAFE_INTEGER),
   no: z.number().min(1, '관리자 번호는 필수입니다.').max(Number.MAX_SAFE_INTEGER),
 });
 
 /**
  * 관리자 그룹 수정 스키마
  */
-export const updateManagerGroupSchema = createManagerGroupSchema;
+export const updateManagerGroupSchema = createManagerGroupSchema.extend({
+  originalNo: z.number().min(1, '원래 관리자 번호는 필수입니다.').max(Number.MAX_SAFE_INTEGER),
+  originalGroupNo: z.number().min(1, '원래 그룹 번호는 필수입니다.').max(Number.MAX_SAFE_INTEGER),
+});
 
 export const managerGroupApiResponseSchema = baseApiResponseSchema.extend({
   data: managerGroupSchema,
@@ -237,29 +242,20 @@ export const managerGroupsApiResponseSchema = baseApiResponseSchema.extend({
 
 export const managerGroupCreateOrUpdateApiResponseSchema = baseApiResponseSchema.extend({
   data: z.object({
-    group_no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
+    groupNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
     no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
   }),
 });
 
-// 타입 추론
-export type Manager = z.infer<typeof managerSchema>;
 export type ManagerGroup = z.infer<typeof managerGroupSchema>;
 export type Group = z.infer<typeof groupSchema>;
-export type Permission = z.infer<typeof permissionSchema>;
 export type GroupPermission = z.infer<typeof groupPermissionSchema>;
-export type CommonContext = z.infer<typeof commonContextSchema>;
-export type SchoolHierarchy = z.infer<typeof schoolHierarchySchema>;
-export type PermissionCheckResult = z.infer<typeof permissionCheckResultSchema>;
-export type GroupsApiResponse = z.infer<typeof groupsApiResponseSchema>;
-export type GroupApiResponse = z.infer<typeof groupApiResponseSchema>;
-export type GroupCreateOrUpdateApiResponse = z.infer<typeof groupCreateOrUpdateApiResponseSchema>;
-export type PermissionApiResponse = z.infer<typeof permissionApiResponseSchema>;
-export type PermissionsApiResponse = z.infer<typeof permissionsApiResponseSchema>;
-export type PermissionCreateOrUpdateApiResponse = z.infer<typeof permissionCreateOrUpdateApiResponseSchema>;
-export type GroupPermissionApiResponse = z.infer<typeof groupPermissionApiResponseSchema>;
-export type GroupPermissionsApiResponse = z.infer<typeof groupPermissionsApiResponseSchema>;
-export type GroupPermissionCreateOrUpdateApiResponse = z.infer<typeof groupPermissionCreateOrUpdateApiResponseSchema>;
-export type ManagerGroupApiResponse = z.infer<typeof managerGroupApiResponseSchema>;
-export type ManagerGroupsApiResponse = z.infer<typeof managerGroupsApiResponseSchema>;
-export type ManagerGroupCreateOrUpdateApiResponse = z.infer<typeof managerGroupCreateOrUpdateApiResponseSchema>;
+export type CreateGroup = z.infer<typeof createGroupSchema>;
+export type UpdateGroup = z.infer<typeof updateGroupSchema>;
+export type CreateGroupPermission = z.infer<typeof createGroupPermissionSchema>;
+export type UpdateGroupPermission = z.infer<typeof updateGroupPermissionSchema>;
+export type CreateManagerGroup = z.infer<typeof createManagerGroupSchema>;
+export type UpdateManagerGroup = z.infer<typeof updateManagerGroupSchema>;
+export type ManagerGroupCreateOrUpdateResponse = z.infer<typeof managerGroupCreateOrUpdateApiResponseSchema>['data'];
+export type Permission = z.infer<typeof permissionSchema>;
+export type PermissionCreateOrUpdateResponse = z.infer<typeof permissionCreateOrUpdateApiResponseSchema>['data'];

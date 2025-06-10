@@ -157,3 +157,16 @@ export async function deletePermission(permissionNo: number, conn?: PoolConnecti
   const query = `DELETE FROM \`permission\` WHERE permission_no = ?`;
   return exec(query, [permissionNo], conn);
 }
+
+// 권한 조회
+export async function findPermission(permissionNo: number) {
+  const query = `
+    SELECT 
+      permission_no,
+      name,
+      description
+    FROM permission
+    WHERE permission_no = ? AND deleted IS NULL
+  `;
+  return getRow(query, [permissionNo]);
+}

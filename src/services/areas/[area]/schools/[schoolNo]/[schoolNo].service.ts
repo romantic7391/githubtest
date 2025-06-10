@@ -28,7 +28,7 @@ export async function getSchoolBySchoolNo(
         action_type: 'S',
         target_table: 'rnschool',
         target_id: `${school_no}`,
-        old_values: null,
+        old_values: JSON.stringify({}),
         new_values: JSON.stringify(school),
         reason: '학교 정보 조회',
       }),
