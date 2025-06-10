@@ -1,18 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth/session';
-import type { BaseApiResponse } from '@/types/common';
 import { Permission } from '@/types/permission';
 import { handleError, handleZodError } from '@/utils/error.utils';
-import { updatePermissionS, deletePermissionS } from '@/services/permission-admin/permission.service';
-import { permissionCreateOrUpdateApiResponseSchema } from '@/types/permission';
+import { getPermissionS, createPermissionS } from '@/services/permission-admin/permission.service';
+import { permissionCreateOrUpdateApiResponseSchema, createPermissionSchema } from '@/types/permission';
 
 /**
- * 권한 수정
+ * 권한 정보 조회
  */
-export async function PUT(request: NextRequest, { params }: { params: { permissionNo: string } }) {
+export async function GET(request: NextRequest, { params }: { params: { permissionNo: string } }) {
   try {
     const permissionNo = Number(params.permissionNo);
-    const body = await request.json();
 
     // 개발 환경에서 테스트를 위해 헤더 설정
     if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
@@ -31,12 +29,7 @@ export async function PUT(request: NextRequest, { params }: { params: { permissi
       );
     }
 
-    const permissionData: Permission = {
-      ...body,
-      permission_no: permissionNo,
-    };
-
-    const result = await updatePermissionS(permissionData, {
+    const result = await getPermissionS(permissionNo, {
       manager_no: session.manager_no,
       ip: request.headers.get('x-forwarded-for') || '',
       user_agent: request.headers.get('user-agent') || '',
@@ -46,28 +39,24 @@ export async function PUT(request: NextRequest, { params }: { params: { permissi
       permissionCreateOrUpdateApiResponseSchema.parse({
         success: true,
         data: result,
-        message: '권한이 성공적으로 수정되었습니다.',
+        message: '권한이 성공적으로 조회되었습니다.',
       }),
       { status: 200 },
     );
   } catch (error) {
     const zodError = handleZodError(error);
     if (zodError) return zodError;
-    return handleError(error, '권한 수정');
+    return handleError(error, '권한 조회');
   }
 }
 
 /**
- * 권한 삭제
+ * 권한 생성
  */
-export async function DELETE(request: NextRequest, { params }: { params: { permissionNo: string } }) {
+export async function POST(request: NextRequest) {
   try {
-    const permissionNo = Number(params.permissionNo);
-
-    // 개발 환경에서 테스트를 위해 헤더 설정
-    if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
-      request.headers.set('x-manager-no', '1');
-    }
+    const body = await request.json();
+    const validatedData = createPermissionSchema.parse(body);
 
     const session = await getSession(request);
 
@@ -81,22 +70,33 @@ export async function DELETE(request: NextRequest, { params }: { params: { permi
       );
     }
 
-    await deletePermissionS(permissionNo, {
+    // 개발 환경에서 테스트를 위해 헤더 설정
+    if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
+      request.headers.set('x-manager-no', '1');
+    }
+
+    const permissionData: Permission = {
+      ...validatedData,
+      permission_no: 0,
+    };
+
+    const result = await createPermissionS(permissionData, {
       manager_no: session.manager_no,
       ip: request.headers.get('x-forwarded-for') || '',
       user_agent: request.headers.get('user-agent') || '',
     });
 
     return NextResponse.json(
-      {
+      permissionCreateOrUpdateApiResponseSchema.parse({
         success: true,
-        message: '권한이 성공적으로 삭제되었습니다.',
-      } satisfies BaseApiResponse,
+        data: result,
+        message: '권한이 성공적으로 생성되었습니다.',
+      }),
       { status: 200 },
     );
   } catch (error) {
     const zodError = handleZodError(error);
     if (zodError) return zodError;
-    return handleError(error, '권한 삭제');
+    return handleError(error, '권한 생성');
   }
 }
