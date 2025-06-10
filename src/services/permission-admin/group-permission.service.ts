@@ -10,6 +10,54 @@ import { beginTransaction, commitTransaction, rollbackTransaction } from '@/lib/
 import { LogMeta } from '@/types/history';
 import { Pagination } from '@/types/common';
 
+// 그룹 권한 조회
+export async function getGroupPermissionsS(
+  pagination: Pagination,
+  filters?: {
+    groupNo?: number;
+    permissionNo?: number;
+  },
+  meta?: LogMeta,
+) {
+  let conn;
+  try {
+    console.log('=== getGroupPermissionsS Start ===');
+    console.log('Input:', { pagination, filters, meta });
+
+    conn = await beginTransaction();
+    const result = await selectGroupPermission(pagination, filters);
+
+    console.log('selectGroupPermission Result:', result);
+
+    if (meta) {
+      await logAction(
+        makeLogParams({
+          manager_no: meta.manager_no,
+          ip: meta.ip,
+          user_agent: meta.user_agent,
+          action_type: 'S',
+          target_table: 'groupPermission',
+          target_id: filters?.groupNo ? `group_no=${filters.groupNo}` : 'all',
+          reason: `그룹 권한 조회: ${filters?.groupNo ? `group_no ${filters.groupNo}` : '전체'}`,
+          new_values: JSON.stringify(result),
+          old_values: '',
+        }),
+        conn,
+      );
+    }
+
+    await commitTransaction(conn);
+    console.log('=== getGroupPermissionsS End ===');
+    return result;
+  } catch (error) {
+    console.error('Error in getGroupPermissionsS:', error);
+    if (conn) {
+      await rollbackTransaction(conn);
+    }
+    throw error;
+  }
+}
+
 // 그룹 권한 생성
 export async function createGroupPermissionS(groupPermission: GroupPermission, meta: LogMeta) {
   let conn;
@@ -48,9 +96,19 @@ export async function createGroupPermissionS(groupPermission: GroupPermission, m
 export async function updateGroupPermissionS(groupPermission: GroupPermission, meta: LogMeta) {
   let conn;
   try {
+    console.log('=== updateGroupPermissionS Start ===');
+    console.log('Input:', { groupPermission, meta });
+
+    if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
+      groupPermission.group_no = 1;
+      groupPermission.permission_no = 1;
+    }
+
     // 1. 그룹 권한 수정
     conn = await beginTransaction();
     const result = await updateGroupPermission(groupPermission, conn);
+
+    console.log('Update Result:', result);
 
     // 2. 로그 기록
     await logAction(
@@ -69,8 +127,10 @@ export async function updateGroupPermissionS(groupPermission: GroupPermission, m
     );
 
     await commitTransaction(conn);
+    console.log('=== updateGroupPermissionS End ===');
     return result;
   } catch (error) {
+    console.error('Error in updateGroupPermissionS:', error);
     if (conn) {
       await rollbackTransaction(conn);
     }
@@ -99,45 +159,6 @@ export async function deleteGroupPermissionS(groupNo: number, permissionNo: numb
       }),
       conn,
     );
-
-    await commitTransaction(conn);
-    return result;
-  } catch (error) {
-    if (conn) {
-      await rollbackTransaction(conn);
-    }
-    throw error;
-  }
-}
-
-// 그룹 권한 조회
-export async function getGroupPermissionsS(
-  pagination: Pagination,
-  filters?: {
-    groupNo?: number;
-    permissionNo?: number;
-  },
-  meta?: LogMeta,
-) {
-  let conn;
-  try {
-    conn = await beginTransaction();
-    const result = await selectGroupPermission(pagination, filters);
-
-    if (meta) {
-      await logAction(
-        makeLogParams({
-          manager_no: meta.manager_no,
-          ip: meta.ip,
-          user_agent: meta.user_agent,
-          action_type: 'S',
-          target_table: 'groupPermission',
-          target_id: filters?.groupNo ? `group_no=${filters.groupNo}` : 'all',
-          reason: `그룹 권한 조회: ${filters?.groupNo ? `group_no ${filters.groupNo}` : '전체'}`,
-        }),
-        conn,
-      );
-    }
 
     await commitTransaction(conn);
     return result;

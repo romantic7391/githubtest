@@ -59,6 +59,17 @@ export const groupPermissionSchema = z.object({
 });
 
 /**
+ * 그룹 권한 상세 정보 (조회용)
+ */
+export const groupPermissionDetailSchema = groupPermissionSchema.extend({
+  group_name: z.string(),
+  parent_group_no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER).nullable(),
+  parent_group_name: z.string().nullable(),
+  permission_name: z.string(),
+  permission_description: z.string(),
+});
+
+/**
  * 그룹 생성 스키마
  */
 export const createGroupSchema = z.object({
@@ -181,6 +192,14 @@ export const permissionCreateOrUpdateApiResponseSchema = baseApiResponseSchema.e
 });
 
 /**
+ * 그룹 권한 필터 스키마
+ */
+export const groupPermissionFilterSchema = z.object({
+  groupNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER).optional(),
+  permissionNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER).optional(),
+});
+
+/**
  * 그룹 권한 생성 스키마
  */
 export const createGroupPermissionSchema = z.object({
@@ -195,7 +214,16 @@ export const createGroupPermissionSchema = z.object({
 /**
  * 그룹 권한 수정 스키마
  */
-export const updateGroupPermissionSchema = createGroupPermissionSchema;
+export const updateGroupPermissionSchema = z.object({
+  group_no: z.number().min(1, '그룹 번호는 필수입니다.').max(Number.MAX_SAFE_INTEGER),
+  permission_no: z.number().min(1, '권한 번호는 필수입니다.').max(Number.MAX_SAFE_INTEGER),
+  is_allowed: z.enum(['Y', 'N']).nullable(),
+  override: z.enum(['Y', 'N']).nullable(),
+  extra_condition: z.string().max(50).nullable(),
+  extra_limit: z.string().max(50).nullable(),
+  original_group_no: z.number().min(1, '원래 그룹 번호는 필수입니다.').max(Number.MAX_SAFE_INTEGER),
+  original_permission_no: z.number().min(1, '원래 권한 번호는 필수입니다.').max(Number.MAX_SAFE_INTEGER),
+});
 
 export const groupPermissionApiResponseSchema = baseApiResponseSchema.extend({
   data: groupPermissionSchema,
@@ -203,11 +231,14 @@ export const groupPermissionApiResponseSchema = baseApiResponseSchema.extend({
 
 export const groupPermissionsApiResponseSchema = baseApiResponseSchema.extend({
   data: z.object({
-    groupPermissions: groupPermissionSchema.array(),
+    groupPermissions: groupPermissionDetailSchema.array(),
     pagination: paginationSchema,
   }),
 });
 
+/**
+ * 그룹 권한 생성/수정 API 응답
+ */
 export const groupPermissionCreateOrUpdateApiResponseSchema = baseApiResponseSchema.extend({
   data: z.object({
     group_no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),

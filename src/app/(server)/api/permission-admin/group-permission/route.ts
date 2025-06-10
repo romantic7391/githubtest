@@ -13,26 +13,33 @@ import {
   groupPermissionCreateOrUpdateApiResponseSchema,
   groupPermissionSchema,
   groupPermissionsApiResponseSchema,
+  groupPermissionFilterSchema,
 } from '@/types/permission';
 import { paginationSchema } from '@/types/common';
-import { z } from 'zod';
-
-// 그룹 권한 필터 스키마
-const groupPermissionFilterSchema = z.object({
-  groupNo: z.number().optional(),
-  permissionNo: z.number().optional(),
-});
 
 /**
  * 그룹 권한 조회
  */
 export async function GET(request: NextRequest) {
   try {
+    console.log('=== Group Permission GET API Start ===');
+
+    if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
+      request.headers.set('x-manager-no', '1');
+    }
+
     const { searchParams } = new URL(request.url);
     const page = searchParams.get('page');
     const pageSize = searchParams.get('pageSize');
     const groupNo = searchParams.get('groupNo');
     const permissionNo = searchParams.get('permissionNo');
+
+    console.log('Request Params:', {
+      page,
+      pageSize,
+      groupNo,
+      permissionNo,
+    });
 
     // 페이지네이션 파라미터 검증
     const pagination = paginationSchema.parse({
@@ -40,13 +47,18 @@ export async function GET(request: NextRequest) {
       pageSize: pageSize ? Number(pageSize) : 10,
     });
 
+    console.log('Parsed Pagination:', pagination);
+
     // 필터 파라미터 검증
     const filters = groupPermissionFilterSchema.parse({
       groupNo: groupNo ? Number(groupNo) : undefined,
       permissionNo: permissionNo ? Number(permissionNo) : undefined,
     });
 
+    console.log('Parsed Filters:', filters);
+
     const session = await getSession(request);
+    console.log('Session:', session ? 'Found' : 'Not Found');
 
     if (!session) {
       return NextResponse.json(
@@ -58,19 +70,34 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    console.log('Calling getGroupPermissionsS with:', {
+      pagination,
+      filters,
+      meta: {
+        manager_no: session.manager_no,
+        ip: request.headers.get('x-forwarded-for') || '',
+        user_agent: request.headers.get('user-agent') || '',
+      },
+    });
+
     const result = await getGroupPermissionsS(pagination, filters, {
       manager_no: session.manager_no,
       ip: request.headers.get('x-forwarded-for') || '',
       user_agent: request.headers.get('user-agent') || '',
     });
 
+    console.log('API Result:', result);
+
     return NextResponse.json(
       groupPermissionsApiResponseSchema.parse({
         success: true,
+        message: '그룹 권한 조회 성공',
+        status: 200,
         data: result,
       }),
     );
   } catch (error) {
+    console.error('Error in Group Permission GET API:', error);
     const zodError = handleZodError(error);
     if (zodError) return zodError;
     return handleError(error, '그룹 권한 조회');
@@ -126,9 +153,20 @@ export async function POST(request: NextRequest) {
  */
 export async function PUT(request: NextRequest) {
   try {
+    console.log('=== Group Permission PUT API Start ===');
+
+    if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
+      request.headers.set('x-manager-no', '1');
+    }
+
     const body = await request.json();
+    console.log('Request Body:', body);
+
     const validatedData = updateGroupPermissionSchema.parse(body);
+    console.log('Validated Data:', validatedData);
+
     const session = await getSession(request);
+    console.log('Session:', session ? 'Found' : 'Not Found');
 
     if (!session) {
       return NextResponse.json(
@@ -145,20 +183,28 @@ export async function PUT(request: NextRequest) {
       ...validatedData,
       created: null,
     });
+    console.log('Group Permission Data:', groupPermissionData);
 
     const result = await updateGroupPermissionS(groupPermissionData, {
       manager_no: session.manager_no,
       ip: request.headers.get('x-forwarded-for') || '',
       user_agent: request.headers.get('user-agent') || '',
     });
+    console.log('Update Result:', result);
 
     return NextResponse.json(
       groupPermissionCreateOrUpdateApiResponseSchema.parse({
         success: true,
-        data: result,
+        message: '그룹 권한 수정 성공',
+        status: 200,
+        data: {
+          group_no: validatedData.group_no,
+          permission_no: validatedData.permission_no,
+        },
       }),
     );
   } catch (error) {
+    console.error('Error in Group Permission PUT API:', error);
     const zodError = handleZodError(error);
     if (zodError) return zodError;
     return handleError(error, '그룹 권한 수정');
