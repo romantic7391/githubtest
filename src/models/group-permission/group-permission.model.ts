@@ -2,6 +2,12 @@ import { exec } from '@/lib/mariadb/query';
 import { GroupPermission } from '@/types/permission';
 import { PoolConnection } from 'mariadb';
 
+// 그룹 권한 조회
+export async function selectGroupPermission(groupNo: number, conn?: PoolConnection) {
+  const query = `SELECT * FROM \`groupPermission\` WHERE group_no = ?`;
+  return exec(query, [groupNo], conn);
+}
+
 // 그룹 권한 추가
 export async function insertGroupPermission(dto: GroupPermission, conn?: PoolConnection) {
   const query = `

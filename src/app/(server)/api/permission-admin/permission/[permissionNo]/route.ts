@@ -9,9 +9,10 @@ import { permissionCreateOrUpdateApiResponseSchema } from '@/types/permission';
 /**
  * 권한 수정
  */
-export async function PUT(request: NextRequest, { params }: { params: { permissionNo: string } }) {
+export async function PUT(request: NextRequest, context: { params: { permissionNo: string } }) {
   try {
-    const permissionNo = Number(params.permissionNo);
+    const params = await context.params;
+    const permissionNoNum = Number(params.permissionNo);
     const body = await request.json();
 
     // 개발 환경에서 테스트를 위해 헤더 설정
@@ -33,7 +34,7 @@ export async function PUT(request: NextRequest, { params }: { params: { permissi
 
     const permissionData: Permission = {
       ...body,
-      permission_no: permissionNo,
+      permission_no: permissionNoNum,
     };
 
     const result = await updatePermissionS(permissionData, {
@@ -60,9 +61,10 @@ export async function PUT(request: NextRequest, { params }: { params: { permissi
 /**
  * 권한 삭제
  */
-export async function DELETE(request: NextRequest, { params }: { params: { permissionNo: string } }) {
+export async function DELETE(request: NextRequest, context: { params: { permissionNo: string } }) {
   try {
-    const permissionNo = Number(params.permissionNo);
+    const params = await context.params;
+    const permissionNoNum = Number(params.permissionNo);
 
     // 개발 환경에서 테스트를 위해 헤더 설정
     if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
@@ -81,7 +83,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { permi
       );
     }
 
-    await deletePermissionS(permissionNo, {
+    await deletePermissionS(permissionNoNum, {
       manager_no: session.manager_no,
       ip: request.headers.get('x-forwarded-for') || '',
       user_agent: request.headers.get('user-agent') || '',

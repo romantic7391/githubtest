@@ -40,8 +40,8 @@ export const permissionSchema = z.object({
   permission_no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
   name: z.string().min(1, '권한 이름은 필수입니다.').max(50),
   description: z.string().max(200).nullable(),
-  default_extra_condition: z.string().max(50).nullable(),
-  default_extra_limit: z.string().max(50).nullable(),
+  defaultExtraCondition: z.string().max(50).nullable(),
+  defaultExtraLimit: z.string().max(50).nullable(),
   // created: datetimeSchema.nullable(),
 });
 
@@ -77,11 +77,11 @@ export const updateGroupSchema = createGroupSchema.extend({
 /**
  * 권한 생성 스키마
  */
-export const createPermissionSchema = z.object({
-  name: z.string().min(1, '권한 이름은 필수입니다.').max(20),
-  description: z.string().max(50).nullable(),
-  default_extra_condition: z.string().max(50).nullable(),
-  default_extra_limit: z.string().max(50).nullable(),
+export const createPermissionSchema = permissionSchema.pick({
+  name: true,
+  description: true,
+  defaultExtraCondition: true,
+  defaultExtraLimit: true,
 });
 
 /**
@@ -177,8 +177,6 @@ export const permissionsApiResponseSchema = baseApiResponseSchema.extend({
 export const permissionCreateOrUpdateApiResponseSchema = baseApiResponseSchema.extend({
   data: z.object({
     permissionNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
-    name: z.string().min(1).max(50),
-    description: z.string().max(200).nullable(),
   }),
 });
 
@@ -263,3 +261,10 @@ export type UpdateManagerGroup = z.infer<typeof updateManagerGroupSchema>;
 export type ManagerGroupCreateOrUpdateResponse = z.infer<typeof managerGroupCreateOrUpdateApiResponseSchema>['data'];
 export type Permission = z.infer<typeof permissionSchema>;
 export type PermissionCreateOrUpdateResponse = z.infer<typeof permissionCreateOrUpdateApiResponseSchema>['data'];
+
+/**
+ * 권한 검색 필터 스키마
+ */
+export const permissionFilterSchema = permissionSchema.pick({ name: true });
+
+export type PermissionFilter = z.infer<typeof permissionFilterSchema>;
