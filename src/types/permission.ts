@@ -268,3 +268,16 @@ export type PermissionCreateOrUpdateResponse = z.infer<typeof permissionCreateOr
 export const permissionFilterSchema = permissionSchema.pick({ name: true });
 
 export type PermissionFilter = z.infer<typeof permissionFilterSchema>;
+
+/**
+ * 라우트 파라미터 타입
+ */
+export const routeParamsSchema = z.object({
+  params: z.promise(
+    z.object({
+      groupNo: z.string(),
+    }),
+  ),
+});
+
+export type RouteParams = z.infer<typeof routeParamsSchema>;

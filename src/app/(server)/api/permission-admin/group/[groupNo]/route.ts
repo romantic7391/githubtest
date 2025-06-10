@@ -3,14 +3,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { updateGroupS, deleteGroupS } from '@/services/permission-admin/group.service';
 import { getSession } from '@/lib/auth/session';
 import { handleZodError, handleError } from '@/utils/error.utils';
-import { updateGroupSchema, groupCreateOrUpdateApiResponseSchema } from '@/types/permission';
+import { updateGroupSchema, groupCreateOrUpdateApiResponseSchema, RouteParams } from '@/types/permission';
 
 /**
  * 그룹 수정
  */
-export async function PUT(request: NextRequest, { params }: { params: { groupNo: string } }) {
+export async function PUT(request: NextRequest, context: RouteParams) {
   try {
-    const { groupNo } = await params;
+    const { groupNo } = await context.params;
     const body = await request.json();
     const validatedData = updateGroupSchema.parse({
       ...body,
@@ -65,9 +65,9 @@ export async function PUT(request: NextRequest, { params }: { params: { groupNo:
 /**
  * 그룹 삭제
  */
-export async function DELETE(request: NextRequest, { params }: { params: { groupNo: string } }) {
+export async function DELETE(request: NextRequest, context: RouteParams) {
   try {
-    const { groupNo } = await params;
+    const { groupNo } = await context.params;
     if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
       request.headers.set('x-manager-no', '1');
     }

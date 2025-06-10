@@ -139,7 +139,7 @@ export async function insertPermission(dto: Permission, conn?: PoolConnection) {
   const query = `
     INSERT INTO \`permission\` (name, description, default_extra_condition, default_extra_limit) VALUES (?, ?, ?, ?);
   `;
-  const params = [dto.name, dto.description, dto.default_extra_condition, dto.default_extra_limit];
+  const params = [dto.name, dto.description, dto.defaultExtraCondition, dto.defaultExtraLimit];
   return exec(query, params, conn);
 }
 
@@ -148,7 +148,7 @@ export async function updatePermission(dto: Permission, conn?: PoolConnection) {
   const query = `
     UPDATE \`permission\` SET name = ?, description = ?, default_extra_condition = ?, default_extra_limit = ? WHERE permission_no = ?
   `;
-  const params = [dto.name, dto.description, dto.default_extra_condition, dto.default_extra_limit, dto.permission_no];
+  const params = [dto.name, dto.description, dto.defaultExtraCondition, dto.defaultExtraLimit, dto.permission_no];
   return exec(query, params, conn);
 }
 
