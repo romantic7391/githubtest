@@ -225,7 +225,6 @@ CREATE TABLE `rnSchool` (
 	`use_os` ENUM('Y','N') NULL DEFAULT 'N' COMMENT '작업지시서 사용유무' COLLATE 'utf8mb3_unicode_ci',
 	`active` ENUM('Y','N') NOT NULL DEFAULT 'Y' COLLATE 'utf8mb3_unicode_ci',
 	`parent_no` BIGINT(20) UNSIGNED NULL DEFAULT NULL,
-	`school_type` VARCHAR(30) NOT NULL COMMENT '교육청,교육지원청,고등학교,중학교,초등학교,유치원 나누는 것' COLLATE 'utf8mb3_unicode_ci',
 	`created` DATETIME NULL DEFAULT current_timestamp() COMMENT '생성일',
 	`administrationcode` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8mb3_unicode_ci',
 	PRIMARY KEY (`school_no`) USING BTREE,

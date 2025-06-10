@@ -11,7 +11,7 @@ import { LogMeta } from '@/types/history';
 import { Pagination } from '@/types/common';
 
 // 권한 목록 조회
-export async function findPermissionsS(pagination: Pagination, meta: LogMeta, filters?: { name?: string }) {
+export async function getPermissionsS(pagination: Pagination, meta: LogMeta, filters?: { name?: string }) {
   try {
     const result = await findPermissions(pagination, filters);
     // 로그 기록

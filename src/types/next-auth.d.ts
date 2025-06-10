@@ -15,7 +15,6 @@ declare module 'next-auth' {
     schoolNo: number;
     signInId: string;
     name: string;
-    schoolType: string;
   }
 
   interface Session extends DefaultSession {
@@ -24,7 +23,6 @@ declare module 'next-auth' {
       schoolNo: number;
       signInId: string;
       name: string;
-      schoolType: string;
     } & DefaultSession['user'];
   }
 }
@@ -45,7 +43,6 @@ declare module 'next-auth/jwt' {
       schoolNo: number;
       signInId: string;
       name: string;
-      schoolType: string;
     } & DefaultSession['user'];
   }
 }
