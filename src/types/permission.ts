@@ -49,12 +49,12 @@ export const permissionSchema = z.object({
  * 그룹 권한
  */
 export const groupPermissionSchema = z.object({
-  group_no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
-  permission_no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
-  is_allowed: z.enum(['Y', 'N']).nullable(),
+  groupNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
+  permissionNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
+  isAllowed: z.enum(['Y', 'N']).nullable(),
   override: z.enum(['Y', 'N']).nullable(),
-  extra_condition: z.string().nullable(),
-  extra_limit: z.string().max(50).nullable(),
+  extraCondition: z.string().nullable(),
+  extraLimit: z.string().max(50).nullable(),
   // created: datetimeSchema.nullable(),
 });
 
@@ -62,11 +62,11 @@ export const groupPermissionSchema = z.object({
  * 그룹 권한 상세 정보 (조회용)
  */
 export const groupPermissionDetailSchema = groupPermissionSchema.extend({
-  group_name: z.string(),
-  parent_group_no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER).nullable(),
-  parent_group_name: z.string().nullable(),
-  permission_name: z.string(),
-  permission_description: z.string(),
+  groupName: z.string(),
+  parentGroupNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER).nullable(),
+  parentGroupName: z.string().nullable(),
+  permissionName: z.string(),
+  permissionDescription: z.string(),
 });
 
 /**
@@ -241,8 +241,8 @@ export const groupPermissionsApiResponseSchema = baseApiResponseSchema.extend({
  */
 export const groupPermissionCreateOrUpdateApiResponseSchema = baseApiResponseSchema.extend({
   data: z.object({
-    group_no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
-    permission_no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
+    groupNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
+    permissionNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
   }),
 });
 

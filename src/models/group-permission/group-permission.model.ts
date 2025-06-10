@@ -102,7 +102,7 @@ export async function insertGroupPermission(dto: GroupPermission, conn?: PoolCon
   const query = `
     INSERT INTO \`groupPermission\` (group_no, permission_no) VALUES (?, ?);
   `;
-  const params = [dto.group_no, dto.permission_no];
+  const params = [dto.groupNo, dto.permissionNo];
   return exec(query, params, conn);
 }
 
@@ -111,7 +111,7 @@ export async function updateGroupPermission(dto: GroupPermission, conn?: PoolCon
   const query = `
     UPDATE \`groupPermission\` SET group_no = ?, permission_no = ? WHERE group_no = ? AND permission_no = ?
   `;
-  const params = [dto.group_no, dto.permission_no, dto.group_no, dto.permission_no];
+  const params = [dto.groupNo, dto.permissionNo, dto.groupNo, dto.permissionNo];
   return exec(query, params, conn);
 }
 

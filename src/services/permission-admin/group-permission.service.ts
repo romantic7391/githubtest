@@ -59,113 +59,107 @@ export async function getGroupPermissionsS(
 }
 
 // 그룹 권한 생성
-export async function createGroupPermissionS(groupPermission: GroupPermission, meta: LogMeta) {
-  let conn;
-  try {
-    // 1. 그룹 권한 생성
-    conn = await beginTransaction();
-    const result = await insertGroupPermission(groupPermission, conn);
+export async function createGroupPermissionS(
+  groupPermission: GroupPermission,
+  meta: { manager_no: number; ip: string; user_agent: string },
+) {
+  console.log('=== createGroupPermissionS Start ===');
+  console.log('Input:', { groupPermission, meta });
 
-    // 2. 로그 기록
+  try {
+    const result = await insertGroupPermission(groupPermission);
+
+    // 로그 기록
     await logAction(
       makeLogParams({
         manager_no: meta.manager_no,
-        ip: meta.ip,
-        user_agent: meta.user_agent,
         action_type: 'I',
         target_table: 'groupPermission',
-        target_id: `${groupPermission.group_no}|${groupPermission.permission_no}`,
-        old_values: JSON.stringify({}),
+        target_id: `${groupPermission.groupNo}|${groupPermission.permissionNo}`,
+        old_values: '',
         new_values: JSON.stringify(groupPermission),
-        reason: `그룹 권한 생성: group_no ${groupPermission.group_no}, permission_no ${groupPermission.permission_no}`,
+        ip: meta.ip,
+        user_agent: meta.user_agent,
+        reason: `그룹 권한 생성: groupNo ${groupPermission.groupNo}, permissionNo ${groupPermission.permissionNo}`,
       }),
-      conn,
     );
 
-    await commitTransaction(conn);
+    console.log('Create Result:', result);
+    console.log('=== createGroupPermissionS End ===');
     return result;
   } catch (error) {
-    if (conn) {
-      await rollbackTransaction(conn);
-    }
+    console.error('Error in createGroupPermissionS:', error);
     throw error;
   }
 }
 
 // 그룹 권한 수정
-export async function updateGroupPermissionS(groupPermission: GroupPermission, meta: LogMeta) {
-  let conn;
+export async function updateGroupPermissionS(
+  groupPermission: GroupPermission,
+  meta: { manager_no: number; ip: string; user_agent: string },
+) {
+  console.log('=== updateGroupPermissionS Start ===');
+  console.log('Input:', { groupPermission, meta });
+
   try {
-    console.log('=== updateGroupPermissionS Start ===');
-    console.log('Input:', { groupPermission, meta });
+    const result = await updateGroupPermission(groupPermission);
 
-    if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
-      groupPermission.group_no = 1;
-      groupPermission.permission_no = 1;
-    }
-
-    // 1. 그룹 권한 수정
-    conn = await beginTransaction();
-    const result = await updateGroupPermission(groupPermission, conn);
-
-    console.log('Update Result:', result);
-
-    // 2. 로그 기록
+    // 로그 기록
     await logAction(
       makeLogParams({
         manager_no: meta.manager_no,
-        ip: meta.ip,
-        user_agent: meta.user_agent,
         action_type: 'U',
         target_table: 'groupPermission',
-        target_id: `${groupPermission.group_no}|${groupPermission.permission_no}`,
-        old_values: JSON.stringify({}),
+        target_id: `${groupPermission.groupNo}|${groupPermission.permissionNo}`,
+        old_values: JSON.stringify(groupPermission),
         new_values: JSON.stringify(groupPermission),
-        reason: `그룹 권한 수정: group_no ${groupPermission.group_no}, permission_no ${groupPermission.permission_no}`,
+        ip: meta.ip,
+        user_agent: meta.user_agent,
+        reason: `그룹 권한 수정: groupNo ${groupPermission.groupNo}, permissionNo ${groupPermission.permissionNo}`,
       }),
-      conn,
     );
 
-    await commitTransaction(conn);
+    console.log('Update Result:', result);
     console.log('=== updateGroupPermissionS End ===');
     return result;
   } catch (error) {
     console.error('Error in updateGroupPermissionS:', error);
-    if (conn) {
-      await rollbackTransaction(conn);
-    }
     throw error;
   }
 }
 
 // 그룹 권한 삭제
-export async function deleteGroupPermissionS(groupNo: number, permissionNo: number, meta: LogMeta) {
-  let conn;
-  try {
-    // 1. 그룹 권한 삭제
-    conn = await beginTransaction();
-    const result = await deleteGroupPermission(groupNo, permissionNo, conn);
+export async function deleteGroupPermissionS(
+  groupNo: number,
+  permissionNo: number,
+  meta: { manager_no: number; ip: string; user_agent: string },
+) {
+  console.log('=== deleteGroupPermissionS Start ===');
+  console.log('Input:', { groupNo, permissionNo, meta });
 
-    // 2. 로그 기록
+  try {
+    const result = await deleteGroupPermission(groupNo, permissionNo);
+
+    // 로그 기록
     await logAction(
       makeLogParams({
         manager_no: meta.manager_no,
-        ip: meta.ip,
-        user_agent: meta.user_agent,
         action_type: 'D',
         target_table: 'groupPermission',
         target_id: `${groupNo}|${permissionNo}`,
-        reason: `그룹 권한 삭제: group_no ${groupNo}, permission_no ${permissionNo}`,
+        old_values: JSON.stringify({ groupNo, permissionNo }),
+        new_values: JSON.stringify({ groupNo, permissionNo, deleted: true }),
+        ip: meta.ip,
+        user_agent: meta.user_agent,
+        reason: `그룹 권한 삭제: groupNo ${groupNo}, permissionNo ${permissionNo}`,
       }),
-      conn,
     );
 
-    await commitTransaction(conn);
+    console.log('Delete Result:', result);
+    console.log('=== deleteGroupPermissionS End ===');
     return result;
   } catch (error) {
-    if (conn) {
-      await rollbackTransaction(conn);
-    }
+    console.error('Error in deleteGroupPermissionS:', error);
     throw error;
   }
 }

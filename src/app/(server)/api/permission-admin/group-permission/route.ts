@@ -198,8 +198,8 @@ export async function PUT(request: NextRequest) {
         message: '그룹 권한 수정 성공',
         status: 200,
         data: {
-          group_no: validatedData.group_no,
-          permission_no: validatedData.permission_no,
+          groupNo: groupPermissionData.groupNo,
+          permissionNo: groupPermissionData.permissionNo,
         },
       }),
     );
@@ -216,9 +216,28 @@ export async function PUT(request: NextRequest) {
  */
 export async function DELETE(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const groupNo = searchParams.get('group_no');
-    const permissionNo = searchParams.get('permission_no');
+    console.log('=== Group Permission DELETE API Start ===');
+
+    if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
+      request.headers.set('x-manager-no', '1');
+    }
+
+    let groupNo: string | null = null;
+    let permissionNo: string | null = null;
+
+    // body에서 파라미터 확인
+    try {
+      const body = await request.json();
+      groupNo = body.groupNo?.toString() || null;
+      permissionNo = body.permissionNo?.toString() || null;
+    } catch {
+      // body가 없는 경우 query string에서 파라미터 확인
+      const { searchParams } = new URL(request.url);
+      groupNo = searchParams.get('groupNo');
+      permissionNo = searchParams.get('permissionNo');
+    }
+
+    console.log('Delete Parameters:', { groupNo, permissionNo });
 
     if (!groupNo || !permissionNo) {
       return NextResponse.json(
@@ -231,6 +250,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     const session = await getSession(request);
+    console.log('Session:', session ? 'Found' : 'Not Found');
 
     if (!session) {
       return NextResponse.json(
@@ -242,7 +262,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const result = await deleteGroupPermissionS(Number(groupNo), Number(permissionNo), {
+    await deleteGroupPermissionS(Number(groupNo), Number(permissionNo), {
       manager_no: session.manager_no,
       ip: request.headers.get('x-forwarded-for') || '',
       user_agent: request.headers.get('user-agent') || '',
@@ -251,10 +271,16 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json(
       groupPermissionCreateOrUpdateApiResponseSchema.parse({
         success: true,
-        data: result,
+        message: '그룹 권한 삭제 성공',
+        status: 200,
+        data: {
+          groupNo: Number(groupNo),
+          permissionNo: Number(permissionNo),
+        },
       }),
     );
   } catch (error) {
+    console.error('Error in Group Permission DELETE API:', error);
     return handleError(error, '그룹 권한 삭제');
   }
 }
