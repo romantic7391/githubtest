@@ -96,12 +96,12 @@ export async function updateManagerGroupS(
 }
 
 // 관리자 그룹 삭제
-export async function deleteManagerGroupS(no: number, group_no: number, meta: LogMeta) {
+export async function deleteManagerGroupS(no: number, groupNo: number, meta: LogMeta) {
   let conn;
   try {
     // 1. 관리자 그룹 삭제
     conn = await beginTransaction();
-    const result = await deleteManagerGroup(no, group_no, conn);
+    const result = await deleteManagerGroup(no, groupNo, conn);
 
     // 2. 로그 기록
     await logAction(
@@ -111,8 +111,10 @@ export async function deleteManagerGroupS(no: number, group_no: number, meta: Lo
         user_agent: meta.user_agent,
         action_type: 'D',
         target_table: 'managerGroup',
-        target_id: `${no}_${group_no}`,
-        reason: `관리자 그룹 삭제: manager_no ${no}, group_no ${group_no}`,
+        target_id: `${no}_${groupNo}`,
+        old_values: JSON.stringify({ no, groupNo }),
+        new_values: JSON.stringify({}),
+        reason: `관리자 그룹 삭제: manager_no ${no}, group_no ${groupNo}`,
       }),
       conn,
     );

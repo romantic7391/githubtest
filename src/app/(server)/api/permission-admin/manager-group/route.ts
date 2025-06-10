@@ -198,17 +198,12 @@ export async function PUT(request: NextRequest) {
  */
 export async function DELETE(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const groupNo = searchParams.get('groupNo');
+    const body = await request.json();
+    const validatedData = managerGroupSchema.parse(body);
 
-    if (!groupNo) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: '그룹 번호는 필수입니다.',
-        } satisfies BaseApiResponse,
-        { status: 400 },
-      );
+    // 개발 환경에서 테스트를 위해 헤더 설정
+    if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
+      request.headers.set('x-manager-no', '1');
     }
 
     const session = await getSession(request);
@@ -224,7 +219,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     const { userAgent, ip } = getClientInfo(request);
-    const result = await deleteManagerGroupS(session.manager_no, Number(groupNo), {
+    await deleteManagerGroupS(validatedData.no, validatedData.groupNo, {
       manager_no: session.manager_no,
       ip,
       user_agent: userAgent,
@@ -234,7 +229,6 @@ export async function DELETE(request: NextRequest) {
       {
         success: true,
         message: '관리자 그룹이 성공적으로 삭제되었습니다.',
-        data: result,
       } satisfies BaseApiResponse,
       { status: 200 },
     );
