@@ -16,6 +16,16 @@ import { AppError } from '@/utils/error.utils';
 export async function getPermissionsS(pagination: Pagination, meta: LogMeta, filters?: { name?: string }) {
   try {
     const result = await findPermissions(pagination, filters);
+
+    // 데이터베이스 필드명을 카멜케이스로 변환
+    const transformedPermissions = result.permissions.map((permission) => ({
+      permissionNo: permission.permission_no,
+      name: permission.name,
+      description: permission.description,
+      defaultExtraCondition: permission.default_extra_condition,
+      defaultExtraLimit: permission.default_extra_limit,
+    }));
+
     // 로그 기록
     await logAction(
       makeLogParams({
@@ -31,8 +41,9 @@ export async function getPermissionsS(pagination: Pagination, meta: LogMeta, fil
         reason: `권한 목록 조회`,
       }),
     );
+
     return {
-      permissions: result.permissions,
+      permissions: transformedPermissions,
       pagination: {
         ...pagination,
         total: result.total,

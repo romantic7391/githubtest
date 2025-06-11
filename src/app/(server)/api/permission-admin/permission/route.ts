@@ -26,10 +26,12 @@ export async function GET(request: NextRequest) {
     const pageSize = Number(searchParams.get('pageSize')) || 10;
     const name = searchParams.get('name') || undefined;
 
-    // 요청 데이터 검증
-    const validatedData = permissionListRequestSchema.parse({ page, pageSize, name });
+    const validatedData = permissionListRequestSchema.parse({
+      page,
+      pageSize,
+      name: name || undefined,
+    });
 
-    // 페이지네이션 데이터 검증
     const pagination = paginationSchema.parse({
       page: validatedData.page,
       pageSize: validatedData.pageSize,
@@ -51,6 +53,7 @@ export async function GET(request: NextRequest) {
         data: result,
         message: '권한 목록을 조회했습니다.',
       }),
+      { status: 200 },
     );
   } catch (error) {
     const zodError = handleZodError(error);

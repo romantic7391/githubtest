@@ -300,7 +300,7 @@ export const permissionFilterSchema = z.object({
   name: z
     .string()
     .max(50, '검색어는 50자를 초과할 수 없습니다.')
-    .regex(/^[a-zA-Z0-9_-]*$/, '검색어는 영문, 숫자, 언더스코어, 하이픈만 사용할 수 있습니다.')
+    .regex(/^[가-힣a-zA-Z0-9_-]*$/, '검색어는 한글, 영문, 숫자, 언더스코어, 하이픈만 사용할 수 있습니다.')
     .optional(),
 });
 
@@ -346,7 +346,7 @@ export const permissionListRequestSchema = z.object({
   name: z
     .string()
     .max(50, '검색어는 50자를 초과할 수 없습니다.')
-    .regex(/^[a-zA-Z0-9_-]*$/, '검색어는 영문, 숫자, 언더스코어, 하이픈만 사용할 수 있습니다.')
+    .regex(/^[가-힣a-zA-Z0-9_\s-]*$/, '검색어는 한글, 영문, 숫자, 언더스코어, 하이픈, 공백만 사용할 수 있습니다.')
     .optional(),
 });
 
@@ -356,11 +356,11 @@ export const permissionResponseSchema = permissionSchema;
 export const permissionListResponseSchema = z.object({
   permissions: z.array(
     z.object({
-      id: z.number(),
-      title: z.string(),
-      desc: z.string().nullable(),
-      condition: z.string().nullable(),
-      limit: z.string().nullable(),
+      permissionNo: z.number(),
+      name: z.string(),
+      description: z.string().nullable(),
+      defaultExtraCondition: z.string().nullable(),
+      defaultExtraLimit: z.string().nullable(),
     }),
   ),
   pagination: paginationSchema,
