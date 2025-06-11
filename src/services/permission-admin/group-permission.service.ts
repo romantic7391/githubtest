@@ -4,7 +4,7 @@ import {
   deleteGroupPermission,
   selectGroupPermission,
 } from '@/models/group-permission/group-permission.model';
-import { GroupPermission } from '@/types/permission';
+import { GroupPermission, CreateGroupPermission } from '@/types/permission';
 import { logAction, makeLogParams } from '@/services/log-action/log-action.service';
 import { beginTransaction, commitTransaction, rollbackTransaction } from '@/lib/mariadb/query';
 import { LogMeta } from '@/types/history';
@@ -60,7 +60,7 @@ export async function getGroupPermissionsS(
 
 // 그룹 권한 생성
 export async function createGroupPermissionS(
-  groupPermission: GroupPermission,
+  groupPermission: CreateGroupPermission,
   meta: { manager_no: number; ip: string; user_agent: string },
 ) {
   console.log('=== createGroupPermissionS Start ===');
@@ -86,7 +86,10 @@ export async function createGroupPermissionS(
 
     console.log('Create Result:', result);
     console.log('=== createGroupPermissionS End ===');
-    return result;
+    return {
+      groupNo: groupPermission.groupNo,
+      permissionNo: groupPermission.permissionNo,
+    };
   } catch (error) {
     console.error('Error in createGroupPermissionS:', error);
     throw error;

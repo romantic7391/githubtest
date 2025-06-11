@@ -109,8 +109,17 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    console.log('=== Group Permission POST API Start ===');
+    if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
+      request.headers.set('x-manager-no', '1');
+    }
+
     const body = await request.json();
+    console.log('Request Body:', body);
+
     const validatedData = createGroupPermissionSchema.parse(body);
+    console.log('Validated Data:', validatedData);
+
     const session = await getSession(request);
 
     if (!session) {
@@ -123,13 +132,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 서비스 함수에 전달할 데이터 변환
-    const groupPermissionData = groupPermissionSchema.parse({
-      ...validatedData,
-      created: null,
-    });
-
-    const result = await createGroupPermissionS(groupPermissionData, {
+    const result = await createGroupPermissionS(validatedData, {
       manager_no: session.manager_no,
       ip: request.headers.get('x-forwarded-for') || '',
       user_agent: request.headers.get('user-agent') || '',
@@ -138,10 +141,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       groupPermissionCreateOrUpdateApiResponseSchema.parse({
         success: true,
-        data: result,
+        data: {
+          groupNo: result.groupNo,
+          permissionNo: result.permissionNo,
+        },
+        message: '그룹 권한이 성공적으로 생성되었습니다.',
       }),
     );
   } catch (error) {
+    console.error('Error in Group Permission POST API:', error);
     const zodError = handleZodError(error);
     if (zodError) return zodError;
     return handleError(error, '그룹 권한 생성');

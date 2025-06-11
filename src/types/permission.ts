@@ -203,26 +203,26 @@ export const groupPermissionFilterSchema = z.object({
  * 그룹 권한 생성 스키마
  */
 export const createGroupPermissionSchema = z.object({
-  group_no: z.number().min(1, '그룹 번호는 필수입니다.').max(Number.MAX_SAFE_INTEGER),
-  permission_no: z.number().min(1, '권한 번호는 필수입니다.').max(Number.MAX_SAFE_INTEGER),
-  is_allowed: z.enum(['Y', 'N']).nullable(),
+  groupNo: z.number().min(1, '그룹 번호는 필수입니다.').max(Number.MAX_SAFE_INTEGER),
+  permissionNo: z.number().min(1, '권한 번호는 필수입니다.').max(Number.MAX_SAFE_INTEGER),
+  isAllowed: z.enum(['Y', 'N']).nullable(),
   override: z.enum(['Y', 'N']).nullable(),
-  extra_condition: z.string().max(50).nullable(),
-  extra_limit: z.string().max(50).nullable(),
+  extraCondition: z.string().max(50).nullable(),
+  extraLimit: z.string().max(50).nullable(),
 });
 
 /**
  * 그룹 권한 수정 스키마
  */
 export const updateGroupPermissionSchema = z.object({
-  group_no: z.number().min(1, '그룹 번호는 필수입니다.').max(Number.MAX_SAFE_INTEGER),
-  permission_no: z.number().min(1, '권한 번호는 필수입니다.').max(Number.MAX_SAFE_INTEGER),
-  is_allowed: z.enum(['Y', 'N']).nullable(),
+  groupNo: z.number().min(1, '그룹 번호는 필수입니다.').max(Number.MAX_SAFE_INTEGER),
+  permissionNo: z.number().min(1, '권한 번호는 필수입니다.').max(Number.MAX_SAFE_INTEGER),
+  isAllowed: z.enum(['Y', 'N']).nullable(),
   override: z.enum(['Y', 'N']).nullable(),
-  extra_condition: z.string().max(50).nullable(),
-  extra_limit: z.string().max(50).nullable(),
-  original_group_no: z.number().min(1, '원래 그룹 번호는 필수입니다.').max(Number.MAX_SAFE_INTEGER),
-  original_permission_no: z.number().min(1, '원래 권한 번호는 필수입니다.').max(Number.MAX_SAFE_INTEGER),
+  extraCondition: z.string().max(50).nullable(),
+  extraLimit: z.string().max(50).nullable(),
+  originalGroupNo: z.number().min(1, '원래 그룹 번호는 필수입니다.').max(Number.MAX_SAFE_INTEGER),
+  originalPermissionNo: z.number().min(1, '원래 권한 번호는 필수입니다.').max(Number.MAX_SAFE_INTEGER),
 });
 
 export const groupPermissionApiResponseSchema = baseApiResponseSchema.extend({
