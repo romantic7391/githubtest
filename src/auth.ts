@@ -1,7 +1,33 @@
-import type { NextAuthConfig, User } from 'next-auth';
+import type { NextAuthConfig } from 'next-auth';
 import type { AdapterUser } from 'next-auth/adapters';
-import NextAuth from 'next-auth';
+import NextAuth, { CredentialsSignin } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
+import { EmptyCredentialsError, UnknownError } from './lib/credential.error';
+import { User } from './types/next-auth';
+
+async function authenticate(signInId: string, password: string) {
+  const requestUrl = new URL('/api/signin', process.env.NEXT_PUBLIC_URL);
+  const response = await fetch(requestUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      signInId,
+      password,
+    }),
+  });
+
+  const { success, message, data } = await response.json();
+
+  if (!success) {
+    const error = new CredentialsSignin();
+    error.code = message;
+    throw error;
+  }
+
+  return data;
+}
 
 export const config: NextAuthConfig = {
   debug: false,
@@ -31,28 +57,23 @@ export const config: NextAuthConfig = {
   providers: [
     CredentialsProvider({
       credentials: {
-        signInId: {},
-        password: {},
+        signInId: { defaultValue: '' },
+        password: { defaultValue: '' },
       },
 
       authorize: async (credentials) => {
         if (!credentials?.signInId || !credentials?.password) {
-          return null;
+          throw new EmptyCredentialsError();
         }
 
-        // TODO: 실제 로그인 로직 구현
-        // 임시로 테스트 계정만 허용
-        if (credentials.signInId === 'test' && credentials.password === 'test') {
-          return {
-            id: '',
-            managerNo: 1,
-            schoolNo: 1,
-            signInId: credentials.signInId,
-            name: '테스트 사용자',
-          } satisfies User;
+        if (typeof credentials.signInId !== 'string' || typeof credentials.password !== 'string') {
+          throw new UnknownError();
         }
 
-        return null;
+        // 여기서 Service 통해서 곧바로 DB 호출 시 에러 발생하여 API 호출로 대체.
+        // Error [TypeError]: Cannot read properties of undefined (reading 'replace')
+        const user = await authenticate(credentials.signInId, credentials.password);
+        return user as User | null;
       },
     }),
   ],
