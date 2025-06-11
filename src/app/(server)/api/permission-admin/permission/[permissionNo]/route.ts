@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth/session';
 import type { BaseApiResponse } from '@/types/common';
-import { Permission, PermissionRouteParams } from '@/types/permission';
+import { Permission, PermissionRouteParams, permissionCreateOrUpdateApiResponseSchema } from '@/types/permission';
 import { handleError, handleZodError } from '@/utils/error.utils';
 import { updatePermissionS, deletePermissionS } from '@/services/permission-admin/permission.service';
-import { permissionCreateOrUpdateApiResponseSchema } from '@/types/permission';
 
 /**
  * 권한 수정
