@@ -10,11 +10,12 @@ export async function findManagerGroups(
   pagination: Pagination,
   filters?: {
     groupNo?: number;
+    schoolNo?: number;
   },
 ): Promise<{ managerGroups: ManagerGroup[]; total: number }> {
   const offset = (pagination.page - 1) * pagination.pageSize;
-  const conditions = ['mg.no = ?', 'mg.deleted IS NULL'];
-  const params: (string | number)[] = [managerNo];
+  const conditions = ['mg.deleted IS NULL'];
+  const params: (string | number)[] = [];
 
   // 선택적 필터: 특정 그룹만 조회하고 싶을 때만 사용
   if (filters?.groupNo) {
@@ -22,37 +23,56 @@ export async function findManagerGroups(
     params.push(filters.groupNo);
   }
 
+  // 학교 번호로 필터링
+  if (filters?.schoolNo) {
+    conditions.push('r.school_no = ?');
+    params.push(filters.schoolNo);
+  }
+
   // 전체 개수 조회
   const countQuery = `
     SELECT COUNT(*) as total
     FROM managerGroup mg
+    JOIN manager m ON mg.no = m.no
+    JOIN \`group\` g ON mg.group_no = g.group_no
+    JOIN rnSchool r ON g.school_no = r.school_no
+    JOIN groupPermission gp ON g.group_no = gp.group_no
+    JOIN permission p ON gp.permission_no = p.permission_no
     WHERE ${conditions.join(' AND ')}
+    AND g.deleted IS NULL
+    AND gp.deleted IS NULL
+    AND p.deleted IS NULL
   `;
   const totalResult = await getRow<{ total: number }>(countQuery, params);
   const total = totalResult?.total || 0;
 
   // 매니저 그룹 목록 조회
   const query = `
-    SELECT 
-      mg.no,
-      mg.group_no as groupNo,
-      g.name as group_name,
-      g.school_no,
-      r.sname as school_name,
-      g.parent_group_no,
-      p.name as parent_group_name,
-      mg.created,
-      mg.updated
-    FROM managerGroup mg
-    INNER JOIN \`group\` g ON mg.group_no = g.group_no
-    LEFT JOIN \`rnSchool\` r ON g.school_no = r.school_no
-    LEFT JOIN \`group\` p ON g.parent_group_no = p.group_no
-    WHERE ${conditions.join(' AND ')}
-    ORDER BY 
-      g.school_no,
-      g.parent_group_no,
-      g.group_no
-    LIMIT ? OFFSET ?
+  SELECT 
+    mg.no as managerNo,
+    m.name as managerName,
+    r.school_no as schoolNo,
+    r.sname as schoolName,
+    g.group_no as groupNo,
+    g.name as groupName,
+    p.permission_no as permissionNo,
+    p.name as permissionName,
+    gp.is_allowed as isAllowed,
+    gp.override as override,
+    gp.extra_condition as extraCondition,
+    gp.extra_limit as extraLimit
+FROM managerGroup mg
+JOIN manager m ON mg.no = m.no
+JOIN \`group\` g ON mg.group_no = g.group_no
+JOIN rnSchool r ON g.school_no = r.school_no
+JOIN groupPermission gp ON g.group_no = gp.group_no
+JOIN permission p ON gp.permission_no = p.permission_no
+WHERE ${conditions.join(' AND ')}
+AND g.deleted IS NULL
+AND gp.deleted IS NULL
+AND p.deleted IS NULL
+ORDER BY mg.no, g.group_no, p.permission_no
+LIMIT ? OFFSET ?
   `;
 
   const managerGroups = await getAll<ManagerGroup>(query, [...params, pagination.pageSize, offset]);

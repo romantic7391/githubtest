@@ -43,13 +43,17 @@ export async function GET(request: NextRequest) {
     const page = Number(searchParams.get('page')) || 1;
     const pageSize = Number(searchParams.get('pageSize')) || 10;
     const groupNo = searchParams.get('groupNo');
+    const schoolNo = searchParams.get('schoolNo');
 
     const pagination = paginationSchema.parse({
       page,
       pageSize,
     });
 
-    const filters = groupNo ? { groupNo: Number(groupNo) } : undefined;
+    const filters = {
+      groupNo: groupNo ? Number(groupNo) : undefined,
+      schoolNo: schoolNo ? Number(schoolNo) : undefined,
+    };
 
     const result = await getManagerGroupsS(session.manager_no, pagination, filters);
     return NextResponse.json(
