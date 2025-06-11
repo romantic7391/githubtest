@@ -26,11 +26,14 @@ export const managerGroupSchema = z.object({
  * 그룹
  */
 export const groupSchema = z.object({
-  group_no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
-  school_no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER).nullable(),
-  name: z.string().min(1, '그룹 이름은 필수입니다.').max(20, '그룹 이름은 20자를 초과할 수 없습니다.'),
-  parent_group_no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER).nullable(),
-  // created: datetimeSchema.nullable(),
+  group_no: z.number(),
+  name: z.string().min(1, '그룹 이름은 필수입니다.').max(50, '그룹 이름은 50자를 초과할 수 없습니다.'),
+  school_no: z.number().nullable(),
+  parent_group_no: z.number().nullable(),
+  school_name: z.string().optional(),
+  parent_group_name: z.string().optional(),
+  created: z.string().optional(),
+  updated: z.string().optional(),
 });
 
 /**
@@ -411,4 +414,55 @@ export const permissionUpdateRequestSchema = z.object({
   description: z.string().nullable(),
   defaultExtraCondition: z.string().nullable(),
   defaultExtraLimit: z.string().nullable(),
+});
+
+// 그룹 관련 타입
+export type GroupRouteParams = {
+  params: {
+    groupNo: string;
+  };
+};
+
+export const groupUpdateRequestSchema = z.object({
+  name: z.string().min(1, '그룹 이름은 필수입니다.').max(50, '그룹 이름은 50자를 초과할 수 없습니다.'),
+  schoolNo: z.number().nullable(),
+  parentGroupNo: z.number().nullable(),
+});
+
+export const groupDeleteResponseSchema = baseApiResponseSchema.extend({
+  data: z.object({
+    groupNo: z.number(),
+  }),
+});
+
+// 그룹 관련 스키마
+export const createGroupRequestSchema = z.object({
+  name: z.string().min(1, '그룹 이름은 필수입니다.').max(50, '그룹 이름은 50자를 초과할 수 없습니다.'),
+  schoolNo: z.number().nullable(),
+  parentGroupNo: z.number().nullable(),
+});
+
+export const groupListRequestSchema = z.object({
+  page: z.number().min(1),
+  pageSize: z.number().min(1),
+  name: z.string().optional(),
+  schoolNo: z.number().nullable().optional(),
+});
+
+export const groupListApiResponseSchema = baseApiResponseSchema.extend({
+  data: z.object({
+    groups: z.array(groupSchema),
+    pagination: z.object({
+      page: z.number(),
+      pageSize: z.number(),
+      total: z.number(),
+      totalPages: z.number(),
+    }),
+  }),
+});
+
+export const groupCreateApiResponseSchema = baseApiResponseSchema.extend({
+  data: z.object({
+    groupNo: z.number(),
+  }),
 });

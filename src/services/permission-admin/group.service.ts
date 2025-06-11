@@ -1,125 +1,144 @@
-import { insertGroup, findGroups } from '@/models/group/group-model';
 import { Group } from '@/types/permission';
 import { logAction, makeLogParams } from '@/services/log-action/log-action.service';
 import { beginTransaction, commitTransaction, rollbackTransaction } from '@/lib/mariadb/query';
-
 import { LogMeta } from '@/types/history';
 import { Pagination } from '@/types/common';
-import { exec, getRow } from '@/lib/mariadb/query';
-
-interface UpdateGroupDto {
-  name?: string;
-  schoolNo?: number | null;
-  parentGroupNo?: number | null;
-}
-
-async function getGroupById(groupNo: number) {
-  const query = 'SELECT * FROM `group` WHERE group_no = ?';
-  return getRow(query, [groupNo]);
-}
-
-async function updateGroupById(groupNo: number, data: UpdateGroupDto) {
-  const query = `
-    UPDATE \`group\`
-    SET name = COALESCE(?, name),
-        school_no = COALESCE(?, school_no),
-        parent_group_no = COALESCE(?, parent_group_no)
-    WHERE group_no = ?
-  `;
-  const params = [data.name ?? null, data.schoolNo ?? null, data.parentGroupNo ?? null, groupNo];
-  return exec(query, params);
-}
+import { AppError } from '@/utils/error.utils';
+import { findGroups, insertGroup, updateGroup, deleteGroup, findGroup } from '@/models/group/group-model';
 
 // 그룹 목록 조회
-export async function getGroupsS(pagination: Pagination, filters?: { name?: string; schoolNo?: number }) {
+export async function getGroupsS(
+  pagination: Pagination,
+  meta: LogMeta,
+  filters?: { name?: string; schoolNo?: number | null },
+) {
+  // let conn;
   try {
-    return await findGroups(pagination, filters);
-  } catch (error) {
-    throw error;
-  }
-}
+    const result = await findGroups(pagination, filters);
 
-// 그룹 생성
-export async function createGroupS(dto: Group, meta: LogMeta) {
-  let conn;
-  try {
-    console.log('Creating group with data:', dto);
-    console.log('Meta data:', meta);
-
-    // 1. 그룹 생성
-    conn = await beginTransaction();
-    console.log('Transaction started');
-
-    const result = await insertGroup(dto, conn);
-    console.log('Group inserted:', result);
-
-    // 2. 로그 기록
-    const logParams = makeLogParams({
-      manager_no: meta.manager_no,
-      ip: meta.ip,
-      user_agent: meta.user_agent,
-      action_type: 'I',
-      target_table: 'group',
-      target_id: result.insertId.toString(),
-      new_values: JSON.stringify(dto),
-      reason: `그룹 생성: ${dto.name}`,
-    });
-    console.log('Log params:', logParams);
-
-    await logAction(logParams, conn);
-    console.log('Action logged');
-
-    await commitTransaction(conn);
-    console.log('Transaction committed');
-
-    return result;
-  } catch (error) {
-    console.error('Error in createGroupS:', error);
-    if (conn) {
-      await rollbackTransaction(conn);
-      console.log('Transaction rolled back');
-    }
-    throw error;
-  }
-}
-
-// 그룹 수정
-export async function updateGroupS(groupNo: number, data: UpdateGroupDto, meta: LogMeta) {
-  let conn;
-  try {
-    // 1. 기존 데이터 조회
-    const oldData = await getGroupById(groupNo);
-    if (!oldData) {
-      throw new Error('그룹을 찾을 수 없습니다.');
-    }
-
-    // 2. 그룹 업데이트
-    conn = await beginTransaction();
-    const result = await updateGroupById(groupNo, data);
-
-    // 3. 로그 기록
+    // 로그 기록
     await logAction(
       makeLogParams({
         manager_no: meta.manager_no,
         ip: meta.ip,
         user_agent: meta.user_agent,
-        action_type: 'U',
+        action_type: 'S',
         target_table: 'group',
-        target_id: groupNo.toString(),
-        old_values: JSON.stringify(oldData),
-        new_values: JSON.stringify({ ...oldData, ...data, updated_at: new Date().toISOString() }),
-        reason: `그룹 수정: group_no ${groupNo}`,
+        target_id: '',
+        old_values: null,
+        new_values: JSON.stringify(result),
+        reason: `그룹 목록 조회`,
+      }),
+    );
+
+    return {
+      groups: result.groups,
+      pagination: {
+        ...pagination,
+        total: result.total,
+        totalPages: Math.ceil(result.total / pagination.pageSize),
+      },
+    };
+  } catch (error) {
+    console.error('그룹 목록 조회 중 오류 발생:', error);
+    throw new AppError('그룹 목록 조회 중 오류가 발생했습니다.', 500, 'GROUP_LIST_ERROR');
+  }
+}
+
+// 그룹 생성
+export async function createGroupS(group: Omit<Group, 'group_no'>, meta: LogMeta): Promise<{ groupNo: number }> {
+  let conn;
+  try {
+    conn = await beginTransaction();
+
+    // 1. 그룹 생성
+    const result = await insertGroup(group, conn);
+
+    // 2. 로그 기록
+    await logAction(
+      makeLogParams({
+        manager_no: meta.manager_no,
+        ip: meta.ip,
+        user_agent: meta.user_agent,
+        action_type: 'I',
+        target_table: 'group',
+        target_id: result.insertId.toString(),
+        old_values: JSON.stringify({}),
+        new_values: JSON.stringify(group),
+        reason: `그룹 생성: ${group.name}`,
       }),
       conn,
     );
 
     await commitTransaction(conn);
-    return result;
+    return {
+      groupNo: result.insertId,
+    };
   } catch (error) {
     if (conn) {
       await rollbackTransaction(conn);
     }
-    throw error;
+    console.error('그룹 생성 중 오류 발생:', error);
+    throw new AppError('그룹 생성 중 오류가 발생했습니다.', 500, 'GROUP_CREATE_ERROR');
+  } finally {
+    if (conn) {
+      try {
+        await conn.release();
+      } catch (error) {
+        console.error('트랜잭션 커넥션 해제 중 오류:', error);
+      }
+    }
+  }
+}
+
+// 그룹 수정
+export async function updateGroupS(group: Group, meta: LogMeta): Promise<{ groupNo: number }> {
+  let conn;
+  try {
+    conn = await beginTransaction();
+
+    // 1. 그룹 존재 여부 확인
+    const existingGroup = await findGroup(group.group_no);
+    if (!existingGroup) {
+      throw new AppError('존재하지 않는 그룹입니다.', 404, 'GROUP_NOT_FOUND');
+    }
+
+    // 2. 그룹 수정
+    await updateGroup(group, conn);
+
+    // 3. 로그 기록
+    await logAction(
+      makeLogParams({
+        ...meta,
+        action_type: 'U',
+        target_table: 'group',
+        target_id: group.group_no.toString(),
+        old_values: JSON.stringify(existingGroup),
+        new_values: JSON.stringify(group),
+        reason: `그룹 수정: ${group.name}`,
+      }),
+      conn,
+    );
+
+    await commitTransaction(conn);
+    return { groupNo: group.group_no };
+  } catch (error) {
+    if (conn) {
+      await rollbackTransaction(conn);
+    }
+    if (error instanceof AppError) {
+      throw error;
+    }
+    console.error('그룹 수정 중 오류 발생:', error);
+    throw new AppError('그룹 수정 중 오류가 발생했습니다.', 500, 'GROUP_UPDATE_ERROR');
+  } finally {
+    if (conn) {
+      try {
+        await conn.release();
+      } catch (error) {
+        console.error('트랜잭션 커넥션 해제 중 오류:', error);
+      }
+    }
   }
 }
 
@@ -127,32 +146,48 @@ export async function updateGroupS(groupNo: number, data: UpdateGroupDto, meta: 
 export async function deleteGroupS(groupNo: number, meta: LogMeta) {
   let conn;
   try {
-    // 1. 그룹 삭제
     conn = await beginTransaction();
-    const result = await exec('DELETE FROM `group` WHERE group_no = ?', [groupNo]);
 
-    // 2. 로그 기록
+    // 1. 그룹 존재 여부 확인
+    const existingGroup = await findGroup(groupNo);
+    if (!existingGroup) {
+      throw new AppError('존재하지 않는 그룹입니다.', 404, 'GROUP_NOT_FOUND');
+    }
+
+    // 2. 그룹 삭제
+    await deleteGroup(groupNo, conn);
+
+    // 3. 로그 기록
     await logAction(
       makeLogParams({
-        manager_no: meta.manager_no,
-        ip: meta.ip,
-        user_agent: meta.user_agent,
+        ...meta,
         action_type: 'D',
         target_table: 'group',
         target_id: groupNo.toString(),
-        new_values: JSON.stringify({ group_no: groupNo, deleted: new Date().toISOString() }),
-        old_values: '',
-        reason: `그룹 삭제: group_no ${groupNo}`,
+        old_values: JSON.stringify(existingGroup),
+        new_values: null,
+        reason: `그룹 삭제: ${existingGroup.name}`,
       }),
       conn,
     );
 
     await commitTransaction(conn);
-    return result;
   } catch (error) {
     if (conn) {
       await rollbackTransaction(conn);
     }
-    throw error;
+    if (error instanceof AppError) {
+      throw error;
+    }
+    console.error('그룹 삭제 중 오류 발생:', error);
+    throw new AppError('그룹 삭제 중 오류가 발생했습니다.', 500, 'GROUP_DELETE_ERROR');
+  } finally {
+    if (conn) {
+      try {
+        await conn.release();
+      } catch (error) {
+        console.error('트랜잭션 커넥션 해제 중 오류:', error);
+      }
+    }
   }
 }
