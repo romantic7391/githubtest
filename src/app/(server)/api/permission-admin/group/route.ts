@@ -7,7 +7,6 @@ import {
   groupCreateApiResponseSchema,
   createGroupRequestSchema,
 } from '@/types/permission';
-// import {groupListApiResponseSchema, groupCreateApiResponseSchema } from '@/types/permission';
 
 import { handleError, handleZodError } from '@/utils/error.utils';
 import { getGroupsS, createGroupS } from '@/services/permission-admin/group.service';
