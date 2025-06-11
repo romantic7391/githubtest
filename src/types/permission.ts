@@ -37,15 +37,11 @@ export const groupSchema = z.object({
  * 권한
  */
 export const permissionSchema = z.object({
-  permission_no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
-  name: z
-    .string()
-    .min(1, '권한 이름은 필수입니다.')
-    .max(50, '권한 이름은 50자를 초과할 수 없습니다.')
-    .regex(/^[a-zA-Z0-9_-]+$/, '권한 이름은 영문, 숫자, 언더스코어, 하이픈만 사용할 수 있습니다.'),
-  description: z.string().max(200, '설명은 200자를 초과할 수 없습니다.').nullable(),
-  defaultExtraCondition: z.string().max(50, '추가 조건은 50자를 초과할 수 없습니다.').nullable(),
-  defaultExtraLimit: z.string().max(50, '추가 제한은 50자를 초과할 수 없습니다.').nullable(),
+  permission_no: z.number(),
+  name: z.string(),
+  description: z.string().nullable(),
+  default_extra_condition: z.string().nullable(),
+  default_extra_limit: z.string().nullable(),
   // created: datetimeSchema.nullable(),
 });
 
@@ -95,8 +91,8 @@ export const updateGroupSchema = createGroupSchema.extend({
 export const createPermissionSchema = permissionSchema.pick({
   name: true,
   description: true,
-  defaultExtraCondition: true,
-  defaultExtraLimit: true,
+  default_extra_condition: true,
+  default_extra_limit: true,
 });
 
 /**
@@ -336,8 +332,8 @@ export type PermissionRouteParams = z.infer<typeof permissionRouteParamsSchema>;
 export const createPermissionRequestSchema = permissionSchema.pick({
   name: true,
   description: true,
-  defaultExtraCondition: true,
-  defaultExtraLimit: true,
+  default_extra_condition: true,
+  default_extra_limit: true,
 });
 
 export const updatePermissionRequestSchema = createPermissionRequestSchema.extend({
@@ -358,13 +354,19 @@ export const permissionListRequestSchema = z.object({
 export const permissionResponseSchema = permissionSchema;
 
 export const permissionListResponseSchema = z.object({
-  permissions: permissionSchema.array(),
+  permissions: z.array(
+    z.object({
+      id: z.number(),
+      title: z.string(),
+      desc: z.string().nullable(),
+      condition: z.string().nullable(),
+      limit: z.string().nullable(),
+    }),
+  ),
   pagination: paginationSchema,
 });
 
-export const permissionCreateResponseSchema = z.object({
-  permissionNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
-});
+export const permissionCreateResponseSchema = z.object({});
 
 export const permissionUpdateResponseSchema = permissionCreateResponseSchema;
 
@@ -375,8 +377,8 @@ export const permissionListApiResponseSchema = baseApiResponseSchema.extend({
   data: permissionListResponseSchema,
 });
 
-export const permissionCreateApiResponseSchema = baseApiResponseSchema.extend({
-  data: permissionCreateResponseSchema,
+export const permissionCreateApiResponseSchema = baseApiResponseSchema.omit({
+  data: true,
 });
 
 export const permissionUpdateApiResponseSchema = baseApiResponseSchema.extend({

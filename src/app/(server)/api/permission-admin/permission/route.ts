@@ -4,10 +4,10 @@ import { Permission } from '@/types/permission';
 import { handleError, handleZodError } from '@/utils/error.utils';
 import { getPermissionsS, createPermissionS } from '@/services/permission-admin/permission.service';
 import {
-  permissionCreateOrUpdateApiResponseSchema,
-  createPermissionSchema,
-  permissionsApiResponseSchema,
-  permissionFilterSchema,
+  createPermissionRequestSchema,
+  permissionListRequestSchema,
+  permissionListApiResponseSchema,
+  permissionCreateApiResponseSchema,
 } from '@/types/permission';
 import { paginationSchema } from '@/types/common';
 
@@ -16,21 +16,9 @@ import { paginationSchema } from '@/types/common';
  */
 export async function GET(request: NextRequest) {
   try {
-    // 개발 환경에서 테스트를 위해 헤더 설정
-    if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
-      request.headers.set('x-manager-no', '1');
-    }
-
     const session = await getSession(request);
-
     if (!session) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: '인증되지 않은 요청입니다.',
-        },
-        { status: 401 },
-      );
+      return NextResponse.json({ success: false, message: '인증되지 않은 요청입니다.' }, { status: 401 });
     }
 
     const searchParams = request.nextUrl.searchParams;
@@ -38,14 +26,13 @@ export async function GET(request: NextRequest) {
     const pageSize = Number(searchParams.get('pageSize')) || 10;
     const name = searchParams.get('name') || undefined;
 
-    const pagination = paginationSchema.parse({
-      page,
-      pageSize,
-    });
+    // 요청 데이터 검증
+    const validatedData = permissionListRequestSchema.parse({ page, pageSize, name });
 
-    // 필터 검증
-    const filters = permissionFilterSchema.parse({
-      name,
+    // 페이지네이션 데이터 검증
+    const pagination = paginationSchema.parse({
+      page: validatedData.page,
+      pageSize: validatedData.pageSize,
     });
 
     const result = await getPermissionsS(
@@ -55,16 +42,15 @@ export async function GET(request: NextRequest) {
         ip: request.headers.get('x-forwarded-for') || '',
         user_agent: request.headers.get('user-agent') || '',
       },
-      filters,
+      { name: validatedData.name },
     );
 
     return NextResponse.json(
-      permissionsApiResponseSchema.parse({
+      permissionListApiResponseSchema.parse({
         success: true,
         data: result,
         message: '권한 목록을 조회했습니다.',
       }),
-      { status: 200 },
     );
   } catch (error) {
     const zodError = handleZodError(error);
@@ -83,20 +69,13 @@ export async function POST(request: NextRequest) {
       request.headers.set('x-manager-no', '1');
     }
 
-    const body = await request.json();
-    const validatedData = createPermissionSchema.parse(body);
-
     const session = await getSession(request);
-
     if (!session) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: '인증되지 않은 요청입니다.',
-        },
-        { status: 401 },
-      );
+      return NextResponse.json({ success: false, message: '인증되지 않은 요청입니다.' }, { status: 401 });
     }
+
+    const body = await request.json();
+    const validatedData = createPermissionRequestSchema.parse(body);
 
     const permissionData: Permission = {
       ...validatedData,
@@ -110,7 +89,7 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(
-      permissionCreateOrUpdateApiResponseSchema.parse({
+      permissionCreateApiResponseSchema.parse({
         success: true,
         data: result,
         message: '권한이 성공적으로 생성되었습니다.',
