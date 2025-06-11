@@ -100,18 +100,45 @@ export async function selectGroupPermission(
 // 그룹 권한 추가
 export async function insertGroupPermission(dto: GroupPermission, conn?: PoolConnection) {
   const query = `
-    INSERT INTO \`groupPermission\` (group_no, permission_no) VALUES (?, ?);
+    INSERT INTO \`groupPermission\` (
+      group_no, 
+      permission_no,
+      is_allowed,
+      override,
+      extra_condition,
+      extra_limit
+    ) VALUES (?, ?, ?, ?, ?, ?);
   `;
-  const params = [dto.groupNo, dto.permissionNo];
+  const params = [dto.groupNo, dto.permissionNo, dto.isAllowed, dto.override, dto.extraCondition, dto.extraLimit];
   return exec(query, params, conn);
 }
 
 // 그룹 권한 수정
-export async function updateGroupPermission(dto: GroupPermission, conn?: PoolConnection) {
+export async function updateGroupPermission(
+  dto: GroupPermission,
+  original: { originalGroupNo: number; originalPermissionNo: number },
+  conn?: PoolConnection,
+) {
   const query = `
-    UPDATE \`groupPermission\` SET group_no = ?, permission_no = ? WHERE group_no = ? AND permission_no = ?
+    UPDATE \`groupPermission\` 
+    SET group_no = ?, 
+        permission_no = ?,
+        is_allowed = ?,
+        override = ?,
+        extra_condition = ?,
+        extra_limit = ?
+    WHERE group_no = ? AND permission_no = ?
   `;
-  const params = [dto.groupNo, dto.permissionNo, dto.groupNo, dto.permissionNo];
+  const params = [
+    dto.groupNo,
+    dto.permissionNo,
+    dto.isAllowed,
+    dto.override,
+    dto.extraCondition,
+    dto.extraLimit,
+    original.originalGroupNo,
+    original.originalPermissionNo,
+  ];
   return exec(query, params, conn);
 }
 

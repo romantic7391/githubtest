@@ -11,7 +11,6 @@ import {
   createGroupPermissionSchema,
   updateGroupPermissionSchema,
   groupPermissionCreateOrUpdateApiResponseSchema,
-  groupPermissionSchema,
   groupPermissionsApiResponseSchema,
   groupPermissionFilterSchema,
 } from '@/types/permission';
@@ -186,18 +185,23 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // 서비스 함수에 전달할 데이터 변환
-    const groupPermissionData = groupPermissionSchema.parse({
-      ...validatedData,
-      created: null,
-    });
-    console.log('Group Permission Data:', groupPermissionData);
-
-    const result = await updateGroupPermissionS(groupPermissionData, {
-      manager_no: session.manager_no,
-      ip: request.headers.get('x-forwarded-for') || '',
-      user_agent: request.headers.get('user-agent') || '',
-    });
+    const result = await updateGroupPermissionS(
+      {
+        groupNo: validatedData.groupNo,
+        permissionNo: validatedData.permissionNo,
+        isAllowed: validatedData.isAllowed,
+        override: validatedData.override,
+        extraCondition: validatedData.extraCondition,
+        extraLimit: validatedData.extraLimit,
+        originalGroupNo: validatedData.originalGroupNo,
+        originalPermissionNo: validatedData.originalPermissionNo,
+      },
+      {
+        manager_no: session.manager_no,
+        ip: request.headers.get('x-forwarded-for') || '',
+        user_agent: request.headers.get('user-agent') || '',
+      },
+    );
     console.log('Update Result:', result);
 
     return NextResponse.json(
@@ -206,8 +210,8 @@ export async function PUT(request: NextRequest) {
         message: '그룹 권한 수정 성공',
         status: 200,
         data: {
-          groupNo: groupPermissionData.groupNo,
-          permissionNo: groupPermissionData.permissionNo,
+          groupNo: validatedData.groupNo,
+          permissionNo: validatedData.permissionNo,
         },
       }),
     );

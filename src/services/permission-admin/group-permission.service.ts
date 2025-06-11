@@ -4,7 +4,7 @@ import {
   deleteGroupPermission,
   selectGroupPermission,
 } from '@/models/group-permission/group-permission.model';
-import { GroupPermission, CreateGroupPermission } from '@/types/permission';
+import { CreateGroupPermission, UpdateGroupPermission } from '@/types/permission';
 import { logAction, makeLogParams } from '@/services/log-action/log-action.service';
 import { beginTransaction, commitTransaction, rollbackTransaction } from '@/lib/mariadb/query';
 import { LogMeta } from '@/types/history';
@@ -98,14 +98,27 @@ export async function createGroupPermissionS(
 
 // 그룹 권한 수정
 export async function updateGroupPermissionS(
-  groupPermission: GroupPermission,
+  groupPermission: UpdateGroupPermission,
   meta: { manager_no: number; ip: string; user_agent: string },
 ) {
   console.log('=== updateGroupPermissionS Start ===');
   console.log('Input:', { groupPermission, meta });
 
   try {
-    const result = await updateGroupPermission(groupPermission);
+    const result = await updateGroupPermission(
+      {
+        groupNo: groupPermission.groupNo,
+        permissionNo: groupPermission.permissionNo,
+        isAllowed: groupPermission.isAllowed,
+        override: groupPermission.override,
+        extraCondition: groupPermission.extraCondition,
+        extraLimit: groupPermission.extraLimit,
+      },
+      {
+        originalGroupNo: groupPermission.originalGroupNo,
+        originalPermissionNo: groupPermission.originalPermissionNo,
+      },
+    );
 
     // 로그 기록
     await logAction(
@@ -113,18 +126,31 @@ export async function updateGroupPermissionS(
         manager_no: meta.manager_no,
         action_type: 'U',
         target_table: 'groupPermission',
-        target_id: `${groupPermission.groupNo}|${groupPermission.permissionNo}`,
-        old_values: JSON.stringify(groupPermission),
-        new_values: JSON.stringify(groupPermission),
+        target_id: `${groupPermission.originalGroupNo}|${groupPermission.originalPermissionNo}`,
+        old_values: JSON.stringify({
+          groupNo: groupPermission.originalGroupNo,
+          permissionNo: groupPermission.originalPermissionNo,
+        }),
+        new_values: JSON.stringify({
+          groupNo: groupPermission.groupNo,
+          permissionNo: groupPermission.permissionNo,
+          isAllowed: groupPermission.isAllowed,
+          override: groupPermission.override,
+          extraCondition: groupPermission.extraCondition,
+          extraLimit: groupPermission.extraLimit,
+        }),
         ip: meta.ip,
         user_agent: meta.user_agent,
-        reason: `그룹 권한 수정: groupNo ${groupPermission.groupNo}, permissionNo ${groupPermission.permissionNo}`,
+        reason: `그룹 권한 수정: groupNo ${groupPermission.originalGroupNo}->${groupPermission.groupNo}, permissionNo ${groupPermission.originalPermissionNo}->${groupPermission.permissionNo}`,
       }),
     );
 
     console.log('Update Result:', result);
     console.log('=== updateGroupPermissionS End ===');
-    return result;
+    return {
+      groupNo: groupPermission.groupNo,
+      permissionNo: groupPermission.permissionNo,
+    };
   } catch (error) {
     console.error('Error in updateGroupPermissionS:', error);
     throw error;
