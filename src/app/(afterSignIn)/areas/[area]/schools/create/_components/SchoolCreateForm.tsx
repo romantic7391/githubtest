@@ -40,7 +40,6 @@ export default function SchoolCreateForm() {
         if (error) return showError(error);
       },
       scode: (value) => {
-        console.log('scode', schoolCreateSchema.shape.scode.maxLength);
         const { error } = schoolCreateSchema.shape.scode.safeParse(value);
         if (error) return showError(error);
       },
@@ -50,6 +49,10 @@ export default function SchoolCreateForm() {
       },
       administrationCode: (value) => {
         const { error } = schoolCreateSchema.shape.administrationCode.safeParse(value === '' ? null : value);
+        if (error) return showError(error);
+      },
+      modbus: (value) => {
+        const { error } = schoolCreateSchema.shape.modbus.safeParse(Number(value));
         if (error) return showError(error);
       },
       modbusHost: (value) => {
@@ -62,6 +65,14 @@ export default function SchoolCreateForm() {
       },
       parentNo: (value) => {
         const { error } = schoolCreateSchema.shape.parentNo.safeParse(value === '' ? null : value);
+        if (error) return showError(error);
+      },
+      useOrderSheet: (value) => {
+        const { error } = schoolCreateSchema.shape.useOrderSheet.safeParse(value);
+        if (error) return showError(error);
+      },
+      active: (value) => {
+        const { error } = schoolCreateSchema.shape.active.safeParse(value);
         if (error) return showError(error);
       },
     },

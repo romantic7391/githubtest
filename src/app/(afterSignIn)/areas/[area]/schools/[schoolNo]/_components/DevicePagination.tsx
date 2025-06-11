@@ -24,9 +24,16 @@ export default function DevicePagination({
           { value: '20', label: '20개 씩 보기' },
           { value: '50', label: '50개 씩 보기' },
           { value: '100', label: '100개 씩 보기' },
+          { value: 'Infinity', label: '전체 보기' },
         ]}
         value={pageSize.toString()}
-        onChange={(value) => setPageSize(Number(value))}
+        onChange={(value) => {
+          if (value === 'Infinity') {
+            setPageSize(Number.MAX_SAFE_INTEGER);
+          } else {
+            setPageSize(Number(value));
+          }
+        }}
       />
     </Group>
   );
