@@ -311,4 +311,13 @@ export const routeParamsSchema = z.object({
   ),
 });
 
+export const permissionRouteParamsSchema = z.object({
+  params: z.promise(
+    z.object({
+      permissionNo: z.string(),
+    }),
+  ),
+});
+
 export type RouteParams = z.infer<typeof routeParamsSchema>;
+export type PermissionRouteParams = z.infer<typeof permissionRouteParamsSchema>;

@@ -75,7 +75,7 @@ export async function checkPermission(
   console.log('검증된 그룹 목록:', validatedGroups);
 
   for (const managerGroup of validatedGroups) {
-    let currentGroupNo = managerGroup.group_no;
+    let currentGroupNo = managerGroup.groupNo;
     let allowFound = false;
     let overrideFound = false;
     const extraConditions: string[] = [];
@@ -99,22 +99,22 @@ export async function checkPermission(
         console.log('그룹 권한 정보:', {
           groupNo: currentGroupNo,
           permissionNo: permission.permission_no,
-          isAllowed: validatedGroupPermission.is_allowed,
+          isAllowed: validatedGroupPermission.isAllowed,
           override: validatedGroupPermission.override,
         });
 
         // Deny 우선 원칙: N을 만나면 즉시 권한 거부
-        if (validatedGroupPermission.is_allowed === 'N') {
+        if (validatedGroupPermission.isAllowed === 'N') {
           console.log('권한 거부 발견:', { groupNo: currentGroupNo });
           return { allowed: 'N', override: null, extraCondition: null };
         }
-        if (validatedGroupPermission.is_allowed === 'Y') {
+        if (validatedGroupPermission.isAllowed === 'Y') {
           allowFound = true;
           if (validatedGroupPermission.override === 'Y') {
             overrideFound = true;
           }
-          if (validatedGroupPermission.extra_condition) {
-            extraConditions.push(validatedGroupPermission.extra_condition);
+          if (validatedGroupPermission.extraCondition) {
+            extraConditions.push(validatedGroupPermission.extraCondition);
           }
         }
       }

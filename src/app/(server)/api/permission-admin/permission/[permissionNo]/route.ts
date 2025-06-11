@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth/session';
 import type { BaseApiResponse } from '@/types/common';
-import { Permission } from '@/types/permission';
+import { Permission, PermissionRouteParams } from '@/types/permission';
 import { handleError, handleZodError } from '@/utils/error.utils';
 import { updatePermissionS, deletePermissionS } from '@/services/permission-admin/permission.service';
 import { permissionCreateOrUpdateApiResponseSchema } from '@/types/permission';
@@ -9,10 +9,10 @@ import { permissionCreateOrUpdateApiResponseSchema } from '@/types/permission';
 /**
  * 권한 수정
  */
-export async function PUT(request: NextRequest, context: { params: { permissionNo: string } }) {
+export async function PUT(request: NextRequest, context: PermissionRouteParams) {
   try {
-    const params = await context.params;
-    const permissionNoNum = Number(params.permissionNo);
+    const { permissionNo } = await context.params;
+    const permissionNoNum = Number(permissionNo);
     const body = await request.json();
 
     // 개발 환경에서 테스트를 위해 헤더 설정
@@ -61,10 +61,10 @@ export async function PUT(request: NextRequest, context: { params: { permissionN
 /**
  * 권한 삭제
  */
-export async function DELETE(request: NextRequest, context: { params: { permissionNo: string } }) {
+export async function DELETE(request: NextRequest, context: PermissionRouteParams) {
   try {
-    const params = await context.params;
-    const permissionNoNum = Number(params.permissionNo);
+    const { permissionNo } = await context.params;
+    const permissionNoNum = Number(permissionNo);
 
     // 개발 환경에서 테스트를 위해 헤더 설정
     if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {

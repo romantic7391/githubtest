@@ -5,7 +5,7 @@ import {
   findPermissions,
   findPermission,
 } from '@/models/permission/permission.model';
-import { Permission, PermissionCreateOrUpdateResponse } from '@/types/permission';
+import { Permission } from '@/types/permission';
 import { logAction, makeLogParams } from '@/services/log-action/log-action.service';
 import { beginTransaction, commitTransaction, rollbackTransaction } from '@/lib/mariadb/query';
 import { LogMeta } from '@/types/history';
@@ -45,10 +45,7 @@ export async function getPermissionsS(pagination: Pagination, meta: LogMeta, fil
 }
 
 // 권한 생성
-export async function createPermissionS(
-  permission: Permission,
-  meta: LogMeta,
-): Promise<PermissionCreateOrUpdateResponse> {
+export async function createPermissionS(permission: Permission, meta: LogMeta): Promise<{ permissionNo: number }> {
   let conn;
   try {
     // 1. 권한 생성
@@ -75,8 +72,6 @@ export async function createPermissionS(
     await commitTransaction(conn);
     return {
       permissionNo: result.insertId,
-      name: permission.name,
-      description: permission.description,
     };
   } catch (error) {
     if (conn) {
@@ -88,10 +83,7 @@ export async function createPermissionS(
 }
 
 // 권한 수정
-export async function updatePermissionS(
-  permission: Permission,
-  meta: LogMeta,
-): Promise<PermissionCreateOrUpdateResponse> {
+export async function updatePermissionS(permission: Permission, meta: LogMeta): Promise<{ permissionNo: number }> {
   let conn;
   try {
     // 1. 권한 수정
@@ -117,8 +109,6 @@ export async function updatePermissionS(
     await commitTransaction(conn);
     return {
       permissionNo: permission.permission_no,
-      name: permission.name,
-      description: permission.description,
     };
   } catch (error) {
     if (conn) {
@@ -165,7 +155,7 @@ export async function deletePermissionS(permissionNo: number, meta: LogMeta) {
 }
 
 // 권한 조회
-export async function getPermissionS(permissionNo: number, meta: LogMeta): Promise<PermissionCreateOrUpdateResponse> {
+export async function getPermissionS(permissionNo: number, meta: LogMeta): Promise<{ permissionNo: number }> {
   try {
     const permission = await findPermission(permissionNo);
     if (!permission) {
@@ -189,8 +179,6 @@ export async function getPermissionS(permissionNo: number, meta: LogMeta): Promi
 
     return {
       permissionNo: permission.permission_no,
-      name: permission.name,
-      description: permission.description,
     };
   } catch (error) {
     console.error('권한 조회 중 오류 발생:', error);
