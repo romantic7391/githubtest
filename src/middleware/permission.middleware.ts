@@ -47,7 +47,7 @@ function matchPath(pattern: string, path: string): Record<string, string> | null
  */
 export async function checkPermissionMiddleware(
   request: NextRequest,
-  { params }: { params: Promise<{ schoolNo: number | null; area: string | null }> },
+  { params }: { params: Promise<{ schoolNo?: number | null; area?: string | null; permissionNo?: number }> },
 ): Promise<NextResponse | null> {
   try {
     // 1. 세션 체크

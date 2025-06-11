@@ -48,7 +48,6 @@ export const config: NextAuthConfig = {
             managerNo: 1,
             schoolNo: 1,
             signInId: credentials.signInId,
-            schoolType: 'test',
             name: '테스트 사용자',
           } satisfies User;
         }
