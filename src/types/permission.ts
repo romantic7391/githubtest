@@ -28,7 +28,7 @@ export const managerGroupSchema = z.object({
 export const groupSchema = z.object({
   group_no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
   school_no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER).nullable(),
-  name: z.string().max(20).optional(),
+  name: z.string().min(1, '그룹 이름은 필수입니다.').max(20, '그룹 이름은 20자를 초과할 수 없습니다.'),
   parent_group_no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER).nullable(),
   // created: datetimeSchema.nullable(),
 });
@@ -38,10 +38,14 @@ export const groupSchema = z.object({
  */
 export const permissionSchema = z.object({
   permission_no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
-  name: z.string().min(1, '권한 이름은 필수입니다.').max(50),
-  description: z.string().max(200).nullable(),
-  defaultExtraCondition: z.string().max(50).nullable(),
-  defaultExtraLimit: z.string().max(50).nullable(),
+  name: z
+    .string()
+    .min(1, '권한 이름은 필수입니다.')
+    .max(50, '권한 이름은 50자를 초과할 수 없습니다.')
+    .regex(/^[a-zA-Z0-9_-]+$/, '권한 이름은 영문, 숫자, 언더스코어, 하이픈만 사용할 수 있습니다.'),
+  description: z.string().max(200, '설명은 200자를 초과할 수 없습니다.').nullable(),
+  defaultExtraCondition: z.string().max(50, '추가 조건은 50자를 초과할 수 없습니다.').nullable(),
+  defaultExtraLimit: z.string().max(50, '추가 제한은 50자를 초과할 수 없습니다.').nullable(),
   // created: datetimeSchema.nullable(),
 });
 
@@ -53,7 +57,7 @@ export const groupPermissionSchema = z.object({
   permissionNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
   isAllowed: z.enum(['Y', 'N']).nullable(),
   override: z.enum(['Y', 'N']).nullable(),
-  extraCondition: z.string().nullable(),
+  extraCondition: z.string().max(50).nullable(),
   extraLimit: z.string().max(50).nullable(),
   // created: datetimeSchema.nullable(),
 });
@@ -296,7 +300,13 @@ export type PermissionCreateOrUpdateResponse = z.infer<typeof permissionCreateOr
 /**
  * 권한 검색 필터 스키마
  */
-export const permissionFilterSchema = permissionSchema.pick({ name: true });
+export const permissionFilterSchema = z.object({
+  name: z
+    .string()
+    .max(50, '검색어는 50자를 초과할 수 없습니다.')
+    .regex(/^[a-zA-Z0-9_-]*$/, '검색어는 영문, 숫자, 언더스코어, 하이픈만 사용할 수 있습니다.')
+    .optional(),
+});
 
 export type PermissionFilter = z.infer<typeof permissionFilterSchema>;
 
@@ -321,3 +331,68 @@ export const permissionRouteParamsSchema = z.object({
 
 export type RouteParams = z.infer<typeof routeParamsSchema>;
 export type PermissionRouteParams = z.infer<typeof permissionRouteParamsSchema>;
+
+// 2. API 요청 스키마
+export const createPermissionRequestSchema = permissionSchema.pick({
+  name: true,
+  description: true,
+  defaultExtraCondition: true,
+  defaultExtraLimit: true,
+});
+
+export const updatePermissionRequestSchema = createPermissionRequestSchema.extend({
+  permission_no: z.number().min(1, '권한 번호는 필수입니다.').max(Number.MAX_SAFE_INTEGER),
+});
+
+export const permissionListRequestSchema = z.object({
+  page: z.number().min(1, '페이지는 1 이상이어야 합니다.'),
+  pageSize: z.number().min(1, '페이지 크기는 1 이상이어야 합니다.').max(100, '페이지 크기는 100을 초과할 수 없습니다.'),
+  name: z
+    .string()
+    .max(50, '검색어는 50자를 초과할 수 없습니다.')
+    .regex(/^[a-zA-Z0-9_-]*$/, '검색어는 영문, 숫자, 언더스코어, 하이픈만 사용할 수 있습니다.')
+    .optional(),
+});
+
+// 3. API 응답 스키마
+export const permissionResponseSchema = permissionSchema;
+
+export const permissionListResponseSchema = z.object({
+  permissions: permissionSchema.array(),
+  pagination: paginationSchema,
+});
+
+export const permissionCreateResponseSchema = z.object({
+  permissionNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
+});
+
+export const permissionUpdateResponseSchema = permissionCreateResponseSchema;
+
+export const permissionDeleteResponseSchema = z.object({});
+
+// 4. API 응답 래퍼 스키마
+export const permissionListApiResponseSchema = baseApiResponseSchema.extend({
+  data: permissionListResponseSchema,
+});
+
+export const permissionCreateApiResponseSchema = baseApiResponseSchema.extend({
+  data: permissionCreateResponseSchema,
+});
+
+export const permissionUpdateApiResponseSchema = baseApiResponseSchema.extend({
+  data: permissionUpdateResponseSchema,
+});
+
+export const permissionDeleteApiResponseSchema = baseApiResponseSchema.extend({
+  data: permissionDeleteResponseSchema,
+});
+
+// 5. 타입 export
+export type CreatePermissionRequest = z.infer<typeof createPermissionRequestSchema>;
+export type UpdatePermissionRequest = z.infer<typeof updatePermissionRequestSchema>;
+export type PermissionListRequest = z.infer<typeof permissionListRequestSchema>;
+export type PermissionResponse = z.infer<typeof permissionResponseSchema>;
+export type PermissionListResponse = z.infer<typeof permissionListResponseSchema>;
+export type PermissionCreateResponse = z.infer<typeof permissionCreateResponseSchema>;
+export type PermissionUpdateResponse = z.infer<typeof permissionUpdateResponseSchema>;
+export type PermissionDeleteResponse = z.infer<typeof permissionDeleteResponseSchema>;

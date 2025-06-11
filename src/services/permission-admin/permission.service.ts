@@ -10,6 +10,7 @@ import { logAction, makeLogParams } from '@/services/log-action/log-action.servi
 import { beginTransaction, commitTransaction, rollbackTransaction } from '@/lib/mariadb/query';
 import { LogMeta } from '@/types/history';
 import { Pagination } from '@/types/common';
+import { AppError } from '@/utils/error.utils';
 
 // 권한 목록 조회
 export async function getPermissionsS(pagination: Pagination, meta: LogMeta, filters?: { name?: string }) {
@@ -86,20 +87,25 @@ export async function createPermissionS(permission: Permission, meta: LogMeta): 
 export async function updatePermissionS(permission: Permission, meta: LogMeta): Promise<{ permissionNo: number }> {
   let conn;
   try {
-    // 1. 권한 수정
     conn = await beginTransaction();
+
+    // 1. 권한 존재 여부 확인
+    const existingPermission = await findPermission(permission.permission_no);
+    if (!existingPermission) {
+      throw new AppError('존재하지 않는 권한입니다.', 404, 'PERMISSION_NOT_FOUND');
+    }
+
+    // 2. 권한 수정
     await updatePermission(permission, conn);
 
-    // 2. 로그 기록
+    // 3. 로그 기록
     await logAction(
       makeLogParams({
-        manager_no: meta.manager_no,
-        ip: meta.ip,
-        user_agent: meta.user_agent,
+        ...meta,
         action_type: 'U',
         target_table: 'permission',
         target_id: permission.permission_no.toString(),
-        old_values: JSON.stringify({}),
+        old_values: JSON.stringify(existingPermission),
         new_values: JSON.stringify(permission),
         reason: `권한 수정: ${permission.name}`,
       }),
@@ -107,14 +113,11 @@ export async function updatePermissionS(permission: Permission, meta: LogMeta): 
     );
 
     await commitTransaction(conn);
-    return {
-      permissionNo: permission.permission_no,
-    };
+    return { permissionNo: permission.permission_no };
   } catch (error) {
     if (conn) {
       await rollbackTransaction(conn);
     }
-    console.error('권한 수정 중 오류 발생:', error);
     throw error;
   }
 }
@@ -123,33 +126,36 @@ export async function updatePermissionS(permission: Permission, meta: LogMeta): 
 export async function deletePermissionS(permissionNo: number, meta: LogMeta) {
   let conn;
   try {
-    // 1. 권한 삭제
     conn = await beginTransaction();
-    const result = await deletePermission(permissionNo, conn);
 
-    // 2. 로그 기록
+    // 1. 권한 존재 여부 확인
+    const existingPermission = await findPermission(permissionNo);
+    if (!existingPermission) {
+      throw new AppError('존재하지 않는 권한입니다.', 404, 'PERMISSION_NOT_FOUND');
+    }
+
+    // 2. 권한 삭제
+    await deletePermission(permissionNo, conn);
+
+    // 3. 로그 기록
     await logAction(
       makeLogParams({
-        manager_no: meta.manager_no,
-        ip: meta.ip,
-        user_agent: meta.user_agent,
+        ...meta,
         action_type: 'D',
         target_table: 'permission',
         target_id: permissionNo.toString(),
-        old_values: null,
+        old_values: JSON.stringify(existingPermission),
         new_values: null,
-        reason: `권한 삭제: permission_no ${permissionNo}`,
+        reason: `권한 삭제: ${existingPermission.name}`,
       }),
       conn,
     );
 
     await commitTransaction(conn);
-    return result;
   } catch (error) {
     if (conn) {
       await rollbackTransaction(conn);
     }
-    console.error('권한 삭제 중 오류 발생:', error);
     throw error;
   }
 }
