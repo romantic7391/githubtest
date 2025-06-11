@@ -81,8 +81,11 @@ export async function POST(request: NextRequest) {
     const validatedData = createPermissionRequestSchema.parse(body);
 
     const permissionData: Permission = {
-      ...validatedData,
       permission_no: 0,
+      name: validatedData.name,
+      description: validatedData.description,
+      default_extra_condition: validatedData.defaultExtraCondition,
+      default_extra_limit: validatedData.defaultExtraLimit,
     };
 
     const result = await createPermissionS(permissionData, {

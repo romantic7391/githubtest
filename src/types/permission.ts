@@ -38,11 +38,10 @@ export const groupSchema = z.object({
  */
 export const permissionSchema = z.object({
   permission_no: z.number(),
-  name: z.string(),
+  name: z.string().min(1, '권한 이름은 필수입니다.').max(50, '권한 이름은 50자를 초과할 수 없습니다.'),
   description: z.string().nullable(),
   default_extra_condition: z.string().nullable(),
   default_extra_limit: z.string().nullable(),
-  // created: datetimeSchema.nullable(),
 });
 
 /**
@@ -329,11 +328,11 @@ export type RouteParams = z.infer<typeof routeParamsSchema>;
 export type PermissionRouteParams = z.infer<typeof permissionRouteParamsSchema>;
 
 // 2. API 요청 스키마
-export const createPermissionRequestSchema = permissionSchema.pick({
-  name: true,
-  description: true,
-  default_extra_condition: true,
-  default_extra_limit: true,
+export const createPermissionRequestSchema = z.object({
+  name: z.string().min(1, '권한 이름은 필수입니다.').max(50, '권한 이름은 50자를 초과할 수 없습니다.'),
+  description: z.string().nullable(),
+  defaultExtraCondition: z.string().nullable(),
+  defaultExtraLimit: z.string().nullable(),
 });
 
 export const updatePermissionRequestSchema = createPermissionRequestSchema.extend({
@@ -383,8 +382,10 @@ export const permissionListApiResponseSchema = baseApiResponseSchema.extend({
   data: permissionListResponseSchema,
 });
 
-export const permissionCreateApiResponseSchema = baseApiResponseSchema.omit({
-  data: true,
+export const permissionCreateApiResponseSchema = baseApiResponseSchema.extend({
+  data: z.object({
+    permissionNo: z.number(),
+  }),
 });
 
 export const permissionUpdateApiResponseSchema = baseApiResponseSchema.extend({

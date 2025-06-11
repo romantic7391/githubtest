@@ -137,18 +137,30 @@ export async function findPermissions(
 // 권한 생성
 export async function insertPermission(dto: Permission, conn?: PoolConnection) {
   const query = `
-    INSERT INTO \`permission\` (name, description, default_extra_condition, default_extra_limit) VALUES (?, ?, ?, ?);
+    INSERT INTO \`permission\` (
+      name, 
+      description, 
+      default_extra_condition, 
+      default_extra_limit
+    ) VALUES (?, ?, ?, ?)
   `;
-  const params = [dto.name, dto.description, dto.defaultExtraCondition, dto.defaultExtraLimit];
+  const params = [dto.name, dto.description, dto.default_extra_condition, dto.default_extra_limit];
   return exec(query, params, conn);
 }
 
 // 권한 수정
 export async function updatePermission(dto: Permission, conn?: PoolConnection) {
   const query = `
-    UPDATE \`permission\` SET name = ?, description = ?, default_extra_condition = ?, default_extra_limit = ? WHERE permission_no = ?
+    UPDATE \`permission\` 
+    SET 
+      name = ?, 
+      description = ?, 
+      default_extra_condition = ?, 
+      default_extra_limit = ? 
+    WHERE permission_no = ? 
+      AND deleted IS NULL
   `;
-  const params = [dto.name, dto.description, dto.defaultExtraCondition, dto.defaultExtraLimit, dto.permission_no];
+  const params = [dto.name, dto.description, dto.default_extra_condition, dto.default_extra_limit, dto.permission_no];
   return exec(query, params, conn);
 }
 
@@ -164,9 +176,12 @@ export async function findPermission(permissionNo: number) {
     SELECT 
       permission_no,
       name,
-      description
+      description,
+      default_extra_condition,
+      default_extra_limit
     FROM permission
-    WHERE permission_no = ? AND deleted IS NULL
+    WHERE permission_no = ? 
+      AND deleted IS NULL
   `;
-  return getRow(query, [permissionNo]);
+  return getRow<Permission>(query, [permissionNo]);
 }
