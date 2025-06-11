@@ -1,12 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth/session';
-import { Group, groupListRequestSchema, createGroupRequestSchema } from '@/types/permission';
+import {
+  Group,
+  groupListRequestSchema,
+  groupListApiResponseSchema,
+  groupCreateApiResponseSchema,
+  createGroupRequestSchema,
+} from '@/types/permission';
 // import {groupListApiResponseSchema, groupCreateApiResponseSchema } from '@/types/permission';
 
 import { handleError, handleZodError } from '@/utils/error.utils';
 import { getGroupsS, createGroupS } from '@/services/permission-admin/group.service';
 import { AppError } from '@/utils/error.utils';
-import { Pagination } from '@/types/common';
+import { paginationSchema } from '@/types/common';
 
 /**
  * 그룹 목록 조회
@@ -36,48 +42,40 @@ export async function GET(request: NextRequest) {
     const schoolNo = searchParams.get('schoolNo');
 
     // 요청 데이터 검증
-    try {
-      const validatedData = groupListRequestSchema.parse({
-        page,
-        pageSize,
-        name,
-        schoolNo: schoolNo === 'null' ? null : schoolNo ? Number(schoolNo) : undefined,
-      });
+    const validatedData = groupListRequestSchema.parse({
+      page,
+      pageSize,
+      name,
+      schoolNo: schoolNo === 'null' ? null : schoolNo ? Number(schoolNo) : undefined,
+    });
 
-      const pagination: Pagination = {
-        page: validatedData.page,
-        pageSize: validatedData.pageSize,
-        total: 0,
-        totalPages: 0,
-      };
+    const pagination = paginationSchema.parse({
+      page: validatedData.page,
+      pageSize: validatedData.pageSize,
+    });
 
-      const result = await getGroupsS(
-        pagination,
-        {
-          manager_no: session.manager_no,
-          ip: request.headers.get('x-forwarded-for') || '',
-          user_agent: request.headers.get('user-agent') || '',
-        },
-        {
-          name: validatedData.name,
-          schoolNo: validatedData.schoolNo,
-        },
-      );
+    const result = await getGroupsS(
+      pagination,
+      {
+        manager_no: session.manager_no,
+        ip: request.headers.get('x-forwarded-for') || '',
+        user_agent: request.headers.get('user-agent') || '',
+      },
+      {
+        name: validatedData.name,
+        schoolNo: validatedData.schoolNo,
+      },
+    );
 
-      return NextResponse.json(
-        {
-          success: true,
-          message: '그룹 목록을 성공적으로 조회했습니다.',
-          data: {
-            groups: result.groups,
-            pagination: result.pagination,
-          },
-        },
-        { status: 200 },
-      );
-    } catch (validationError) {
-      throw validationError;
-    }
+    // 응답 데이터 검증
+    return NextResponse.json(
+      groupListApiResponseSchema.parse({
+        success: true,
+        data: result,
+        message: '그룹 목록을 조회했습니다.',
+      }),
+      { status: 200 },
+    );
   } catch (error) {
     if (error instanceof AppError) {
       return NextResponse.json(
@@ -117,35 +115,29 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
+    const validatedData = createGroupRequestSchema.parse(body);
 
-    try {
-      const validatedData = createGroupRequestSchema.parse(body);
+    const groupData: Omit<Group, 'group_no'> = {
+      name: validatedData.name,
+      school_no: validatedData.schoolNo,
+      parent_group_no: validatedData.parentGroupNo,
+    };
 
-      const groupData: Omit<Group, 'group_no'> = {
-        name: validatedData.name,
-        school_no: validatedData.schoolNo,
-        parent_group_no: validatedData.parentGroupNo,
-      };
+    const result = await createGroupS(groupData, {
+      manager_no: session.manager_no,
+      ip: request.headers.get('x-forwarded-for') || '',
+      user_agent: request.headers.get('user-agent') || '',
+    });
 
-      const result = await createGroupS(groupData, {
-        manager_no: session.manager_no,
-        ip: request.headers.get('x-forwarded-for') || '',
-        user_agent: request.headers.get('user-agent') || '',
-      });
-
-      return NextResponse.json(
-        {
-          success: true,
-          message: '그룹이 성공적으로 생성되었습니다.',
-          data: {
-            groupNo: result.groupNo,
-          },
-        },
-        { status: 201 },
-      );
-    } catch (validationError) {
-      throw validationError;
-    }
+    // 응답 데이터 검증
+    return NextResponse.json(
+      groupCreateApiResponseSchema.parse({
+        success: true,
+        data: result,
+        message: '그룹이 성공적으로 생성되었습니다.',
+      }),
+      { status: 201 },
+    );
   } catch (error) {
     if (error instanceof AppError) {
       return NextResponse.json(

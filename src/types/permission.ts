@@ -429,7 +429,7 @@ export const groupUpdateRequestSchema = z.object({
   parentGroupNo: z.number().nullable(),
 });
 
-export const groupDeleteResponseSchema = baseApiResponseSchema.extend({
+export const groupDeleteApiResponseSchema = baseApiResponseSchema.extend({
   data: z.object({
     groupNo: z.number(),
   }),
@@ -462,6 +462,24 @@ export const groupListApiResponseSchema = baseApiResponseSchema.extend({
 });
 
 export const groupCreateApiResponseSchema = baseApiResponseSchema.extend({
+  data: z.object({
+    groupNo: z.number(),
+  }),
+});
+
+/**
+ * 그룹 수정 응답 스키마
+ */
+export const groupUpdateResponseSchema = baseApiResponseSchema.extend({
+  data: z.object({
+    groupNo: z.number(),
+  }),
+});
+
+/**
+ * 그룹 삭제 응답 스키마
+ */
+export const groupDeleteResponseSchema = baseApiResponseSchema.extend({
   data: z.object({
     groupNo: z.number(),
   }),

@@ -3,7 +3,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { updateGroupS, deleteGroupS } from '@/services/permission-admin/group.service';
 import { getSession } from '@/lib/auth/session';
 import { handleZodError, handleError } from '@/utils/error.utils';
-import { Group, GroupRouteParams, groupUpdateRequestSchema, groupDeleteResponseSchema } from '@/types/permission';
+import {
+  Group,
+  GroupRouteParams,
+  groupUpdateRequestSchema,
+  groupCreateOrUpdateApiResponseSchema,
+  groupDeleteResponseSchema,
+} from '@/types/permission';
 // import {updateGroupSchema,groupCreateOrUpdateApiResponseSchema ,RouteParams} from '@/types/permission'
 import { AppError } from '@/utils/error.utils';
 
@@ -48,12 +54,13 @@ export async function PUT(request: NextRequest, context: GroupRouteParams) {
       user_agent: request.headers.get('user-agent') || '',
     });
 
+    // 응답 데이터 검증
     return NextResponse.json(
-      {
+      groupCreateOrUpdateApiResponseSchema.parse({
         success: true,
         data: result,
         message: '그룹이 성공적으로 수정되었습니다.',
-      },
+      }),
       { status: 200 },
     );
   } catch (error) {
@@ -97,19 +104,18 @@ export async function DELETE(request: NextRequest, context: GroupRouteParams) {
       );
     }
 
-    await deleteGroupS(groupNoNum, {
+    const result = await deleteGroupS(groupNoNum, {
       manager_no: session.manager_no,
       ip: request.headers.get('x-forwarded-for') || '',
       user_agent: request.headers.get('user-agent') || '',
     });
 
+    // 응답 데이터 검증
     return NextResponse.json(
       groupDeleteResponseSchema.parse({
         success: true,
+        data: result,
         message: '그룹이 성공적으로 삭제되었습니다.',
-        data: {
-          groupNo: groupNoNum,
-        },
       }),
       { status: 200 },
     );
