@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth/session';
 import {
-  Group,
+  CreateGroup,
   groupListRequestSchema,
   groupListApiResponseSchema,
   groupCreateApiResponseSchema,
@@ -66,7 +66,6 @@ export async function GET(request: NextRequest) {
       },
     );
 
-    // 응답 데이터 검증
     return NextResponse.json(
       groupListApiResponseSchema.parse({
         success: true,
@@ -97,13 +96,18 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    console.log('[POST] 그룹 생성 시작');
+
     // 개발 환경에서 테스트를 위해 헤더 설정
     if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
       request.headers.set('x-manager-no', '1');
     }
 
     const session = await getSession(request);
+    console.log('[POST] session:', session);
+
     if (!session) {
+      console.log('[POST] 세션 없음');
       return NextResponse.json(
         {
           success: false,
@@ -114,31 +118,39 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
+    console.log('[POST] body:', body);
+
     const validatedData = createGroupRequestSchema.parse(body);
+    console.log('[POST] validatedData:', validatedData);
 
-    const groupData: Omit<Group, 'group_no'> = {
+    const groupData: CreateGroup = {
       name: validatedData.name,
-      school_no: validatedData.schoolNo,
-      parent_group_no: validatedData.parentGroupNo,
+      schoolNo: validatedData.schoolNo,
+      parentGroupNo: validatedData.parentGroupNo,
     };
+    console.log('[POST] groupData:', groupData);
 
+    console.log('[POST] createGroupS 호출 전');
     const result = await createGroupS(groupData, {
       manager_no: session.manager_no,
       ip: request.headers.get('x-forwarded-for') || '',
       user_agent: request.headers.get('user-agent') || '',
     });
+    console.log('[POST] createGroupS 결과:', result);
 
     // 응답 데이터 검증
-    return NextResponse.json(
-      groupCreateApiResponseSchema.parse({
-        success: true,
-        data: result,
-        message: '그룹이 성공적으로 생성되었습니다.',
-      }),
-      { status: 201 },
-    );
+    const response = groupCreateApiResponseSchema.parse({
+      success: true,
+      data: result,
+      message: '그룹이 성공적으로 생성되었습니다.',
+    });
+    console.log('[POST] response:', response);
+
+    return NextResponse.json(response, { status: 201 });
   } catch (error) {
+    console.error('[POST] 에러 발생:', error);
     if (error instanceof AppError) {
+      console.error('[POST] AppError:', error.message, error.code);
       return NextResponse.json(
         {
           success: false,
@@ -149,7 +161,10 @@ export async function POST(request: NextRequest) {
       );
     }
     const zodError = handleZodError(error);
-    if (zodError) return zodError;
+    if (zodError) {
+      console.error('[POST] ZodError:', zodError);
+      return zodError;
+    }
     return handleError(error, '그룹 생성');
   }
 }

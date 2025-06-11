@@ -8,7 +8,7 @@ import {
   GroupRouteParams,
   groupUpdateRequestSchema,
   groupCreateOrUpdateApiResponseSchema,
-  groupDeleteResponseSchema,
+  groupDeleteApiResponseSchema,
 } from '@/types/permission';
 // import {updateGroupSchema,groupCreateOrUpdateApiResponseSchema ,RouteParams} from '@/types/permission'
 import { AppError } from '@/utils/error.utils';
@@ -46,6 +46,8 @@ export async function PUT(request: NextRequest, context: GroupRouteParams) {
       name: validatedData.name,
       school_no: validatedData.schoolNo,
       parent_group_no: validatedData.parentGroupNo,
+      school_name: null,
+      parent_group_name: null,
     };
 
     const result = await updateGroupS(groupData, {
@@ -104,17 +106,16 @@ export async function DELETE(request: NextRequest, context: GroupRouteParams) {
       );
     }
 
-    const result = await deleteGroupS(groupNoNum, {
+    await deleteGroupS(groupNoNum, {
       manager_no: session.manager_no,
       ip: request.headers.get('x-forwarded-for') || '',
       user_agent: request.headers.get('user-agent') || '',
     });
 
-    // 응답 데이터 검증
     return NextResponse.json(
-      groupDeleteResponseSchema.parse({
+      groupDeleteApiResponseSchema.parse({
         success: true,
-        data: result,
+        data: { groupNo: groupNoNum },
         message: '그룹이 성공적으로 삭제되었습니다.',
       }),
       { status: 200 },

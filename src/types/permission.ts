@@ -30,8 +30,8 @@ export const groupSchema = z.object({
   name: z.string().min(1, '그룹 이름은 필수입니다.').max(50, '그룹 이름은 50자를 초과할 수 없습니다.'),
   school_no: z.number().nullable(),
   parent_group_no: z.number().nullable(),
-  school_name: z.string().optional(),
-  parent_group_name: z.string().optional(),
+  school_name: z.string().nullable(),
+  parent_group_name: z.string().nullable(),
   created: z.string().optional(),
   updated: z.string().optional(),
 });

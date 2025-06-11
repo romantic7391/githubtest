@@ -67,7 +67,14 @@ export async function findGroups(
 }
 
 // 그룹 생성
-export async function insertGroup(dto: Omit<Group, 'group_no'>, conn?: PoolConnection): Promise<{ insertId: number }> {
+export async function insertGroup(
+  dto: {
+    name: string;
+    school_no: number | null;
+    parent_group_no: number | null;
+  },
+  conn?: PoolConnection,
+): Promise<{ insertId: number }> {
   const query = `
     INSERT INTO \`group\` (
       name, 

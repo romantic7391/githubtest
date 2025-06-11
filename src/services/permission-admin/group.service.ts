@@ -1,4 +1,4 @@
-import { Group } from '@/types/permission';
+import { Group, CreateGroup } from '@/types/permission';
 import { logAction, makeLogParams } from '@/services/log-action/log-action.service';
 import { beginTransaction, commitTransaction, rollbackTransaction } from '@/lib/mariadb/query';
 import { LogMeta } from '@/types/history';
@@ -12,7 +12,6 @@ export async function getGroupsS(
   meta: LogMeta,
   filters?: { name?: string; schoolNo?: number | null },
 ) {
-  // let conn;
   try {
     const result = await findGroups(pagination, filters);
 
@@ -46,13 +45,20 @@ export async function getGroupsS(
 }
 
 // 그룹 생성
-export async function createGroupS(group: Omit<Group, 'group_no'>, meta: LogMeta): Promise<{ groupNo: number }> {
+export async function createGroupS(group: CreateGroup, meta: LogMeta): Promise<{ groupNo: number }> {
   let conn;
   try {
     conn = await beginTransaction();
 
     // 1. 그룹 생성
-    const result = await insertGroup(group, conn);
+    const result = await insertGroup(
+      {
+        name: group.name,
+        school_no: group.schoolNo,
+        parent_group_no: group.parentGroupNo,
+      },
+      conn,
+    );
 
     // 2. 로그 기록
     await logAction(
@@ -179,7 +185,6 @@ export async function deleteGroupS(groupNo: number, meta: LogMeta) {
     if (error instanceof AppError) {
       throw error;
     }
-    console.error('그룹 삭제 중 오류 발생:', error);
     throw new AppError('그룹 삭제 중 오류가 발생했습니다.', 500, 'GROUP_DELETE_ERROR');
   } finally {
     if (conn) {
