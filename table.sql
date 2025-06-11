@@ -1,9 +1,13 @@
+DROP DATABASE IF EXISTS airdb;
+CREATE DATABASE IF NOT EXISTS airdb
+	CHARACTER SET = 'utf8mb4'
+	COLLATE = 'utf8mb4_uca1400_ai_ci';
 
+USE airdb;
 
 /*
 지역 좌표 테이블
 */
-
 CREATE TABLE `AreaData` (
 	`area_no` BIGINT(20) NOT NULL AUTO_INCREMENT,
 	`area` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8mb4_uca1400_ai_ci',
@@ -57,6 +61,7 @@ CREATE TABLE `groupPermission` (
 COMMENT='그룹 권한'
 COLLATE='utf8mb4_general_ci'
 ENGINE=InnoDB
+AUTO_INCREMENT=0
 ;
 
 
@@ -125,6 +130,7 @@ CREATE TABLE `managerGroup` (
 COMMENT='사용자 그룹'
 COLLATE='utf8mb4_general_ci'
 ENGINE=InnoDB
+AUTO_INCREMENT=0
 ;
 
 
@@ -167,6 +173,7 @@ CREATE TABLE `rnData` (
 )
 COLLATE='utf8mb3_unicode_ci'
 ENGINE=InnoDB
+AUTO_INCREMENT=0
 ;
 
 
@@ -189,6 +196,7 @@ CREATE TABLE `rnDevices` (
 )
 COLLATE='utf8mb3_unicode_ci'
 ENGINE=InnoDB
+AUTO_INCREMENT=0
 ;
 
 
@@ -211,6 +219,7 @@ CREATE TABLE `rnDevicesRel` (
 )
 COLLATE='utf8mb3_unicode_ci'
 ENGINE=InnoDB
+AUTO_INCREMENT=0
 ;
 
 
@@ -229,7 +238,6 @@ CREATE TABLE `rnSchool` (
 	`use_os` ENUM('Y','N') NULL DEFAULT 'N' COMMENT '작업지시서 사용유무' COLLATE 'utf8mb3_unicode_ci',
 	`active` ENUM('Y','N') NOT NULL DEFAULT 'Y' COLLATE 'utf8mb3_unicode_ci',
 	`parent_no` BIGINT(20) UNSIGNED NULL DEFAULT NULL,
-	`school_type` VARCHAR(30) NOT NULL COMMENT '교육청,교육지원청,고등학교,중학교,초등학교,유치원 나누는 것' COLLATE 'utf8mb3_unicode_ci',
 	`created` DATETIME NULL DEFAULT current_timestamp() COMMENT '생성일',
 	`administrationcode` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8mb3_unicode_ci',
 	PRIMARY KEY (`school_no`) USING BTREE,

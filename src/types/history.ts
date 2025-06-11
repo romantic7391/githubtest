@@ -15,11 +15,11 @@ export const historySchema = z.object({
 });
 
 // 히스토리 메타 정보 스키마
-export const historyMetaSchema = z.object({
-  ip: z.string().nullable(),
+export const logMetaSchema = z.object({
   manager_no: z.number().nullable(),
-  school_no: z.number().nullable().optional(),
+  ip: z.string().nullable(),
   user_agent: z.string().nullable(),
+  school_no: z.number().nullable().optional(),
 });
 
 // 히스토리 번호 스키마
@@ -28,5 +28,5 @@ export const historyNoSchema = z.object({
 });
 
 export type History = z.infer<typeof historySchema>;
-export type LogMeta = z.infer<typeof historyMetaSchema>;
+export type LogMeta = z.infer<typeof logMetaSchema>;
 export type HistoryNo = z.infer<typeof historyNoSchema>;

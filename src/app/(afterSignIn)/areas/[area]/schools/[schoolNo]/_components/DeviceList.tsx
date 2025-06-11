@@ -19,7 +19,14 @@ export default function DeviceList({ area, schoolNo }: { area: string; schoolNo:
     pageSize,
   });
   const [devices, setDevices] = useState<Device[]>(data?.items ?? []);
-  const pagination = data?.pagination ?? paginationSchema.parse({});
+  // 추가 카드 1개 더 보여주기 위해 총 개수 + 1
+  const total = (data?.pagination?.total ?? 0) + 1;
+  const pagination = paginationSchema.parse({
+    total,
+    page: data?.pagination?.page ?? 1,
+    pageSize: data?.pagination?.pageSize ?? DEFAULT_PAGE_SIZE,
+    totalPages: Math.ceil(total / (data?.pagination?.pageSize ?? DEFAULT_PAGE_SIZE)),
+  });
 
   useEffect(() => {
     console.log('data?.items: ', data?.items);
