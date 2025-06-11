@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth/session';
-import type { BaseApiResponse } from '@/types/common';
-import { Permission, PermissionRouteParams, permissionCreateOrUpdateApiResponseSchema } from '@/types/permission';
+import {
+  Permission,
+  PermissionRouteParams,
+  permissionCreateOrUpdateApiResponseSchema,
+  permissionUpdateRequestSchema,
+  permissionDeleteResponseSchema,
+} from '@/types/permission';
 import { handleError, handleZodError } from '@/utils/error.utils';
 import { updatePermissionS, deletePermissionS } from '@/services/permission-admin/permission.service';
 
@@ -20,7 +25,6 @@ export async function PUT(request: NextRequest, context: PermissionRouteParams) 
     }
 
     const session = await getSession(request);
-
     if (!session) {
       return NextResponse.json(
         {
@@ -31,9 +35,15 @@ export async function PUT(request: NextRequest, context: PermissionRouteParams) 
       );
     }
 
+    // 요청 데이터 검증
+    const validatedData = permissionUpdateRequestSchema.parse(body);
+
     const permissionData: Permission = {
-      ...body,
       permission_no: permissionNoNum,
+      name: validatedData.name,
+      description: validatedData.description,
+      default_extra_condition: validatedData.defaultExtraCondition,
+      default_extra_limit: validatedData.defaultExtraLimit,
     };
 
     const result = await updatePermissionS(permissionData, {
@@ -71,7 +81,6 @@ export async function DELETE(request: NextRequest, context: PermissionRouteParam
     }
 
     const session = await getSession(request);
-
     if (!session) {
       return NextResponse.json(
         {
@@ -89,10 +98,13 @@ export async function DELETE(request: NextRequest, context: PermissionRouteParam
     });
 
     return NextResponse.json(
-      {
+      permissionDeleteResponseSchema.parse({
         success: true,
         message: '권한이 성공적으로 삭제되었습니다.',
-      } satisfies BaseApiResponse,
+        data: {
+          permissionNo: permissionNoNum,
+        },
+      }),
       { status: 200 },
     );
   } catch (error) {

@@ -370,7 +370,13 @@ export const permissionCreateResponseSchema = z.object({});
 
 export const permissionUpdateResponseSchema = permissionCreateResponseSchema;
 
-export const permissionDeleteResponseSchema = z.object({});
+export const permissionDeleteResponseSchema = z.object({
+  success: z.boolean(),
+  message: z.string(),
+  data: z.object({
+    permissionNo: z.number(),
+  }),
+});
 
 // 4. API 응답 래퍼 스키마
 export const permissionListApiResponseSchema = baseApiResponseSchema.extend({
@@ -398,3 +404,10 @@ export type PermissionListResponse = z.infer<typeof permissionListResponseSchema
 export type PermissionCreateResponse = z.infer<typeof permissionCreateResponseSchema>;
 export type PermissionUpdateResponse = z.infer<typeof permissionUpdateResponseSchema>;
 export type PermissionDeleteResponse = z.infer<typeof permissionDeleteResponseSchema>;
+
+export const permissionUpdateRequestSchema = z.object({
+  name: z.string().min(1, '권한 이름은 필수입니다.').max(50, '권한 이름은 50자를 초과할 수 없습니다.'),
+  description: z.string().nullable(),
+  defaultExtraCondition: z.string().nullable(),
+  defaultExtraLimit: z.string().nullable(),
+});
