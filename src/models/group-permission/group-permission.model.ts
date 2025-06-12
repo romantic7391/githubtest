@@ -58,17 +58,17 @@ export async function selectGroupPermission(
   // 그룹 권한 목록 조회
   const query = `
     SELECT 
-      gp.group_no,
-      g.name as group_name,
-      g.parent_group_no,
-      pg.name as parent_group_name,
-      gp.permission_no,
-      p.name as permission_name,
-      p.description as permission_description,
-      gp.is_allowed,
-      gp.override,
-      gp.extra_condition,
-      gp.extra_limit
+      gp.group_no as groupNo,
+      g.name as groupName,
+      g.parent_group_no as parentGroupNo,
+      pg.name as parentGroupName,
+      gp.permission_no as permissionNo,
+      p.name as permissionName,
+      p.description as permissionDescription  ,
+      gp.is_allowed as isAllowed,
+      gp.override as override,
+      gp.extra_condition as extraCondition,
+      gp.extra_limit as extraLimit
     FROM groupPermission gp
     JOIN \`group\` g ON gp.group_no = g.group_no
     LEFT JOIN \`group\` pg ON g.parent_group_no = pg.group_no

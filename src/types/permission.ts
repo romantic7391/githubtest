@@ -63,12 +63,18 @@ export const groupPermissionSchema = z.object({
 /**
  * 그룹 권한 상세 정보 (조회용)
  */
-export const groupPermissionDetailSchema = groupPermissionSchema.extend({
+export const groupPermissionDetailSchema = z.object({
+  groupNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
   groupName: z.string(),
   parentGroupNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER).nullable(),
   parentGroupName: z.string().nullable(),
+  permissionNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
   permissionName: z.string(),
-  permissionDescription: z.string(),
+  permissionDescription: z.string().nullable(),
+  isAllowed: z.enum(['Y', 'N']).nullable(),
+  override: z.enum(['Y', 'N']).nullable(),
+  extraCondition: z.string().nullable(),
+  extraLimit: z.string().nullable(),
 });
 
 /**
@@ -193,6 +199,13 @@ export const permissionCreateOrUpdateApiResponseSchema = baseApiResponseSchema.e
   }),
 });
 
+export const groupPermissionsApiResponseSchema = baseApiResponseSchema.extend({
+  data: z.object({
+    groupPermissions: groupPermissionDetailSchema.array(),
+    pagination: paginationSchema,
+  }),
+});
+
 /**
  * 그룹 권한 필터 스키마
  */
@@ -229,13 +242,6 @@ export const updateGroupPermissionSchema = z.object({
 
 export const groupPermissionApiResponseSchema = baseApiResponseSchema.extend({
   data: groupPermissionSchema,
-});
-
-export const groupPermissionsApiResponseSchema = baseApiResponseSchema.extend({
-  data: z.object({
-    groupPermissions: groupPermissionDetailSchema.array(),
-    pagination: paginationSchema,
-  }),
 });
 
 /**

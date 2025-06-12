@@ -21,13 +21,9 @@ export async function getGroupPermissionsS(
 ) {
   let conn;
   try {
-    console.log('=== getGroupPermissionsS Start ===');
-    console.log('Input:', { pagination, filters, meta });
-
     conn = await beginTransaction();
-    const result = await selectGroupPermission(pagination, filters);
 
-    console.log('selectGroupPermission Result:', result);
+    const result = await selectGroupPermission(pagination, filters);
 
     if (meta) {
       await logAction(
@@ -38,19 +34,17 @@ export async function getGroupPermissionsS(
           action_type: 'S',
           target_table: 'groupPermission',
           target_id: filters?.groupNo ? `group_no=${filters.groupNo}` : 'all',
-          reason: `그룹 권한 조회: ${filters?.groupNo ? `group_no ${filters.groupNo}` : '전체'}`,
-          new_values: JSON.stringify(result),
           old_values: '',
+          new_values: JSON.stringify(result),
+          reason: `그룹 권한 조회: ${filters?.groupNo ? `group_no ${filters.groupNo}` : '전체'}`,
         }),
         conn,
       );
     }
 
     await commitTransaction(conn);
-    console.log('=== getGroupPermissionsS End ===');
     return result;
   } catch (error) {
-    console.error('Error in getGroupPermissionsS:', error);
     if (conn) {
       await rollbackTransaction(conn);
     }

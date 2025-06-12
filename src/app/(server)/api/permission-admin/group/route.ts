@@ -12,6 +12,7 @@ import { handleError, handleZodError } from '@/utils/error.utils';
 import { getGroupsS, createGroupS } from '@/services/permission-admin/group.service';
 import { AppError } from '@/utils/error.utils';
 import { paginationSchema } from '@/types/common';
+import { DEFAULT_PAGE_SIZE } from '@/lib/default.constant';
 
 /**
  * 그룹 목록 조회
@@ -36,21 +37,25 @@ export async function GET(request: NextRequest) {
 
     const searchParams = request.nextUrl.searchParams;
     const page = Number(searchParams.get('page')) || 1;
-    const pageSize = Number(searchParams.get('pageSize')) || 10;
+    const pageSize = Number(searchParams.get('pageSize')) || DEFAULT_PAGE_SIZE;
     const name = searchParams.get('name') || undefined;
     const schoolNo = searchParams.get('schoolNo');
 
-    // 요청 데이터 검증
-    const validatedData = groupListRequestSchema.parse({
+    console.log('그룹 목록 조회 요청:', {
       page,
       pageSize,
       name,
-      schoolNo: schoolNo === 'null' ? null : schoolNo ? Number(schoolNo) : undefined,
+      schoolNo,
+      managerNo: session.manager_no,
     });
 
-    const pagination = paginationSchema.parse({
-      page: validatedData.page,
-      pageSize: validatedData.pageSize,
+    // 페이지네이션 검증
+    const pagination = paginationSchema.parse({ page, pageSize });
+
+    // 필터 검증
+    const filters = groupListRequestSchema.parse({
+      name,
+      schoolNo: schoolNo === 'null' ? null : schoolNo ? Number(schoolNo) : undefined,
     });
 
     const result = await getGroupsS(
@@ -60,11 +65,14 @@ export async function GET(request: NextRequest) {
         ip: request.headers.get('x-forwarded-for') || '',
         user_agent: request.headers.get('user-agent') || '',
       },
-      {
-        name: validatedData.name,
-        schoolNo: validatedData.schoolNo,
-      },
+      filters,
     );
+
+    console.log('그룹 목록 조회 결과:', {
+      total: result.pagination.total,
+      totalPages: result.pagination.totalPages,
+      items: result.groups.length,
+    });
 
     return NextResponse.json(
       groupListApiResponseSchema.parse({

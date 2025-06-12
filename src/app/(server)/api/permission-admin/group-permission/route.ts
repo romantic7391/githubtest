@@ -15,6 +15,7 @@ import {
   groupPermissionFilterSchema,
 } from '@/types/permission';
 import { paginationSchema } from '@/types/common';
+import { DEFAULT_PAGE_SIZE } from '@/lib/default.constant';
 
 /**
  * 그룹 권한 조회
@@ -38,7 +39,7 @@ export async function GET(request: NextRequest) {
 
     const searchParams = request.nextUrl.searchParams;
     const page = Number(searchParams.get('page')) || 1;
-    const pageSize = Number(searchParams.get('pageSize')) || 10;
+    const pageSize = Number(searchParams.get('pageSize')) || DEFAULT_PAGE_SIZE;
     const groupNo = searchParams.get('groupNo');
     const permissionNo = searchParams.get('permissionNo');
 
