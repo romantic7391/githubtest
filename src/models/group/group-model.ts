@@ -128,3 +128,26 @@ export async function findGroup(groupNo: number): Promise<Group | null> {
   `;
   return getRow<Group>(query, [groupNo]);
 }
+
+// 그룹 존재 여부 확인
+export async function checkGroupExists(groupNo: number) {
+  const query = `
+    SELECT COUNT(1) as count
+    FROM \`group\` as g
+    WHERE g.group_no = ?
+      AND g.deleted IS NULL
+  `;
+  return getRow<{ count: number }>(query, [groupNo]);
+}
+
+// 그룹 중복 체크
+export async function checkGroupDuplicate(name: string, schoolNo: number) {
+  const query = `
+    SELECT COUNT(1) as count
+    FROM \`group\` as g
+    WHERE g.school_no = ?
+      AND g.name = ?
+      AND deleted IS NULL
+  `;
+  return getRow<{ count: number }>(query, [schoolNo, name]);
+}

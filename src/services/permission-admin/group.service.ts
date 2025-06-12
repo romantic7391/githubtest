@@ -40,7 +40,7 @@ export async function getGroupsS(
     };
   } catch (error) {
     console.error('그룹 목록 조회 중 오류 발생:', error);
-    throw new AppError('그룹 목록 조회 중 오류가 발생했습니다.', 500, 'GROUP_LIST_ERROR');
+    throw new AppError('그룹 목록 조회 중 오류가 발생했습니다.', 500);
   }
 }
 
@@ -106,7 +106,7 @@ export async function updateGroupS(group: Group, meta: LogMeta): Promise<{ group
     // 1. 그룹 존재 여부 확인
     const existingGroup = await findGroup(group.group_no);
     if (!existingGroup) {
-      throw new AppError('존재하지 않는 그룹입니다.', 404, 'GROUP_NOT_FOUND');
+      throw new AppError('존재하지 않는 그룹입니다.', 404);
     }
 
     // 2. 그룹 수정
@@ -136,7 +136,7 @@ export async function updateGroupS(group: Group, meta: LogMeta): Promise<{ group
       throw error;
     }
     console.error('그룹 수정 중 오류 발생:', error);
-    throw new AppError('그룹 수정 중 오류가 발생했습니다.', 500, 'GROUP_UPDATE_ERROR');
+    throw new AppError('그룹 수정 중 오류가 발생했습니다.', 500);
   } finally {
     if (conn) {
       try {
@@ -157,7 +157,7 @@ export async function deleteGroupS(groupNo: number, meta: LogMeta) {
     // 1. 그룹 존재 여부 확인
     const existingGroup = await findGroup(groupNo);
     if (!existingGroup) {
-      throw new AppError('존재하지 않는 그룹입니다.', 404, 'GROUP_NOT_FOUND');
+      throw new AppError('존재하지 않는 그룹입니다.', 404);
     }
 
     // 2. 그룹 삭제
@@ -185,7 +185,7 @@ export async function deleteGroupS(groupNo: number, meta: LogMeta) {
     if (error instanceof AppError) {
       throw error;
     }
-    throw new AppError('그룹 삭제 중 오류가 발생했습니다.', 500, 'GROUP_DELETE_ERROR');
+    throw new AppError('그룹 삭제 중 오류가 발생했습니다.', 500);
   } finally {
     if (conn) {
       try {

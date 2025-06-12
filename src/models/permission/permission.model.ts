@@ -174,14 +174,21 @@ export async function deletePermission(permissionNo: number, conn?: PoolConnecti
 export async function findPermission(permissionNo: number) {
   const query = `
     SELECT 
-      permission_no,
-      name,
-      description,
-      default_extra_condition,
-      default_extra_limit
+      COUNT(1) as count
     FROM permission
     WHERE permission_no = ? 
       AND deleted IS NULL
   `;
   return getRow<Permission>(query, [permissionNo]);
+}
+
+// 권한 등록 중복 체크
+export async function checkPermissionDuplicate(name: string) {
+  const query = `
+    SELECT COUNT(1) as count
+    FROM permission
+    WHERE name = ?
+      AND deleted IS NULL
+  `;
+  return getRow<{ count: number }>(query, [name]);
 }

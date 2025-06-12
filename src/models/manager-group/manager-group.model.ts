@@ -89,7 +89,7 @@ export async function findManagerGroups(
 export async function findManagerGroup(no: number, groupNo: number): Promise<ManagerGroup | null> {
   try {
     const query = `
-      SELECT mg.no, mg.group_no
+      SELECT COUNT(1) as count
         from managerGroup as mg
         where mg.no = ?
         and mg.group_no = ?
