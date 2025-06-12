@@ -4,7 +4,14 @@ import { beginTransaction, commitTransaction, rollbackTransaction } from '@/lib/
 import { LogMeta } from '@/types/history';
 import { Pagination } from '@/types/common';
 import { AppError } from '@/utils/error.utils';
-import { findGroups, insertGroup, updateGroup, deleteGroup, findGroup } from '@/models/group/group-model';
+import {
+  findGroups,
+  insertGroup,
+  updateGroup,
+  deleteGroup,
+  checkGroupExists,
+  checkGroupDuplicate,
+} from '@/models/group/group-model';
 
 // 그룹 목록 조회
 export async function getGroupsS(
@@ -104,9 +111,15 @@ export async function updateGroupS(group: Group, meta: LogMeta): Promise<{ group
     conn = await beginTransaction();
 
     // 1. 그룹 존재 여부 확인
-    const existingGroup = await findGroup(group.group_no);
+    const existingGroup = await checkGroupExists(group.group_no);
     if (!existingGroup) {
       throw new AppError('존재하지 않는 그룹입니다.', 404);
+    }
+
+    // 2. 그룹 중복 체크
+    const existingGroupDuplicate = await checkGroupDuplicate(group.name, group.school_no ?? null);
+    if (existingGroupDuplicate) {
+      throw new AppError('이미 존재하는 그룹입니다.', 400);
     }
 
     // 2. 그룹 수정
@@ -155,7 +168,7 @@ export async function deleteGroupS(groupNo: number, meta: LogMeta) {
     conn = await beginTransaction();
 
     // 1. 그룹 존재 여부 확인
-    const existingGroup = await findGroup(groupNo);
+    const existingGroup = await checkGroupExists(groupNo);
     if (!existingGroup) {
       throw new AppError('존재하지 않는 그룹입니다.', 404);
     }
@@ -172,7 +185,7 @@ export async function deleteGroupS(groupNo: number, meta: LogMeta) {
         target_id: groupNo.toString(),
         old_values: JSON.stringify(existingGroup),
         new_values: null,
-        reason: `그룹 삭제: ${existingGroup.name}`,
+        reason: `그룹 삭제: ${groupNo}`,
       }),
       conn,
     );

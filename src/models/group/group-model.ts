@@ -2,6 +2,8 @@ import { Group } from '@/types/permission';
 import { Pagination } from '@/types/common';
 import { getRow, getAll, exec } from '@/lib/mariadb/query';
 import { PoolConnection } from 'mariadb';
+// import { AppError } from '@/utils/error.utils';
+import { groupNameSchema, schoolNoSchema, groupNoSchema } from '@/types/permission';
 
 // 그룹 목록 조회
 export async function findGroups(
@@ -75,6 +77,11 @@ export async function insertGroup(
   },
   conn?: PoolConnection,
 ): Promise<{ insertId: number }> {
+  // 파라미터 검증
+  const validatedName = groupNameSchema.parse(dto.name);
+  const validatedSchoolNo = schoolNoSchema.parse(dto.school_no);
+  const validatedParentGroupNo = schoolNoSchema.parse(dto.parent_group_no);
+
   const query = `
     INSERT INTO \`group\` (
       name, 
@@ -82,13 +89,19 @@ export async function insertGroup(
       parent_group_no
     ) VALUES (?, ?, ?)
   `;
-  const params = [dto.name, dto.school_no, dto.parent_group_no];
+  const params = [validatedName, validatedSchoolNo, validatedParentGroupNo];
   const result = await exec(query, params, conn);
   return { insertId: result.insertId };
 }
 
 // 그룹 수정
 export async function updateGroup(dto: Group, conn?: PoolConnection): Promise<void> {
+  // 파라미터 검증
+  const validatedName = groupNameSchema.parse(dto.name);
+  const validatedSchoolNo = schoolNoSchema.parse(dto.school_no);
+  const validatedParentGroupNo = schoolNoSchema.parse(dto.parent_group_no);
+  const validatedGroupNo = groupNoSchema.parse(dto.group_no);
+
   const query = `
     UPDATE \`group\` 
     SET 
@@ -98,18 +111,24 @@ export async function updateGroup(dto: Group, conn?: PoolConnection): Promise<vo
     WHERE group_no = ? 
       AND deleted IS NULL
   `;
-  const params = [dto.name, dto.school_no, dto.parent_group_no, dto.group_no];
+  const params = [validatedName, validatedSchoolNo, validatedParentGroupNo, validatedGroupNo];
   await exec(query, params, conn);
 }
 
 // 그룹 삭제
 export async function deleteGroup(groupNo: number, conn?: PoolConnection): Promise<void> {
+  // 파라미터 검증
+  const validatedGroupNo = groupNoSchema.parse(groupNo);
+
   const query = `DELETE FROM \`group\` WHERE group_no = ?`;
-  await exec(query, [groupNo], conn);
+  await exec(query, [validatedGroupNo], conn);
 }
 
 // 그룹 조회
 export async function findGroup(groupNo: number): Promise<Group | null> {
+  // 파라미터 검증
+  const validatedGroupNo = groupNoSchema.parse(groupNo);
+
   const query = `
     SELECT 
       g.group_no as group_no,
@@ -126,22 +145,29 @@ export async function findGroup(groupNo: number): Promise<Group | null> {
     WHERE g.group_no = ? 
       AND g.deleted IS NULL
   `;
-  return getRow<Group>(query, [groupNo]);
+  return getRow<Group>(query, [validatedGroupNo]);
 }
 
 // 그룹 존재 여부 확인
 export async function checkGroupExists(groupNo: number) {
+  // 파라미터 검증
+  const validatedGroupNo = groupNoSchema.parse(groupNo);
+
   const query = `
     SELECT COUNT(1) as count
     FROM \`group\` as g
     WHERE g.group_no = ?
       AND g.deleted IS NULL
   `;
-  return getRow<{ count: number }>(query, [groupNo]);
+  return getRow<{ count: number }>(query, [validatedGroupNo]);
 }
 
 // 그룹 중복 체크
-export async function checkGroupDuplicate(name: string, schoolNo: number) {
+export async function checkGroupDuplicate(name: string, schoolNo: number | null) {
+  // 파라미터 검증
+  const validatedName = groupNameSchema.parse(name);
+  const validatedSchoolNo = schoolNoSchema.parse(schoolNo);
+
   const query = `
     SELECT COUNT(1) as count
     FROM \`group\` as g
@@ -149,5 +175,5 @@ export async function checkGroupDuplicate(name: string, schoolNo: number) {
       AND g.name = ?
       AND deleted IS NULL
   `;
-  return getRow<{ count: number }>(query, [schoolNo, name]);
+  return getRow<{ count: number }>(query, [validatedSchoolNo, validatedName]);
 }
