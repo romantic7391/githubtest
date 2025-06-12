@@ -24,12 +24,16 @@ import { AppError } from '@/utils/error.utils';
 export async function getManagerGroupsS(
   managerNo: number,
   pagination: Pagination,
+  meta: LogMeta,
   filters?: {
     groupNo?: number;
     schoolNo?: number;
   },
 ) {
+  let conn;
   try {
+    conn = await beginTransaction();
+
     const params: FindManagerGroupsDto = {
       managerNo,
       filters,
@@ -41,6 +45,24 @@ export async function getManagerGroupsS(
       throw new AppError('해당하는 학교에 관리자 그룹 목록이 존재하지 않습니다.', 404);
     }
 
+    if (meta) {
+      await logAction(
+        makeLogParams({
+          manager_no: meta.manager_no,
+          ip: meta.ip,
+          user_agent: meta.user_agent,
+          action_type: 'S',
+          target_table: 'managerGroup',
+          target_id: filters?.groupNo ? `group_no=${filters.groupNo}` : 'all',
+          old_values: '',
+          new_values: JSON.stringify(result),
+          reason: `관리자 그룹 조회: ${filters?.groupNo ? `group_no ${filters.groupNo}` : '전체'}`,
+        }),
+        conn,
+      );
+    }
+
+    await commitTransaction(conn);
     return {
       managerGroups: result.managerGroups,
       pagination: paginationSchema.parse({
@@ -51,11 +73,22 @@ export async function getManagerGroupsS(
       }),
     };
   } catch (error) {
+    if (conn) {
+      await rollbackTransaction(conn);
+    }
     console.error('관리자 그룹 목록 조회 중 오류 발생:', error);
     if (error instanceof AppError) {
       throw error;
     }
     throw new AppError('관리자 그룹 목록 조회 중 오류가 발생했습니다.', 500);
+  } finally {
+    if (conn) {
+      try {
+        await conn.release();
+      } catch (error) {
+        console.error('트랜잭션 커넥션 해제 중 오류:', error);
+      }
+    }
   }
 }
 

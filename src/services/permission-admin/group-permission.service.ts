@@ -10,21 +10,25 @@ import { beginTransaction, commitTransaction, rollbackTransaction } from '@/lib/
 import { LogMeta } from '@/types/history';
 import { Pagination } from '@/types/common';
 import { AppError } from '@/utils/error.utils';
+import {
+  CreateGroupPermission,
+  UpdateGroupPermission,
+  GroupPermissionFilter,
+  GroupPermissionCreateOrUpdateResponse,
+} from '@/types/permission/group-permission';
 
 // 그룹 권한 조회
-export async function getGroupPermissionsS(
-  pagination: Pagination,
-  filters?: {
-    groupNo?: number;
-    permissionNo?: number;
-  },
-  meta?: LogMeta,
-) {
+export async function getGroupPermissionsS(pagination: Pagination, filters?: GroupPermissionFilter, meta?: LogMeta) {
   let conn;
   try {
     conn = await beginTransaction();
 
     const result = await selectGroupPermission(pagination, filters);
+
+    // 데이터가 없는 경우 404 에러
+    if (result.groupPermissions.length === 0) {
+      throw new AppError('해당하는 학교에 그룹 권한 목록이 존재하지 않습니다.', 404);
+    }
 
     if (meta) {
       await logAction(
@@ -49,44 +53,34 @@ export async function getGroupPermissionsS(
     if (conn) {
       await rollbackTransaction(conn);
     }
-    throw error;
+    console.error('그룹 권한 목록 조회 중 오류 발생:', error);
+    if (error instanceof AppError) {
+      throw error;
+    }
+    throw new AppError('그룹 권한 목록 조회 중 오류가 발생했습니다.', 500);
   }
 }
 
 // 그룹 권한 생성
 export async function createGroupPermissionS(
-  groupPermission: {
-    groupNo: number;
-    permissionNo: number;
-    isAllowed: 'Y' | 'N' | null;
-    override: 'Y' | 'N' | null;
-    extraCondition: string | null;
-    extraLimit: string | null;
-  },
+  groupPermission: CreateGroupPermission,
   meta: LogMeta,
-) {
+): Promise<GroupPermissionCreateOrUpdateResponse> {
   let conn;
   try {
     conn = await beginTransaction();
 
     // 1. 중복 체크
-    const existingPermission = await findGroupPermission(groupPermission.groupNo, groupPermission.permissionNo);
+    const existingPermission = await findGroupPermission({
+      groupNo: groupPermission.groupNo,
+      permissionNo: groupPermission.permissionNo,
+    });
     if (existingPermission) {
       throw new AppError('이미 존재하는 그룹 권한입니다.', 400);
     }
 
     // 2. 그룹 권한 생성
-    await insertGroupPermission(
-      {
-        groupNo: groupPermission.groupNo,
-        permissionNo: groupPermission.permissionNo,
-        isAllowed: groupPermission.isAllowed,
-        override: groupPermission.override,
-        extraCondition: groupPermission.extraCondition,
-        extraLimit: groupPermission.extraLimit,
-      },
-      conn,
-    );
+    await insertGroupPermission(groupPermission, conn);
 
     // 3. 로그 기록
     await logAction(
@@ -119,27 +113,18 @@ export async function createGroupPermissionS(
 
 // 그룹 권한 수정
 export async function updateGroupPermissionS(
-  groupPermission: {
-    groupNo: number;
-    permissionNo: number;
-    isAllowed: 'Y' | 'N' | null;
-    override: 'Y' | 'N' | null;
-    extraCondition: string | null;
-    extraLimit: string | null;
-    originalGroupNo: number;
-    originalPermissionNo: number;
-  },
+  groupPermission: UpdateGroupPermission,
   meta: LogMeta,
-) {
+): Promise<GroupPermissionCreateOrUpdateResponse> {
   let conn;
   try {
     conn = await beginTransaction();
 
     // 1. 원본 권한 존재 여부 확인
-    const originalPermission = await findGroupPermission(
-      groupPermission.originalGroupNo,
-      groupPermission.originalPermissionNo,
-    );
+    const originalPermission = await findGroupPermission({
+      groupNo: groupPermission.originalGroupNo,
+      permissionNo: groupPermission.originalPermissionNo,
+    });
     if (!originalPermission) {
       throw new AppError('수정할 그룹 권한이 존재하지 않습니다.', 404);
     }
@@ -149,28 +134,17 @@ export async function updateGroupPermissionS(
       groupPermission.groupNo !== groupPermission.originalGroupNo ||
       groupPermission.permissionNo !== groupPermission.originalPermissionNo
     ) {
-      const existingPermission = await findGroupPermission(groupPermission.groupNo, groupPermission.permissionNo);
+      const existingPermission = await findGroupPermission({
+        groupNo: groupPermission.groupNo,
+        permissionNo: groupPermission.permissionNo,
+      });
       if (existingPermission) {
         throw new AppError('이미 존재하는 그룹 권한입니다.', 400);
       }
     }
 
     // 3. 그룹 권한 수정
-    const result = await updateGroupPermission(
-      {
-        groupNo: groupPermission.groupNo,
-        permissionNo: groupPermission.permissionNo,
-        isAllowed: groupPermission.isAllowed,
-        override: groupPermission.override,
-        extraCondition: groupPermission.extraCondition,
-        extraLimit: groupPermission.extraLimit,
-      },
-      {
-        originalGroupNo: groupPermission.originalGroupNo,
-        originalPermissionNo: groupPermission.originalPermissionNo,
-      },
-      conn,
-    );
+    const result = await updateGroupPermission(groupPermission, conn);
 
     if (result.affectedRows === 0) {
       throw new AppError('그룹 권한 수정에 실패했습니다.', 400, 'UPDATE_FAILED');
@@ -212,13 +186,16 @@ export async function deleteGroupPermissionS(groupNo: number, permissionNo: numb
     conn = await beginTransaction();
 
     // 1. 삭제할 권한 존재 여부 확인
-    const existingPermission = await findGroupPermission(groupNo, permissionNo);
+    const existingPermission = await findGroupPermission({
+      groupNo,
+      permissionNo,
+    });
     if (!existingPermission) {
       throw new AppError('삭제할 그룹 권한이 존재하지 않습니다.', 404, 'GROUP_PERMISSION_NOT_FOUND');
     }
 
     // 2. 그룹 권한 삭제
-    const result = await deleteGroupPermission(groupNo, permissionNo, conn);
+    const result = await deleteGroupPermission({ groupNo, permissionNo }, conn);
 
     if (result.affectedRows === 0) {
       throw new AppError('그룹 권한 삭제에 실패했습니다.', 400, 'DELETE_FAILED');

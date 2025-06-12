@@ -13,7 +13,7 @@ import {
   groupPermissionCreateOrUpdateApiResponseSchema,
   groupPermissionsApiResponseSchema,
   groupPermissionFilterSchema,
-} from '@/types/permission';
+} from '@/types/permission/group-permission';
 import { paginationSchema } from '@/types/common';
 import { DEFAULT_PAGE_SIZE } from '@/lib/default.constant';
 import { AppError } from '@/utils/error.utils';
@@ -153,23 +153,11 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
     const validatedData = updateGroupPermissionSchema.parse(body);
 
-    await updateGroupPermissionS(
-      {
-        groupNo: validatedData.groupNo,
-        permissionNo: validatedData.permissionNo,
-        isAllowed: validatedData.isAllowed,
-        override: validatedData.override,
-        extraCondition: validatedData.extraCondition,
-        extraLimit: validatedData.extraLimit,
-        originalGroupNo: validatedData.originalGroupNo,
-        originalPermissionNo: validatedData.originalPermissionNo,
-      },
-      {
-        manager_no: session.manager_no,
-        ip: request.headers.get('x-forwarded-for') || '',
-        user_agent: request.headers.get('user-agent') || '',
-      },
-    );
+    await updateGroupPermissionS(validatedData, {
+      manager_no: session.manager_no,
+      ip: request.headers.get('x-forwarded-for') || '',
+      user_agent: request.headers.get('user-agent') || '',
+    });
 
     return NextResponse.json(
       groupPermissionCreateOrUpdateApiResponseSchema.parse({

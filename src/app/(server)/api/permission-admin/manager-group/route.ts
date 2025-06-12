@@ -15,7 +15,6 @@ import {
   managerGroupCreateOrUpdateApiResponseSchema,
   managerGroupListRequestSchema,
   managerGroupsApiResponseSchema,
-  managerGroupApiResponseSchema,
 } from '@/types/permission/manager-group';
 import { getClientInfo } from '@/services/log-action/log-action.service';
 import { AppError } from '@/utils/error.utils';
@@ -58,7 +57,16 @@ export async function GET(request: NextRequest) {
       schoolNo: schoolNo ? Number(schoolNo) : undefined,
     });
 
-    const result = await getManagerGroupsS(session.manager_no, pagination, filters);
+    const result = await getManagerGroupsS(
+      session.manager_no,
+      pagination,
+      {
+        manager_no: session.manager_no,
+        ip: request.headers.get('x-forwarded-for') || '',
+        user_agent: request.headers.get('user-agent') || '',
+      },
+      filters,
+    );
 
     return NextResponse.json(
       managerGroupsApiResponseSchema.parse({
@@ -236,23 +244,44 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
-    const validatedData = managerGroupSchema.parse(body);
+    let no: string | null = null;
+    let groupNo: string | null = null;
 
-    const { userAgent, ip } = getClientInfo(request);
-    await deleteManagerGroupS(validatedData.no, validatedData.groupNo, {
+    // body에서 파라미터 확인
+    try {
+      const body = await request.json();
+      no = body.no?.toString() || null;
+      groupNo = body.groupNo?.toString() || null;
+    } catch {
+      // body가 없는 경우 query string에서 파라미터 확인
+      const { searchParams } = new URL(request.url);
+      no = searchParams.get('no');
+      groupNo = searchParams.get('groupNo');
+    }
+
+    if (!no || !groupNo) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: '관리자 번호와 그룹 번호는 필수입니다.',
+        },
+        { status: 400 },
+      );
+    }
+
+    await deleteManagerGroupS(Number(no), Number(groupNo), {
       manager_no: session.manager_no,
-      ip,
-      user_agent: userAgent,
+      ip: request.headers.get('x-forwarded-for') || '',
+      user_agent: request.headers.get('user-agent') || '',
     });
 
     return NextResponse.json(
-      managerGroupApiResponseSchema.parse({
+      managerGroupCreateOrUpdateApiResponseSchema.parse({
         success: true,
         message: '관리자 그룹이 성공적으로 삭제되었습니다.',
         data: {
-          no: validatedData.no,
-          groupNo: validatedData.groupNo,
+          groupNo: Number(groupNo),
+          no: Number(no),
         },
       }),
       { status: 200 },
@@ -263,7 +292,6 @@ export async function DELETE(request: NextRequest) {
         {
           success: false,
           message: error.message,
-          code: error.code,
         },
         { status: error.statusCode },
       );
