@@ -29,7 +29,7 @@ export async function getManagerGroupsS(managerNo: number, pagination: Paginatio
     };
   } catch (error) {
     console.error('관리자 그룹 목록 조회 중 오류 발생:', error);
-    throw new AppError('관리자 그룹 목록 조회 중 오류가 발생했습니다.', 500, 'MANAGER_GROUP_LIST_ERROR');
+    throw new AppError('관리자 그룹 목록 조회 중 오류가 발생했습니다.', 500);
   }
 }
 
@@ -42,7 +42,7 @@ export async function createManagerGroupS(managerGroup: ManagerGroup, meta: LogM
     // 1. 중복 체크
     const existingGroup = await findManagerGroup(managerGroup.no, managerGroup.groupNo);
     if (existingGroup) {
-      throw new AppError('이미 존재하는 관리자 그룹입니다.', 400, 'MANAGER_GROUP_ALREADY_EXISTS');
+      throw new AppError('이미 존재하는 관리자 그룹입니다.', 400);
     }
 
     // 2. 관리자 그룹 생성
@@ -74,9 +74,7 @@ export async function createManagerGroupS(managerGroup: ManagerGroup, meta: LogM
       await rollbackTransaction(conn);
     }
     console.error('관리자 그룹 생성 중 오류 발생:', error);
-    throw error instanceof AppError
-      ? error
-      : new AppError('관리자 그룹 생성 중 오류가 발생했습니다.', 500, 'MANAGER_GROUP_CREATE_ERROR');
+    throw error instanceof AppError ? error : new AppError('관리자 그룹 생성 중 오류가 발생했습니다.', 500);
   } finally {
     if (conn) {
       try {
@@ -102,14 +100,14 @@ export async function updateManagerGroupS(
     // 1. 기존 그룹 존재 여부 확인
     const existingGroup = await findManagerGroup(originalNo, originalGroupNo);
     if (!existingGroup) {
-      throw new AppError('존재하지 않는 관리자 그룹입니다.', 404, 'MANAGER_GROUP_NOT_FOUND');
+      throw new AppError('존재하지 않는 관리자 그룹입니다.', 404);
     }
 
     // 2. 중복 체크 (변경된 경우에만)
     if (managerGroup.no !== originalNo || managerGroup.groupNo !== originalGroupNo) {
       const duplicateGroup = await findManagerGroup(managerGroup.no, managerGroup.groupNo);
       if (duplicateGroup) {
-        throw new AppError('이미 존재하는 관리자 그룹입니다.', 400, 'MANAGER_GROUP_ALREADY_EXISTS');
+        throw new AppError('이미 존재하는 관리자 그룹입니다.', 400);
       }
     }
 
@@ -142,9 +140,7 @@ export async function updateManagerGroupS(
       await rollbackTransaction(conn);
     }
     console.error('관리자 그룹 수정 중 오류 발생:', error);
-    throw error instanceof AppError
-      ? error
-      : new AppError('관리자 그룹 수정 중 오류가 발생했습니다.', 500, 'MANAGER_GROUP_UPDATE_ERROR');
+    throw error instanceof AppError ? error : new AppError('관리자 그룹 수정 중 오류가 발생했습니다.', 500);
   } finally {
     if (conn) {
       try {
@@ -165,7 +161,7 @@ export async function deleteManagerGroupS(no: number, groupNo: number, meta: Log
     // 1. 기존 그룹 존재 여부 확인
     const existingGroup = await findManagerGroup(no, groupNo);
     if (!existingGroup) {
-      throw new AppError('존재하지 않는 관리자 그룹입니다.', 404, 'MANAGER_GROUP_NOT_FOUND');
+      throw new AppError('존재하지 않는 관리자 그룹입니다.', 404);
     }
 
     // 2. 관리자 그룹 삭제
@@ -194,9 +190,7 @@ export async function deleteManagerGroupS(no: number, groupNo: number, meta: Log
       await rollbackTransaction(conn);
     }
     console.error('관리자 그룹 삭제 중 오류 발생:', error);
-    throw error instanceof AppError
-      ? error
-      : new AppError('관리자 그룹 삭제 중 오류가 발생했습니다.', 500, 'MANAGER_GROUP_DELETE_ERROR');
+    throw error instanceof AppError ? error : new AppError('관리자 그룹 삭제 중 오류가 발생했습니다.', 500);
   } finally {
     if (conn) {
       try {

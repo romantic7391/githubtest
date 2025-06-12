@@ -59,7 +59,7 @@ export async function findManagerGroups(
     return { managerGroups, total };
   } catch (error) {
     console.error('관리자 그룹 목록 조회 중 오류 발생:', error);
-    throw new AppError('관리자 그룹 목록 조회 중 오류가 발생했습니다.', 500, 'MANAGER_GROUP_LIST_ERROR');
+    throw new AppError('관리자 그룹 목록 조회 중 오류가 발생했습니다.', 500);
   }
 }
 
@@ -86,7 +86,7 @@ export async function findManagerGroup(no: number, groupNo: number): Promise<Man
     return getRow<ManagerGroup>(query, [no, groupNo]);
   } catch (error) {
     console.error('관리자 그룹 조회 중 오류 발생:', error);
-    throw new AppError('관리자 그룹 조회 중 오류가 발생했습니다.', 500, 'MANAGER_GROUP_FIND_ERROR');
+    throw new AppError('관리자 그룹 조회 중 오류가 발생했습니다.', 500);
   }
 }
 
@@ -100,7 +100,7 @@ export async function insertManagerGroup(dto: ManagerGroup, conn?: PoolConnectio
     return exec(query, params, conn);
   } catch (error) {
     console.error('관리자 그룹 생성 중 오류 발생:', error);
-    throw new AppError('관리자 그룹 생성 중 오류가 발생했습니다.', 500, 'MANAGER_GROUP_CREATE_ERROR');
+    throw new AppError('관리자 그룹 생성 중 오류가 발생했습니다.', 500);
   }
 }
 
@@ -121,7 +121,7 @@ export async function updateManagerGroup(
     return exec(query, params, conn);
   } catch (error) {
     console.error('관리자 그룹 수정 중 오류 발생:', error);
-    throw new AppError('관리자 그룹 수정 중 오류가 발생했습니다.', 500, 'MANAGER_GROUP_UPDATE_ERROR');
+    throw new AppError('관리자 그룹 수정 중 오류가 발생했습니다.', 500);
   }
 }
 
@@ -132,6 +132,6 @@ export async function deleteManagerGroup(no: number, groupNo: number, conn?: Poo
     return exec(query, [no, groupNo], conn);
   } catch (error) {
     console.error('관리자 그룹 삭제 중 오류 발생:', error);
-    throw new AppError('관리자 그룹 삭제 중 오류가 발생했습니다.', 500, 'MANAGER_GROUP_DELETE_ERROR');
+    throw new AppError('관리자 그룹 삭제 중 오류가 발생했습니다.', 500);
   }
 }
