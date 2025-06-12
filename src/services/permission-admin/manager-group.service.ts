@@ -14,7 +14,14 @@ import { Pagination, paginationSchema } from '@/types/common';
 import { AppError } from '@/utils/error.utils';
 
 // 관리자 그룹 목록 조회
-export async function getManagerGroupsS(managerNo: number, pagination: Pagination, filters?: { groupNo?: number }) {
+export async function getManagerGroupsS(
+  managerNo: number,
+  pagination: Pagination,
+  filters?: {
+    groupNo?: number;
+    schoolNo?: number;
+  },
+) {
   try {
     const result = await findManagerGroups(managerNo, pagination, filters);
 

@@ -46,12 +46,14 @@ export async function GET(request: NextRequest) {
     const page = Number(searchParams.get('page')) || 1;
     const pageSize = Number(searchParams.get('pageSize')) || 10;
     const groupNo = searchParams.get('groupNo');
+    const schoolNo = searchParams.get('schoolNo');
 
     // 요청 데이터 검증
     const validatedData = managerGroupListRequestSchema.parse({
       page,
       pageSize,
       groupNo: groupNo ? Number(groupNo) : undefined,
+      schoolNo: schoolNo ? Number(schoolNo) : undefined,
     });
 
     const pagination = paginationSchema.parse({
@@ -61,6 +63,7 @@ export async function GET(request: NextRequest) {
 
     const result = await getManagerGroupsS(session.manager_no, pagination, {
       groupNo: validatedData.groupNo,
+      schoolNo: validatedData.schoolNo,
     });
 
     return NextResponse.json(

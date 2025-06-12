@@ -10,6 +10,7 @@ export async function findManagerGroups(
   pagination: Pagination,
   filters?: {
     groupNo?: number;
+    schoolNo?: number;
   },
 ): Promise<{ managerGroups: ManagerGroup[]; total: number }> {
   try {
@@ -21,6 +22,12 @@ export async function findManagerGroups(
     if (filters?.groupNo) {
       conditions.push('mg.group_no = ?');
       params.push(filters.groupNo);
+    }
+
+    // 선택적 필터: 특정 학교만 조회하고 싶을 때만 사용
+    if (filters?.schoolNo) {
+      conditions.push('g.school_no = ?');
+      params.push(filters.schoolNo);
     }
 
     // 전체 개수 조회
@@ -40,17 +47,27 @@ export async function findManagerGroups(
       SELECT 
         mg.no as managerNo,
         m.name as managerName,
+        r.school_no as schoolNo,
+        r.sname as schoolName,
         g.group_no as groupNo,
         g.name as groupName,
-        g.school_no as schoolNo,
-        s.sname as schoolName
+        p.permission_no as permissionNo,
+        p.name as permissionName,
+        gp.is_allowed as isAllowed,
+        gp.override as override,
+        gp.extra_condition as extraCondition,
+        gp.extra_limit as extraLimit
       FROM managerGroup mg
       JOIN manager m ON mg.no = m.no
       JOIN \`group\` g ON mg.group_no = g.group_no
-      LEFT JOIN rnSchool s ON g.school_no = s.school_no
+      JOIN rnSchool r ON g.school_no = r.school_no
+      JOIN groupPermission gp ON g.group_no = gp.group_no
+      JOIN permission p ON gp.permission_no = p.permission_no
       WHERE ${conditions.join(' AND ')}
       AND g.deleted IS NULL
-      ORDER BY mg.no, g.group_no
+      AND gp.deleted IS NULL
+      AND p.deleted IS NULL
+      ORDER BY mg.no, g.group_no, p.permission_no
       LIMIT ? OFFSET ?
     `;
 
