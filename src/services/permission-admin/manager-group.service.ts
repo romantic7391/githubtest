@@ -10,7 +10,6 @@ import {
   ManagerGroup,
   ManagerGroupCreateOrUpdateResponse,
   FindManagerGroupsDto,
-  FindManagerGroupDto,
   InsertManagerGroupDto,
   UpdateManagerGroupDto,
   DeleteManagerGroupDto,
@@ -37,6 +36,11 @@ export async function getManagerGroupsS(
     };
     const result = await findManagerGroups(params, pagination);
 
+    // 데이터가 없는 경우 404 에러
+    if (result.total === 0) {
+      throw new AppError('해당하는 학교에 관리자 그룹 목록이 존재하지 않습니다.', 404);
+    }
+
     return {
       managerGroups: result.managerGroups,
       pagination: paginationSchema.parse({
@@ -48,6 +52,9 @@ export async function getManagerGroupsS(
     };
   } catch (error) {
     console.error('관리자 그룹 목록 조회 중 오류 발생:', error);
+    if (error instanceof AppError) {
+      throw error;
+    }
     throw new AppError('관리자 그룹 목록 조회 중 오류가 발생했습니다.', 500);
   }
 }
@@ -60,11 +67,7 @@ export async function createManagerGroupS(managerGroup: ManagerGroup, meta: LogM
 
     // 1. 중복 체크
     console.log('중복 체크 시작:', { no: managerGroup.no, groupNo: managerGroup.groupNo });
-    const params: FindManagerGroupDto = {
-      no: managerGroup.no,
-      groupNo: managerGroup.groupNo,
-    };
-    const existingGroup = await findManagerGroup(params);
+    const existingGroup = await findManagerGroup(managerGroup.no, managerGroup.groupNo);
     console.log('중복 체크 결과:', existingGroup);
     if (existingGroup) {
       console.log('중복 발견:', existingGroup);
@@ -127,22 +130,14 @@ export async function updateManagerGroupS(
     conn = await beginTransaction();
 
     // 1. 기존 그룹 존재 여부 확인
-    const findParams: FindManagerGroupDto = {
-      no: originalNo,
-      groupNo: originalGroupNo,
-    };
-    const existingGroup = await findManagerGroup(findParams);
+    const existingGroup = await findManagerGroup(originalNo, originalGroupNo);
     if (!existingGroup) {
       throw new AppError('존재하지 않는 관리자 그룹입니다.', 404);
     }
 
     // 2. 중복 체크 (변경된 경우에만)
     if (managerGroup.no !== originalNo || managerGroup.groupNo !== originalGroupNo) {
-      const duplicateParams: FindManagerGroupDto = {
-        no: managerGroup.no,
-        groupNo: managerGroup.groupNo,
-      };
-      const duplicateGroup = await findManagerGroup(duplicateParams);
+      const duplicateGroup = await findManagerGroup(managerGroup.no, managerGroup.groupNo);
       if (duplicateGroup) {
         throw new AppError('이미 존재하는 관리자 그룹입니다.', 400);
       }
@@ -201,11 +196,7 @@ export async function deleteManagerGroupS(no: number, groupNo: number, meta: Log
     conn = await beginTransaction();
 
     // 1. 기존 그룹 존재 여부 확인
-    const findParams: FindManagerGroupDto = {
-      no,
-      groupNo,
-    };
-    const existingGroup = await findManagerGroup(findParams);
+    const existingGroup = await findManagerGroup(no, groupNo);
     if (!existingGroup) {
       throw new AppError('존재하지 않는 관리자 그룹입니다.', 404);
     }

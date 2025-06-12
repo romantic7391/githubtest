@@ -2,7 +2,6 @@ import { exec, getRow, getAll } from '@/lib/mariadb/query';
 import {
   ManagerGroup,
   FindManagerGroupsDto,
-  FindManagerGroupDto,
   InsertManagerGroupDto,
   UpdateManagerGroupDto,
   DeleteManagerGroupDto,
@@ -89,7 +88,7 @@ export async function findManagerGroups(
 }
 
 // 특정 관리자 그룹 조회
-export async function findManagerGroup(params: FindManagerGroupDto): Promise<ManagerGroup | null> {
+export async function findManagerGroup(no: number, groupNo: number): Promise<boolean> {
   try {
     const query = `
       SELECT COUNT(1) as count
@@ -98,7 +97,8 @@ export async function findManagerGroup(params: FindManagerGroupDto): Promise<Man
         and mg.group_no = ?
         and mg.deleted is null;
     `;
-    return getRow<ManagerGroup>(query, [params.no, params.groupNo]);
+    const result = await getRow<{ count: number }>(query, [no, groupNo]);
+    return (result?.count ?? 0) > 0;
   } catch (error) {
     console.error('관리자 그룹 조회 중 오류 발생:', error);
     throw new AppError('관리자 그룹 조회 중 오류가 발생했습니다.', 500);
