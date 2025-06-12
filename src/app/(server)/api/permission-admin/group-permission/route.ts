@@ -16,6 +16,7 @@ import {
 } from '@/types/permission';
 import { paginationSchema } from '@/types/common';
 import { DEFAULT_PAGE_SIZE } from '@/lib/default.constant';
+import { AppError } from '@/utils/error.utils';
 
 /**
  * 그룹 권한 조회
@@ -114,6 +115,15 @@ export async function POST(request: NextRequest) {
       { status: 200 },
     );
   } catch (error) {
+    if (error instanceof AppError) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: error.message,
+        },
+        { status: error.statusCode },
+      );
+    }
     const zodError = handleZodError(error);
     if (zodError) return zodError;
     return handleError(error, '그룹 권한 생성');
@@ -173,6 +183,15 @@ export async function PUT(request: NextRequest) {
       { status: 200 },
     );
   } catch (error) {
+    if (error instanceof AppError) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: error.message,
+        },
+        { status: error.statusCode },
+      );
+    }
     const zodError = handleZodError(error);
     if (zodError) return zodError;
     return handleError(error, '그룹 권한 수정');
@@ -248,6 +267,15 @@ export async function DELETE(request: NextRequest) {
       { status: 200 },
     );
   } catch (error) {
+    if (error instanceof AppError) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: error.message,
+        },
+        { status: error.statusCode },
+      );
+    }
     const zodError = handleZodError(error);
     if (zodError) return zodError;
     return handleError(error, '그룹 권한 삭제');

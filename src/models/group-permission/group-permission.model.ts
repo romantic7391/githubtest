@@ -147,3 +147,17 @@ export async function deleteGroupPermission(groupNo: number, permissionNo: numbe
   const query = `DELETE FROM \`groupPermission\` WHERE group_no = ? AND permission_no = ?`;
   return exec(query, [groupNo, permissionNo], conn);
 }
+
+// 그룹 권한 조회 (중복 체크용)
+export async function findGroupPermission(groupNo: number, permissionNo: number) {
+  const query = `
+    SELECT 
+      COUNT(1) as count
+    FROM groupPermission AS gp
+    WHERE gp.group_no = ? AND gp.permission_no = ?
+    AND gp.deleted IS NULL
+  `;
+
+  const result = await getRow<{ count: number }>(query, [groupNo, permissionNo]);
+  return result?.count || 0;
+}

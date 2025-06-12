@@ -201,6 +201,8 @@ export type DeviceFilter = z.infer<typeof deviceFilterSchema>;
 export const deviceListParamsSchema = z.object({
   school_no: z.number(),
   filters: deviceFilterSchema.optional(),
+  page: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER).default(1),
+  pageSize: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER).default(10),
 });
 
 /**
