@@ -1,33 +1,36 @@
 import { exec, getRow, getAll } from '@/lib/mariadb/query';
-import { ManagerGroup } from '@/types/permission';
+import {
+  ManagerGroup,
+  FindManagerGroupsDto,
+  FindManagerGroupDto,
+  InsertManagerGroupDto,
+  UpdateManagerGroupDto,
+  DeleteManagerGroupDto,
+} from '@/types/permission/manager-group';
 import { Pagination } from '@/types/common';
 import { PoolConnection } from 'mariadb';
 import { AppError } from '@/utils/error.utils';
 
 // 매니저의 그룹 목록 조회
 export async function findManagerGroups(
-  managerNo: number,
+  params: FindManagerGroupsDto,
   pagination: Pagination,
-  filters?: {
-    groupNo?: number;
-    schoolNo?: number;
-  },
 ): Promise<{ managerGroups: ManagerGroup[]; total: number }> {
   try {
     const offset = (pagination.page - 1) * pagination.pageSize;
     const conditions = ['mg.deleted IS NULL'];
-    const params: (string | number)[] = [];
+    const queryParams: (string | number)[] = [];
 
     // 선택적 필터: 특정 그룹만 조회하고 싶을 때만 사용
-    if (filters?.groupNo) {
+    if (params.filters?.groupNo) {
       conditions.push('mg.group_no = ?');
-      params.push(filters.groupNo);
+      queryParams.push(params.filters.groupNo);
     }
 
     // 선택적 필터: 특정 학교만 조회하고 싶을 때만 사용
-    if (filters?.schoolNo) {
+    if (params.filters?.schoolNo) {
       conditions.push('g.school_no = ?');
-      params.push(filters.schoolNo);
+      queryParams.push(params.filters.schoolNo);
     }
 
     // 전체 개수 조회
@@ -44,7 +47,7 @@ export async function findManagerGroups(
       AND gp.deleted IS NULL
       AND p.deleted IS NULL
     `;
-    const totalResult = await getRow<{ total: number }>(countQuery, params);
+    const totalResult = await getRow<{ total: number }>(countQuery, queryParams);
     const total = totalResult?.total || 0;
 
     // 매니저 그룹 목록 조회
@@ -76,7 +79,7 @@ export async function findManagerGroups(
       LIMIT ? OFFSET ?
     `;
 
-    const managerGroups = await getAll<ManagerGroup>(query, [...params, pagination.pageSize, offset]);
+    const managerGroups = await getAll<ManagerGroup>(query, [...queryParams, pagination.pageSize, offset]);
 
     return { managerGroups, total };
   } catch (error) {
@@ -86,7 +89,7 @@ export async function findManagerGroups(
 }
 
 // 특정 관리자 그룹 조회
-export async function findManagerGroup(no: number, groupNo: number): Promise<ManagerGroup | null> {
+export async function findManagerGroup(params: FindManagerGroupDto): Promise<ManagerGroup | null> {
   try {
     const query = `
       SELECT COUNT(1) as count
@@ -95,7 +98,7 @@ export async function findManagerGroup(no: number, groupNo: number): Promise<Man
         and mg.group_no = ?
         and mg.deleted is null;
     `;
-    return getRow<ManagerGroup>(query, [no, groupNo]);
+    return getRow<ManagerGroup>(query, [params.no, params.groupNo]);
   } catch (error) {
     console.error('관리자 그룹 조회 중 오류 발생:', error);
     throw new AppError('관리자 그룹 조회 중 오류가 발생했습니다.', 500);
@@ -103,7 +106,7 @@ export async function findManagerGroup(no: number, groupNo: number): Promise<Man
 }
 
 // 관리자 그룹 생성
-export async function insertManagerGroup(dto: ManagerGroup, conn?: PoolConnection) {
+export async function insertManagerGroup(dto: InsertManagerGroupDto, conn?: PoolConnection) {
   try {
     const query = `
       INSERT INTO \`managerGroup\` (no, group_no) VALUES (?, ?);
@@ -117,19 +120,14 @@ export async function insertManagerGroup(dto: ManagerGroup, conn?: PoolConnectio
 }
 
 // 관리자 그룹 수정
-export async function updateManagerGroup(
-  dto: ManagerGroup,
-  originalNo: number,
-  originalGroupNo: number,
-  conn?: PoolConnection,
-) {
+export async function updateManagerGroup(dto: UpdateManagerGroupDto, conn?: PoolConnection) {
   try {
     const query = `
       UPDATE \`managerGroup\` 
       SET no = ?, group_no = ? 
       WHERE no = ? AND group_no = ?
     `;
-    const params = [dto.no, dto.groupNo, originalNo, originalGroupNo];
+    const params = [dto.no, dto.groupNo, dto.originalNo, dto.originalGroupNo];
     return exec(query, params, conn);
   } catch (error) {
     console.error('관리자 그룹 수정 중 오류 발생:', error);
@@ -138,10 +136,10 @@ export async function updateManagerGroup(
 }
 
 // 관리자 그룹 삭제
-export async function deleteManagerGroup(no: number, groupNo: number, conn?: PoolConnection) {
+export async function deleteManagerGroup(dto: DeleteManagerGroupDto, conn?: PoolConnection) {
   try {
     const query = `DELETE FROM \`managerGroup\` WHERE no = ? AND group_no = ?`;
-    return exec(query, [no, groupNo], conn);
+    return exec(query, [dto.no, dto.groupNo], conn);
   } catch (error) {
     console.error('관리자 그룹 삭제 중 오류 발생:', error);
     throw new AppError('관리자 그룹 삭제 중 오류가 발생했습니다.', 500);

@@ -6,7 +6,15 @@ import {
   findManagerGroup,
 } from '@/models/manager-group/manager-group.model';
 
-import { ManagerGroup, ManagerGroupCreateOrUpdateResponse } from '@/types/permission';
+import {
+  ManagerGroup,
+  ManagerGroupCreateOrUpdateResponse,
+  FindManagerGroupsDto,
+  FindManagerGroupDto,
+  InsertManagerGroupDto,
+  UpdateManagerGroupDto,
+  DeleteManagerGroupDto,
+} from '@/types/permission/manager-group';
 import { LogMeta } from '@/types/history';
 import { logAction, makeLogParams } from '@/services/log-action/log-action.service';
 import { beginTransaction, commitTransaction, rollbackTransaction } from '@/lib/mariadb/query';
@@ -23,7 +31,11 @@ export async function getManagerGroupsS(
   },
 ) {
   try {
-    const result = await findManagerGroups(managerNo, pagination, filters);
+    const params: FindManagerGroupsDto = {
+      managerNo,
+      filters,
+    };
+    const result = await findManagerGroups(params, pagination);
 
     return {
       managerGroups: result.managerGroups,
@@ -48,7 +60,11 @@ export async function createManagerGroupS(managerGroup: ManagerGroup, meta: LogM
 
     // 1. 중복 체크
     console.log('중복 체크 시작:', { no: managerGroup.no, groupNo: managerGroup.groupNo });
-    const existingGroup = await findManagerGroup(managerGroup.no, managerGroup.groupNo);
+    const params: FindManagerGroupDto = {
+      no: managerGroup.no,
+      groupNo: managerGroup.groupNo,
+    };
+    const existingGroup = await findManagerGroup(params);
     console.log('중복 체크 결과:', existingGroup);
     if (existingGroup) {
       console.log('중복 발견:', existingGroup);
@@ -57,7 +73,8 @@ export async function createManagerGroupS(managerGroup: ManagerGroup, meta: LogM
 
     // 2. 관리자 그룹 생성
     console.log('관리자 그룹 생성 시작:', managerGroup);
-    await insertManagerGroup(managerGroup, conn);
+    const dto: InsertManagerGroupDto = managerGroup;
+    await insertManagerGroup(dto, conn);
     console.log('관리자 그룹 생성 완료');
 
     // 3. 로그 기록
@@ -110,21 +127,34 @@ export async function updateManagerGroupS(
     conn = await beginTransaction();
 
     // 1. 기존 그룹 존재 여부 확인
-    const existingGroup = await findManagerGroup(originalNo, originalGroupNo);
+    const findParams: FindManagerGroupDto = {
+      no: originalNo,
+      groupNo: originalGroupNo,
+    };
+    const existingGroup = await findManagerGroup(findParams);
     if (!existingGroup) {
       throw new AppError('존재하지 않는 관리자 그룹입니다.', 404);
     }
 
     // 2. 중복 체크 (변경된 경우에만)
     if (managerGroup.no !== originalNo || managerGroup.groupNo !== originalGroupNo) {
-      const duplicateGroup = await findManagerGroup(managerGroup.no, managerGroup.groupNo);
+      const duplicateParams: FindManagerGroupDto = {
+        no: managerGroup.no,
+        groupNo: managerGroup.groupNo,
+      };
+      const duplicateGroup = await findManagerGroup(duplicateParams);
       if (duplicateGroup) {
         throw new AppError('이미 존재하는 관리자 그룹입니다.', 400);
       }
     }
 
     // 3. 관리자 그룹 수정
-    await updateManagerGroup(managerGroup, originalNo, originalGroupNo, conn);
+    const dto: UpdateManagerGroupDto = {
+      ...managerGroup,
+      originalNo,
+      originalGroupNo,
+    };
+    await updateManagerGroup(dto, conn);
 
     // 4. 로그 기록
     await logAction(
@@ -171,13 +201,21 @@ export async function deleteManagerGroupS(no: number, groupNo: number, meta: Log
     conn = await beginTransaction();
 
     // 1. 기존 그룹 존재 여부 확인
-    const existingGroup = await findManagerGroup(no, groupNo);
+    const findParams: FindManagerGroupDto = {
+      no,
+      groupNo,
+    };
+    const existingGroup = await findManagerGroup(findParams);
     if (!existingGroup) {
       throw new AppError('존재하지 않는 관리자 그룹입니다.', 404);
     }
 
     // 2. 관리자 그룹 삭제
-    const result = await deleteManagerGroup(no, groupNo, conn);
+    const dto: DeleteManagerGroupDto = {
+      no,
+      groupNo,
+    };
+    const result = await deleteManagerGroup(dto, conn);
 
     // 3. 로그 기록
     await logAction(

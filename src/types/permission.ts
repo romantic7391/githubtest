@@ -313,8 +313,6 @@ export type CreateGroup = z.infer<typeof createGroupSchema>;
 export type UpdateGroup = z.infer<typeof updateGroupSchema>;
 export type CreateGroupPermission = z.infer<typeof createGroupPermissionSchema>;
 export type UpdateGroupPermission = z.infer<typeof updateGroupPermissionSchema>;
-export type CreateManagerGroup = z.infer<typeof createManagerGroupSchema>;
-export type UpdateManagerGroup = z.infer<typeof updateManagerGroupSchema>;
 export type ManagerGroupCreateOrUpdateResponse = z.infer<typeof managerGroupCreateOrUpdateApiResponseSchema>['data'];
 export type Permission = z.infer<typeof permissionSchema>;
 export type PermissionCreateOrUpdateResponse = z.infer<typeof permissionCreateOrUpdateApiResponseSchema>['data'];
@@ -506,8 +504,10 @@ export const groupDeleteResponseSchema = baseApiResponseSchema.extend({
   }),
 });
 
-// 매니저 그룹 목록 조회 스키마
-export const managerGroupListRequestSchema = z.object({
-  groupNo: z.number().optional(),
-  schoolNo: z.number().optional(),
-});
+// 파라미터 검증을 위한 group 스키마
+export const groupNameSchema = z
+  .string()
+  .min(1, '그룹명은 필수입니다.')
+  .max(100, '그룹명은 100자를 초과할 수 없습니다.');
+export const schoolNoSchema = z.number().nullable();
+export const groupNoSchema = z.number().positive('유효하지 않은 그룹 번호입니다.');

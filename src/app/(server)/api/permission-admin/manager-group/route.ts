@@ -16,7 +16,7 @@ import {
   managerGroupListRequestSchema,
   managerGroupsApiResponseSchema,
   managerGroupApiResponseSchema,
-} from '@/types/permission';
+} from '@/types/permission/manager-group';
 import { getClientInfo } from '@/services/log-action/log-action.service';
 import { AppError } from '@/utils/error.utils';
 import { DEFAULT_PAGE_SIZE } from '@/lib/default.constant';
