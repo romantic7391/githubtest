@@ -4,10 +4,14 @@ import {
   Permission,
   PermissionRouteParams,
   permissionCreateOrUpdateApiResponseSchema,
-  permissionUpdateRequestSchema,
+  updatePermissionSchema,
   permissionDeleteResponseSchema,
+  // permissionUpdateApiResponseSchema,
+  // permissionDeleteApiResponseSchema,
+  // updatePermissionRequestSchema,
 } from '@/types/permission';
 import { handleError, handleZodError } from '@/utils/error.utils';
+// import{AppError } from '@/utils/error.utils';
 import { updatePermissionS, deletePermissionS } from '@/services/permission-admin/permission.service';
 
 /**
@@ -36,14 +40,14 @@ export async function PUT(request: NextRequest, context: PermissionRouteParams) 
     }
 
     // 요청 데이터 검증
-    const validatedData = permissionUpdateRequestSchema.parse(body);
+    const validatedData = updatePermissionSchema.parse(body);
 
     const permissionData: Permission = {
       permission_no: permissionNoNum,
       name: validatedData.name,
       description: validatedData.description,
-      default_extra_condition: validatedData.defaultExtraCondition,
-      default_extra_limit: validatedData.defaultExtraLimit,
+      default_extra_condition: validatedData.default_extra_condition,
+      default_extra_limit: validatedData.default_extra_limit,
     };
 
     const result = await updatePermissionS(permissionData, {

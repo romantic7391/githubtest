@@ -12,7 +12,6 @@ import { handleError, handleZodError } from '@/utils/error.utils';
 import { getGroupsS, createGroupS } from '@/services/permission-admin/group.service';
 import { AppError } from '@/utils/error.utils';
 import { paginationSchema } from '@/types/common';
-import { DEFAULT_PAGE_SIZE } from '@/lib/default.constant';
 
 /**
  * 그룹 목록 조회
@@ -37,7 +36,7 @@ export async function GET(request: NextRequest) {
 
     const searchParams = request.nextUrl.searchParams;
     const page = Number(searchParams.get('page')) || 1;
-    const pageSize = Number(searchParams.get('pageSize')) || DEFAULT_PAGE_SIZE;
+    const pageSize = Number(searchParams.get('pageSize')) || 10;
     const name = searchParams.get('name') || undefined;
     const schoolNo = searchParams.get('schoolNo');
 

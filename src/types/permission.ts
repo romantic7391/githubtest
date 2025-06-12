@@ -503,7 +503,6 @@ export const groupDeleteResponseSchema = baseApiResponseSchema.extend({
     groupNo: z.number(),
   }),
 });
-
 // 파라미터 검증을 위한 group 스키마
 export const groupNameSchema = z
   .string()

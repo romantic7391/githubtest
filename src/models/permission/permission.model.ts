@@ -1,4 +1,5 @@
-import { Permission, Group, ManagerGroup, GroupPermission } from '@/types/permission';
+import { Permission } from '@/types/permission';
+import { Group, ManagerGroup, GroupPermission } from '@/types/permission';
 import { getRow, getAll, exec } from '@/lib/mariadb/query';
 import { PoolConnection } from 'mariadb';
 import { Pagination } from '@/types/common';
