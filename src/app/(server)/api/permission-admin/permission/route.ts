@@ -26,15 +26,12 @@ export async function GET(request: NextRequest) {
     const pageSize = Number(searchParams.get('pageSize')) || 10;
     const name = searchParams.get('name') || undefined;
 
-    const validatedData = permissionListRequestSchema.parse({
-      page,
-      pageSize,
-      name: name || undefined,
-    });
+    // 페이지네이션 검증
+    const pagination = paginationSchema.parse({ page, pageSize });
 
-    const pagination = paginationSchema.parse({
-      page: validatedData.page,
-      pageSize: validatedData.pageSize,
+    // 필터 검증
+    const filters = permissionListRequestSchema.parse({
+      name: name || undefined,
     });
 
     const result = await getPermissionsS(
@@ -44,7 +41,7 @@ export async function GET(request: NextRequest) {
         ip: request.headers.get('x-forwarded-for') || '',
         user_agent: request.headers.get('user-agent') || '',
       },
-      { name: validatedData.name },
+      filters,
     );
 
     return NextResponse.json(

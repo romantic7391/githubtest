@@ -102,8 +102,6 @@ export type SchoolListFilter = z.infer<typeof schoolListFilterSchema>;
  * 학교 목록 파라미터
  */
 export const schoolListParamsSchema = z.object({
-  page: z.number().positive().default(1),
-  pageSize: z.number().positive().default(10),
   filters: schoolListFilterSchema.optional(),
 });
 /**

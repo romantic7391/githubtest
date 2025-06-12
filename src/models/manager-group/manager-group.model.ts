@@ -36,8 +36,13 @@ export async function findManagerGroups(
       FROM managerGroup mg
       JOIN manager m ON mg.no = m.no
       JOIN \`group\` g ON mg.group_no = g.group_no
+      JOIN rnSchool r ON g.school_no = r.school_no
+      JOIN groupPermission gp ON g.group_no = gp.group_no
+      JOIN permission p ON gp.permission_no = p.permission_no
       WHERE ${conditions.join(' AND ')}
       AND g.deleted IS NULL
+      AND gp.deleted IS NULL
+      AND p.deleted IS NULL
     `;
     const totalResult = await getRow<{ total: number }>(countQuery, params);
     const total = totalResult?.total || 0;

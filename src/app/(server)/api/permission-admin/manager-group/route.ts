@@ -19,6 +19,7 @@ import {
 } from '@/types/permission';
 import { getClientInfo } from '@/services/log-action/log-action.service';
 import { AppError } from '@/utils/error.utils';
+import { DEFAULT_PAGE_SIZE } from '@/lib/default.constant';
 
 /**
  * 관리자 그룹 목록 조회
@@ -44,27 +45,20 @@ export async function GET(request: NextRequest) {
 
     const searchParams = request.nextUrl.searchParams;
     const page = Number(searchParams.get('page')) || 1;
-    const pageSize = Number(searchParams.get('pageSize')) || 10;
+    const pageSize = Number(searchParams.get('pageSize')) || DEFAULT_PAGE_SIZE;
     const groupNo = searchParams.get('groupNo');
     const schoolNo = searchParams.get('schoolNo');
 
-    // 요청 데이터 검증
-    const validatedData = managerGroupListRequestSchema.parse({
-      page,
-      pageSize,
+    // 페이지네이션 검증
+    const pagination = paginationSchema.parse({ page, pageSize });
+
+    // 필터 검증
+    const filters = managerGroupListRequestSchema.parse({
       groupNo: groupNo ? Number(groupNo) : undefined,
       schoolNo: schoolNo ? Number(schoolNo) : undefined,
     });
 
-    const pagination = paginationSchema.parse({
-      page: validatedData.page,
-      pageSize: validatedData.pageSize,
-    });
-
-    const result = await getManagerGroupsS(session.manager_no, pagination, {
-      groupNo: validatedData.groupNo,
-      schoolNo: validatedData.schoolNo,
-    });
+    const result = await getManagerGroupsS(session.manager_no, pagination, filters);
 
     return NextResponse.json(
       managerGroupsApiResponseSchema.parse({
