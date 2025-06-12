@@ -67,21 +67,11 @@ export async function findManagerGroups(
 export async function findManagerGroup(no: number, groupNo: number): Promise<ManagerGroup | null> {
   try {
     const query = `
-      SELECT 
-        mg.no as managerNo,
-        m.name as managerName,
-        g.group_no as groupNo,
-        g.name as groupName,
-        g.school_no as schoolNo,
-        s.sname as schoolName
-      FROM managerGroup mg
-      JOIN manager m ON mg.no = m.no
-      JOIN \`group\` g ON mg.group_no = g.group_no
-      LEFT JOIN rnSchool s ON g.school_no = s.school_no
-      WHERE mg.no = ? 
-        AND mg.group_no = ? 
-        AND mg.deleted IS NULL
-        AND g.deleted IS NULL
+      SELECT mg.no, mg.group_no
+        from managerGroup as mg
+        where mg.no = ?
+        and mg.group_no = ?
+        and mg.deleted is null;
     `;
     return getRow<ManagerGroup>(query, [no, groupNo]);
   } catch (error) {

@@ -25,6 +25,11 @@ import { AppError } from '@/utils/error.utils';
  */
 export async function GET(request: NextRequest) {
   try {
+    // 개발 환경에서 테스트를 위해 헤더 설정
+    if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
+      request.headers.set('x-manager-no', '1');
+    }
+
     const session = await getSession(request);
     if (!session) {
       return NextResponse.json(
@@ -87,6 +92,11 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    // 개발 환경에서 테스트를 위해 헤더 설정
+    if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
+      request.headers.set('x-manager-no', '1');
+    }
+
     const session = await getSession(request);
     if (!session) {
       return NextResponse.json(
@@ -144,6 +154,11 @@ export async function POST(request: NextRequest) {
  */
 export async function PUT(request: NextRequest) {
   try {
+    // 개발 환경에서 테스트를 위해 헤더 설정
+    if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
+      request.headers.set('x-manager-no', '1');
+    }
+
     const session = await getSession(request);
     if (!session) {
       return NextResponse.json(
@@ -207,6 +222,11 @@ export async function PUT(request: NextRequest) {
  */
 export async function DELETE(request: NextRequest) {
   try {
+    // 개발 환경에서 테스트를 위해 헤더 설정
+    if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
+      request.headers.set('x-manager-no', '1');
+    }
+
     const session = await getSession(request);
     if (!session) {
       return NextResponse.json(
