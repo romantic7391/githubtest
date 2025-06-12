@@ -3,6 +3,7 @@ import {
   findManagerGroups,
   updateManagerGroup,
   deleteManagerGroup,
+  findManagerGroup,
 } from '@/models/manager-group/manager-group.model';
 
 import { ManagerGroup, ManagerGroupCreateOrUpdateResponse } from '@/types/permission';
@@ -10,31 +11,44 @@ import { LogMeta } from '@/types/history';
 import { logAction, makeLogParams } from '@/services/log-action/log-action.service';
 import { beginTransaction, commitTransaction, rollbackTransaction } from '@/lib/mariadb/query';
 import { Pagination, paginationSchema } from '@/types/common';
+import { AppError } from '@/utils/error.utils';
 
 // 관리자 그룹 목록 조회
 export async function getManagerGroupsS(managerNo: number, pagination: Pagination, filters?: { groupNo?: number }) {
-  const result = await findManagerGroups(managerNo, pagination, filters);
+  try {
+    const result = await findManagerGroups(managerNo, pagination, filters);
 
-  return {
-    ...result,
-    pagination: paginationSchema.parse({
-      page: pagination.page,
-      pageSize: pagination.pageSize,
-      total: result.total,
-      totalPages: Math.ceil(result.total / pagination.pageSize),
-    }),
-  };
+    return {
+      managerGroups: result.managerGroups,
+      pagination: paginationSchema.parse({
+        page: pagination.page,
+        pageSize: pagination.pageSize,
+        total: result.total,
+        totalPages: Math.ceil(result.total / pagination.pageSize),
+      }),
+    };
+  } catch (error) {
+    console.error('관리자 그룹 목록 조회 중 오류 발생:', error);
+    throw new AppError('관리자 그룹 목록 조회 중 오류가 발생했습니다.', 500, 'MANAGER_GROUP_LIST_ERROR');
+  }
 }
 
 // 관리자 그룹 생성
 export async function createManagerGroupS(managerGroup: ManagerGroup, meta: LogMeta) {
   let conn;
   try {
-    // 1. 관리자 그룹 생성
     conn = await beginTransaction();
+
+    // 1. 중복 체크
+    const existingGroup = await findManagerGroup(managerGroup.no, managerGroup.groupNo);
+    if (existingGroup) {
+      throw new AppError('이미 존재하는 관리자 그룹입니다.', 400, 'MANAGER_GROUP_ALREADY_EXISTS');
+    }
+
+    // 2. 관리자 그룹 생성
     await insertManagerGroup(managerGroup, conn);
 
-    // 2. 로그 기록
+    // 3. 로그 기록
     await logAction(
       makeLogParams({
         manager_no: meta.manager_no,
@@ -59,7 +73,18 @@ export async function createManagerGroupS(managerGroup: ManagerGroup, meta: LogM
     if (conn) {
       await rollbackTransaction(conn);
     }
-    throw error;
+    console.error('관리자 그룹 생성 중 오류 발생:', error);
+    throw error instanceof AppError
+      ? error
+      : new AppError('관리자 그룹 생성 중 오류가 발생했습니다.', 500, 'MANAGER_GROUP_CREATE_ERROR');
+  } finally {
+    if (conn) {
+      try {
+        await conn.release();
+      } catch (error) {
+        console.error('트랜잭션 커넥션 해제 중 오류:', error);
+      }
+    }
   }
 }
 
@@ -72,11 +97,26 @@ export async function updateManagerGroupS(
 ): Promise<ManagerGroupCreateOrUpdateResponse> {
   let conn;
   try {
-    // 1. 관리자 그룹 수정
     conn = await beginTransaction();
+
+    // 1. 기존 그룹 존재 여부 확인
+    const existingGroup = await findManagerGroup(originalNo, originalGroupNo);
+    if (!existingGroup) {
+      throw new AppError('존재하지 않는 관리자 그룹입니다.', 404, 'MANAGER_GROUP_NOT_FOUND');
+    }
+
+    // 2. 중복 체크 (변경된 경우에만)
+    if (managerGroup.no !== originalNo || managerGroup.groupNo !== originalGroupNo) {
+      const duplicateGroup = await findManagerGroup(managerGroup.no, managerGroup.groupNo);
+      if (duplicateGroup) {
+        throw new AppError('이미 존재하는 관리자 그룹입니다.', 400, 'MANAGER_GROUP_ALREADY_EXISTS');
+      }
+    }
+
+    // 3. 관리자 그룹 수정
     await updateManagerGroup(managerGroup, originalNo, originalGroupNo, conn);
 
-    // 2. 로그 기록
+    // 4. 로그 기록
     await logAction(
       makeLogParams({
         manager_no: meta.manager_no,
@@ -101,7 +141,18 @@ export async function updateManagerGroupS(
     if (conn) {
       await rollbackTransaction(conn);
     }
-    throw error;
+    console.error('관리자 그룹 수정 중 오류 발생:', error);
+    throw error instanceof AppError
+      ? error
+      : new AppError('관리자 그룹 수정 중 오류가 발생했습니다.', 500, 'MANAGER_GROUP_UPDATE_ERROR');
+  } finally {
+    if (conn) {
+      try {
+        await conn.release();
+      } catch (error) {
+        console.error('트랜잭션 커넥션 해제 중 오류:', error);
+      }
+    }
   }
 }
 
@@ -109,11 +160,18 @@ export async function updateManagerGroupS(
 export async function deleteManagerGroupS(no: number, groupNo: number, meta: LogMeta) {
   let conn;
   try {
-    // 1. 관리자 그룹 삭제
     conn = await beginTransaction();
+
+    // 1. 기존 그룹 존재 여부 확인
+    const existingGroup = await findManagerGroup(no, groupNo);
+    if (!existingGroup) {
+      throw new AppError('존재하지 않는 관리자 그룹입니다.', 404, 'MANAGER_GROUP_NOT_FOUND');
+    }
+
+    // 2. 관리자 그룹 삭제
     const result = await deleteManagerGroup(no, groupNo, conn);
 
-    // 2. 로그 기록
+    // 3. 로그 기록
     await logAction(
       makeLogParams({
         manager_no: meta.manager_no,
@@ -135,6 +193,17 @@ export async function deleteManagerGroupS(no: number, groupNo: number, meta: Log
     if (conn) {
       await rollbackTransaction(conn);
     }
-    throw error;
+    console.error('관리자 그룹 삭제 중 오류 발생:', error);
+    throw error instanceof AppError
+      ? error
+      : new AppError('관리자 그룹 삭제 중 오류가 발생했습니다.', 500, 'MANAGER_GROUP_DELETE_ERROR');
+  } finally {
+    if (conn) {
+      try {
+        await conn.release();
+      } catch (error) {
+        console.error('트랜잭션 커넥션 해제 중 오류:', error);
+      }
+    }
   }
 }

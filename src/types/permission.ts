@@ -447,6 +447,7 @@ export const groupListRequestSchema = z.object({
   pageSize: z.number().min(1),
   name: z.string().optional(),
   schoolNo: z.number().nullable().optional(),
+  groupNo: z.number().optional(),
 });
 
 export const groupListApiResponseSchema = baseApiResponseSchema.extend({
