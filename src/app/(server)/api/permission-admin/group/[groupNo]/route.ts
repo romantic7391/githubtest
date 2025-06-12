@@ -9,9 +9,11 @@ import {
   groupUpdateRequestSchema,
   groupCreateOrUpdateApiResponseSchema,
   groupDeleteApiResponseSchema,
-} from '@/types/permission';
+  FindGroupDto,
+} from '@/types/permission/group';
 // import {updateGroupSchema,groupCreateOrUpdateApiResponseSchema ,RouteParams} from '@/types/permission'
 import { AppError } from '@/utils/error.utils';
+import { findGroup } from '@/models/group/group-model';
 
 /**
  * 그룹 수정
@@ -41,13 +43,22 @@ export async function PUT(request: NextRequest, context: GroupRouteParams) {
     // 요청 데이터 검증
     const validatedData = groupUpdateRequestSchema.parse(body);
 
+    // 기존 그룹 정보 조회
+    const findDto: FindGroupDto = {
+      groupNo: groupNoNum,
+    };
+    const existingGroup = await findGroup(findDto);
+    if (!existingGroup) {
+      throw new AppError('존재하지 않는 그룹입니다.', 404);
+    }
+
     const groupData: Group = {
       group_no: groupNoNum,
-      name: validatedData.name,
-      school_no: validatedData.schoolNo,
-      parent_group_no: validatedData.parentGroupNo,
-      school_name: null,
-      parent_group_name: null,
+      name: validatedData.name ?? existingGroup.name,
+      school_no: validatedData.schoolNo ?? existingGroup.school_no,
+      parent_group_no: validatedData.parentGroupNo ?? existingGroup.parent_group_no,
+      school_name: existingGroup.school_name,
+      parent_group_name: existingGroup.parent_group_name,
     };
 
     const result = await updateGroupS(groupData, {
@@ -105,6 +116,8 @@ export async function DELETE(request: NextRequest, context: GroupRouteParams) {
         { status: 401 },
       );
     }
+
+    // 1. 그룹 존재 여부 확인
 
     await deleteGroupS(groupNoNum, {
       manager_no: session.manager_no,
