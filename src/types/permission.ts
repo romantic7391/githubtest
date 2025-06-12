@@ -268,9 +268,21 @@ export const managerGroupApiResponseSchema = baseApiResponseSchema.extend({
   data: managerGroupSchema,
 });
 
+/**
+ * 관리자 그룹 (GET용)
+ */
+export const managerGroupDetailSchema = z.object({
+  managerNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
+  managerName: z.string(),
+  groupNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
+  groupName: z.string(),
+  schoolNo: z.number().nullable(),
+  schoolName: z.string().nullable(),
+});
+
 export const managerGroupsApiResponseSchema = baseApiResponseSchema.extend({
   data: z.object({
-    managerGroups: managerGroupSchema.array(),
+    managerGroups: managerGroupDetailSchema.array(),
     pagination: paginationSchema,
   }),
 });
@@ -443,8 +455,8 @@ export const createGroupRequestSchema = z.object({
 });
 
 export const groupListRequestSchema = z.object({
-  page: z.number().min(1),
-  pageSize: z.number().min(1),
+  page: z.number().min(1).optional().default(1),
+  pageSize: z.number().min(1).optional().default(10),
   name: z.string().optional(),
   schoolNo: z.number().nullable().optional(),
   groupNo: z.number().optional(),
@@ -484,4 +496,10 @@ export const groupDeleteResponseSchema = baseApiResponseSchema.extend({
   data: z.object({
     groupNo: z.number(),
   }),
+});
+// 매니저 그룹 목록 조회 스키마
+export const managerGroupListRequestSchema = z.object({
+  page: z.number().min(1).optional().default(1),
+  pageSize: z.number().min(1).optional().default(10),
+  groupNo: z.number().optional(),
 });

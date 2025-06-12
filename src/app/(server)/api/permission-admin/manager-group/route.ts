@@ -13,7 +13,7 @@ import {
   updateManagerGroupSchema,
   managerGroupSchema,
   managerGroupCreateOrUpdateApiResponseSchema,
-  groupListRequestSchema,
+  managerGroupListRequestSchema,
   managerGroupsApiResponseSchema,
   managerGroupApiResponseSchema,
 } from '@/types/permission';
@@ -31,6 +31,7 @@ export async function GET(request: NextRequest) {
     }
 
     const session = await getSession(request);
+
     if (!session) {
       return NextResponse.json(
         {
@@ -47,7 +48,7 @@ export async function GET(request: NextRequest) {
     const groupNo = searchParams.get('groupNo');
 
     // 요청 데이터 검증
-    const validatedData = groupListRequestSchema.parse({
+    const validatedData = managerGroupListRequestSchema.parse({
       page,
       pageSize,
       groupNo: groupNo ? Number(groupNo) : undefined,
