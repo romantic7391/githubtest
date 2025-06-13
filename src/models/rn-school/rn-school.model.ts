@@ -1,40 +1,50 @@
 import { exec, getRow, getAll } from '@/lib/mariadb/query';
-import { School, SchoolCreate } from '@/types/school';
+import {
+  School,
+  SchoolCreate,
+  existsRnSchoolByScodeDto,
+  existsRnSchoolByAdministrationCodeDto,
+  getRnSchoolByScodeDto,
+  findRnSchoolsByAreasDto,
+  findSchoolBySchoolNoDto,
+  updateRnSchoolDto,
+  deleteRnSchoolDto,
+} from '@/types/school';
 import { DEFAULT_PAGE_SIZE } from '@/lib/default.constant';
 import type { PoolConnection } from 'mariadb';
 
 // 학교 존재 여부 확인(존재하면 true, 없으면 false)
-export async function existsRnSchoolByScode(scode: string): Promise<boolean> {
+export async function existsRnSchoolByScode(dto: existsRnSchoolByScodeDto): Promise<boolean> {
   const query = `
     SELECT 1 
     FROM rnSchool
     WHERE scode = ?
     LIMIT 1
   `;
-  const row = await getRow(query, [scode]);
+  const row = await getRow(query, [dto.scode]);
   return !!row;
 }
 
 // DB의 administrationcode로 학교 존재 여부 확인(존재하면 true, 없으면 false)
-export async function existsRnSchoolByAdministrationCode(administrationcode: string): Promise<boolean> {
+export async function existsRnSchoolByAdministrationCode(dto: existsRnSchoolByAdministrationCodeDto): Promise<boolean> {
   const query = `
     SELECT 1 
     FROM rnSchool
     WHERE administrationcode = ?
     LIMIT 1
   `;
-  const row = await getRow(query, [administrationcode]);
+  const row = await getRow(query, [dto.administrationCode]);
   return !!row;
 }
 
 // 학교 정보 읽기(조회)
-export async function getRnSchoolByScode(scode: string): Promise<Record<string, unknown> | null> {
+export async function getRnSchoolByScode(dto: getRnSchoolByScodeDto): Promise<Record<string, unknown> | null> {
   const query = `
     SELECT * 
     FROM rnSchool
     WHERE scode = ?
   `;
-  return getRow(query, [scode]);
+  return getRow(query, [dto.scode]);
 }
 
 // 지역의 학교 목록
@@ -121,7 +131,7 @@ export async function findRnSchoolsByArea(
 }
 
 // 지역별 학교 조회
-export async function findRnSchoolsByAreas(area: string): Promise<School[]> {
+export async function findRnSchoolsByAreas(dto: findRnSchoolsByAreasDto): Promise<School[]> {
   const query = `
     SELECT 
       rs.school_no AS schoolNo,
@@ -139,7 +149,7 @@ export async function findRnSchoolsByAreas(area: string): Promise<School[]> {
     FROM rnSchool AS rs
     WHERE rs.area = ?
   `;
-  const params = [area];
+  const params = [dto.area];
   console.log('실행할 쿼리:', query);
   console.log('파라미터:', params);
   const result = await getAll<School>(query, params);
@@ -148,7 +158,7 @@ export async function findRnSchoolsByAreas(area: string): Promise<School[]> {
 }
 
 // 학교별 내용 조회
-export async function findSchoolBySchoolNo(school_no: number): Promise<School | null> {
+export async function findSchoolBySchoolNo(dto: findSchoolBySchoolNoDto): Promise<School | null> {
   const query = `
       SELECT 
       rs.school_no AS schoolNo,
@@ -168,8 +178,8 @@ export async function findSchoolBySchoolNo(school_no: number): Promise<School | 
       LIMIT 1;
   `;
   console.log('실행할 쿼리:', query);
-  console.log('파라미터:', school_no);
-  const result = await getRow<School>(query, [school_no]);
+  console.log('파라미터:', dto.schoolNo);
+  const result = await getRow<School>(query, [dto.schoolNo]);
   console.log('쿼리 결과:', result);
 
   return result;
@@ -198,7 +208,7 @@ export async function insertRnSchool(dto: SchoolCreate) {
 }
 
 // 3. 수정 (Update)
-export async function updateRnSchool(dto: School, conn?: PoolConnection) {
+export async function updateRnSchool(dto: updateRnSchoolDto, conn?: PoolConnection) {
   const query = `
     UPDATE rnSchool
     SET scode = ?, sname = ?, area = ?, administrationCode = ?
@@ -209,7 +219,7 @@ export async function updateRnSchool(dto: School, conn?: PoolConnection) {
 }
 
 // 4. 삭제 (Delete)
-export async function deleteRnSchool(schoolNo: number, conn?: PoolConnection) {
+export async function deleteRnSchool(dto: deleteRnSchoolDto, conn?: PoolConnection) {
   const query = `DELETE FROM rnSchool WHERE school_no = ?`;
-  return exec(query, [schoolNo], conn);
+  return exec(query, [dto.schoolNo], conn);
 }

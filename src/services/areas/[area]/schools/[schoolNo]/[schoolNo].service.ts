@@ -4,9 +4,9 @@ import {
   deleteRnSchool as deleteRnSchoolModel,
 } from '@/models/rn-school/rn-school.model';
 
-import { School } from '@/types/school';
 import { logAction, makeLogParams } from '@/services/log-action/log-action.service';
 import { beginTransaction, commitTransaction, rollbackTransaction } from '@/lib/mariadb/query';
+import { updateRnSchoolDto, deleteRnSchoolDto } from '@/types/school';
 
 // 학교 조회
 export async function getSchoolBySchoolNo(
@@ -16,7 +16,7 @@ export async function getSchoolBySchoolNo(
   let conn;
   try {
     conn = await beginTransaction();
-    const school = await findSchoolBySchoolNo(school_no);
+    const school = await findSchoolBySchoolNo({ schoolNo: school_no });
 
     // 로그 기록
     await logAction(
@@ -54,14 +54,14 @@ export async function getSchoolBySchoolNo(
 
 // 학교 수정
 export async function updateRnSchool(
-  dto: School,
+  dto: updateRnSchoolDto,
   meta: { manager_no: number; ip: string | null; user_agent: string | null },
 ): Promise<void> {
   let conn;
   try {
     conn = await beginTransaction();
     // 학교 존재 여부 확인
-    const oldSchool = await findSchoolBySchoolNo(dto.schoolNo);
+    const oldSchool = await findSchoolBySchoolNo({ schoolNo: dto.schoolNo });
 
     // 학교 정보 수정
     await updateRnSchoolModel(dto, conn);
@@ -101,17 +101,17 @@ export async function updateRnSchool(
 
 // 학교 삭제
 export async function deleteRnSchool(
-  dto: School,
+  dto: deleteRnSchoolDto,
   meta: { manager_no: number; ip: string | null; user_agent: string | null },
 ) {
   let conn;
   try {
     conn = await beginTransaction();
     // 학교 존재 여부 확인
-    const oldSchool = await findSchoolBySchoolNo(dto.schoolNo);
+    const oldSchool = await findSchoolBySchoolNo({ schoolNo: dto.schoolNo });
 
     // 학교 삭제
-    await deleteRnSchoolModel(dto.schoolNo, conn);
+    await deleteRnSchoolModel(dto, conn);
 
     // 로그 기록
     await logAction(
