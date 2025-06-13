@@ -3,7 +3,7 @@ import { School } from '@/types/school';
 
 export async function getSchoolsByArea(area: string): Promise<School[]> {
   // findRnSchoolsByAreas 모델이 이미 지역으로 필터링을 하고 있음
-  return findRnSchoolsByAreas(area);
+  return findRnSchoolsByAreas({ area });
 }
 
 export async function getSchoolHierarchy(
