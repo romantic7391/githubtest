@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth/session';
-import { Permission } from '@/types/permission';
 import { handleError, handleZodError } from '@/utils/error.utils';
 import { getPermissionsS, createPermissionS } from '@/services/permission-admin/permission.service';
 import {
@@ -8,7 +7,8 @@ import {
   permissionListRequestSchema,
   permissionListApiResponseSchema,
   permissionCreateApiResponseSchema,
-} from '@/types/permission';
+  CreatePermissionDto,
+} from '@/types/permission/permission';
 import { paginationSchema } from '@/types/common';
 
 /**
@@ -77,15 +77,14 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const validatedData = createPermissionRequestSchema.parse(body);
 
-    const permissionData: Permission = {
-      permission_no: 0,
+    const dto: CreatePermissionDto = {
       name: validatedData.name,
       description: validatedData.description,
-      default_extra_condition: validatedData.defaultExtraCondition,
-      default_extra_limit: validatedData.defaultExtraLimit,
+      defaultExtraCondition: validatedData.defaultExtraCondition,
+      defaultExtraLimit: validatedData.defaultExtraLimit,
     };
 
-    const result = await createPermissionS(permissionData, {
+    const result = await createPermissionS(dto, {
       manager_no: session.manager_no,
       ip: request.headers.get('x-forwarded-for') || '',
       user_agent: request.headers.get('user-agent') || '',

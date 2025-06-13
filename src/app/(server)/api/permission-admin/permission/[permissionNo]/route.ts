@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth/session';
 import {
-  Permission,
   PermissionRouteParams,
   permissionCreateOrUpdateApiResponseSchema,
-  updatePermissionSchema,
+  updatePermissionDtoSchema,
   permissionDeleteResponseSchema,
+  UpdatePermissionDto,
   // permissionUpdateApiResponseSchema,
   // permissionDeleteApiResponseSchema,
   // updatePermissionRequestSchema,
-} from '@/types/permission';
+} from '@/types/permission/permission';
 import { handleError, handleZodError } from '@/utils/error.utils';
 // import{AppError } from '@/utils/error.utils';
 import { updatePermissionS, deletePermissionS } from '@/services/permission-admin/permission.service';
@@ -40,17 +40,17 @@ export async function PUT(request: NextRequest, context: PermissionRouteParams) 
     }
 
     // 요청 데이터 검증
-    const validatedData = updatePermissionSchema.parse(body);
+    const validatedData = updatePermissionDtoSchema.parse(body);
 
-    const permissionData: Permission = {
+    const dto: UpdatePermissionDto = {
       permission_no: permissionNoNum,
       name: validatedData.name,
       description: validatedData.description,
-      default_extra_condition: validatedData.default_extra_condition,
-      default_extra_limit: validatedData.default_extra_limit,
+      defaultExtraCondition: validatedData.defaultExtraCondition,
+      defaultExtraLimit: validatedData.defaultExtraLimit,
     };
 
-    const result = await updatePermissionS(permissionData, {
+    const result = await updatePermissionS(dto, {
       manager_no: session.manager_no,
       ip: request.headers.get('x-forwarded-for') || '',
       user_agent: request.headers.get('user-agent') || '',
