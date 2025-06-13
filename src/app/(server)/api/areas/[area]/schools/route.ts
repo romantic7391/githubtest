@@ -1,10 +1,42 @@
-import { DEFAULT_ERROR_MESSAGE_500, DEFAULT_PAGE_SIZE } from '@/lib/default.constant';
-import type { BaseApiResponse } from '@/types/common';
+import { DEFAULT_PAGE_SIZE } from '@/lib/default.constant';
+// import { DEFAULT_ERROR_MESSAGE_500 } from '@/types/common';
+// import type { BaseApiResponse } from '@/types/common';
 import type { SchoolsApiResponse } from '@/types/school';
+import { schoolListFilterSchema } from '@/types/school';
 import { NextRequest, NextResponse } from 'next/server';
 import { getRnSchoolsByArea } from '@/services/areas/[area]/schools/schools.service';
 import { getClientInfo } from '@/services/log-action/log-action.service';
-import { z } from 'zod';
+import { AppError } from '@/utils/error.utils';
+import { handleError, handleZodError } from '@/utils/error.utils';
+import { auth } from '@/auth';
+import { Session } from 'next-auth';
+import { paginationSchema } from '@/types/common';
+
+/**
+ * 공통 컨텍스트 정보 가져오기
+ */
+async function getCommonContext(request: NextRequest) {
+  let session = await auth();
+  if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
+    session = {
+      ...session,
+      user: {
+        ...session?.user,
+        managerNo: 1,
+      },
+    } as Session;
+  }
+  if (!session?.user.managerNo) {
+    throw new AppError('로그인이 필요합니다.', 401);
+  }
+  const { userAgent, ip } = getClientInfo(request);
+
+  return {
+    manager_no: session.user.managerNo,
+    ip: ip || '',
+    user_agent: userAgent || '',
+  };
+}
 
 /**
  * 지역 학교 목록 조회
@@ -26,26 +58,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const pageSize = Number(searchParams.get('pageSize')) || DEFAULT_PAGE_SIZE;
 
     // 페이지네이션 파라미터 검증
-    const paginationSchema = z.object({
-      page: z.number().positive().default(1),
-      pageSize: z.number().positive().default(DEFAULT_PAGE_SIZE),
-    });
-
-    try {
-      paginationSchema.parse({ page, pageSize });
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return NextResponse.json(
-          {
-            success: false,
-            message: '잘못된 페이지네이션 파라미터입니다.',
-            errors: error.errors,
-          } satisfies BaseApiResponse,
-          { status: 400 },
-        );
-      }
-      throw error;
-    }
+    const validatedPagination = paginationSchema.parse({ page, pageSize });
 
     // 필터링 파라미터
     const filters = {
@@ -56,12 +69,17 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       administrationCode: searchParams.get('administrationcode') || undefined,
     };
 
-    const { userAgent, ip } = getClientInfo(request);
-    const { schools, pagination } = await getRnSchoolsByArea(area, page, pageSize, filters, {
-      manager_no: 1, // 임시로 1로 설정
-      ip,
-      user_agent: userAgent,
-    });
+    // 필터 파라미터 검증
+    const validatedFilters = schoolListFilterSchema.parse(filters);
+
+    const context = await getCommonContext(request);
+    const { schools, pagination } = await getRnSchoolsByArea(
+      area,
+      validatedPagination.page,
+      validatedPagination.pageSize,
+      validatedFilters,
+      context,
+    );
 
     return NextResponse.json(
       {
@@ -75,23 +93,17 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       { status: 200 },
     );
   } catch (error) {
-    console.error('[GET] 학교 목록 조회 중 오류 발생:', error);
-    if (error instanceof z.ZodError) {
+    if (error instanceof AppError) {
       return NextResponse.json(
         {
           success: false,
-          message: '잘못된 요청 파라미터입니다.',
-          errors: error.errors,
-        } satisfies BaseApiResponse,
-        { status: 400 },
+          message: error.message,
+        },
+        { status: error.statusCode },
       );
     }
-    return NextResponse.json(
-      {
-        success: false,
-        message: DEFAULT_ERROR_MESSAGE_500,
-      } satisfies BaseApiResponse,
-      { status: 500 },
-    );
+    const zodError = handleZodError(error);
+    if (zodError) return zodError;
+    return handleError(error, 'GET');
   }
 }

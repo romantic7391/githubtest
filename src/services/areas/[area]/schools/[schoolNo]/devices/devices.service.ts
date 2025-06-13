@@ -5,6 +5,7 @@ import type { Pagination } from '@/types/common';
 import { logAction, makeLogParams } from '@/services/log-action/log-action.service';
 import type { LogMeta } from '@/types/history';
 import { beginTransaction, commitTransaction, rollbackTransaction } from '@/lib/mariadb/query';
+import { AppError } from '@/utils/error.utils';
 /**
  * 지역 학교 센서 장치 목록 조회
  *
@@ -34,6 +35,10 @@ export async function getRnDevicesRelBySchoolNo(
 
     const { devices, total } = await findRnDevicesRelBySchoolNo(validatedParams);
 
+    if (total === 0) {
+      throw new AppError('해당 학교의 센서 장치가 존재하지 않습니다.', 404);
+    }
+
     const pagination: Pagination = {
       page: validatedParams.page,
       pageSize: validatedParams.pageSize,
@@ -46,7 +51,7 @@ export async function getRnDevicesRelBySchoolNo(
 
     await logAction(
       makeLogParams({
-        manager_no: meta.manager_no ?? 1, // 기본값 설정
+        manager_no: meta.manager_no ?? 1,
         school_no: school_no,
         ip: meta.ip,
         user_agent: meta.user_agent,
@@ -71,7 +76,10 @@ export async function getRnDevicesRelBySchoolNo(
       }
     }
     console.error('[getRnDevicesRelBySchoolNo] DB 조회 에러:', error);
-    throw new Error('조회 중 오류가 발생했습니다.');
+    if (error instanceof AppError) {
+      throw error;
+    }
+    throw new AppError('센서 장치 목록 조회 중 오류가 발생했습니다.', 500);
   } finally {
     if (conn) {
       try {

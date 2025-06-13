@@ -7,6 +7,7 @@ import {
 import { logAction, makeLogParams } from '@/services/log-action/log-action.service';
 import { beginTransaction, commitTransaction, rollbackTransaction } from '@/lib/mariadb/query';
 import { updateRnSchoolDto, deleteRnSchoolDto } from '@/types/school';
+import { AppError } from '@/utils/error.utils';
 
 // 학교 조회
 export async function getSchoolBySchoolNo(
@@ -17,6 +18,10 @@ export async function getSchoolBySchoolNo(
   try {
     conn = await beginTransaction();
     const school = await findSchoolBySchoolNo({ schoolNo: school_no });
+
+    if (!school) {
+      throw new AppError('학교를 찾을 수 없습니다.', 404);
+    }
 
     // 로그 기록
     await logAction(
@@ -40,7 +45,10 @@ export async function getSchoolBySchoolNo(
   } catch (error) {
     if (conn) await rollbackTransaction(conn);
     console.error('[getSchoolBySchoolNoService] DB 조회 에러:', error);
-    throw error;
+    if (error instanceof AppError) {
+      throw error;
+    }
+    throw new AppError('학교 정보 조회 중 오류가 발생했습니다.', 500);
   } finally {
     if (conn) {
       try {
@@ -62,6 +70,9 @@ export async function updateRnSchool(
     conn = await beginTransaction();
     // 학교 존재 여부 확인
     const oldSchool = await findSchoolBySchoolNo({ schoolNo: dto.schoolNo });
+    if (!oldSchool) {
+      throw new AppError('수정할 학교를 찾을 수 없습니다.', 404);
+    }
 
     // 학교 정보 수정
     await updateRnSchoolModel(dto, conn);
@@ -87,7 +98,10 @@ export async function updateRnSchool(
   } catch (error) {
     if (conn) await rollbackTransaction(conn);
     console.error('[updateRnSchoolService] 학교 수정 중 오류 발생:', error);
-    throw error;
+    if (error instanceof AppError) {
+      throw error;
+    }
+    throw new AppError('학교 정보 수정 중 오류가 발생했습니다.', 500);
   } finally {
     if (conn) {
       try {
@@ -109,6 +123,9 @@ export async function deleteRnSchool(
     conn = await beginTransaction();
     // 학교 존재 여부 확인
     const oldSchool = await findSchoolBySchoolNo({ schoolNo: dto.schoolNo });
+    if (!oldSchool) {
+      throw new AppError('삭제할 학교를 찾을 수 없습니다.', 404);
+    }
 
     // 학교 삭제
     await deleteRnSchoolModel(dto, conn);
@@ -134,7 +151,10 @@ export async function deleteRnSchool(
   } catch (error) {
     if (conn) await rollbackTransaction(conn);
     console.error('[deleteRnSchoolService] 학교 삭제 중 오류 발생:', error);
-    throw error;
+    if (error instanceof AppError) {
+      throw error;
+    }
+    throw new AppError('학교 삭제 중 오류가 발생했습니다.', 500);
   } finally {
     if (conn) {
       try {
