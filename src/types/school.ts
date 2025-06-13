@@ -292,7 +292,7 @@ export const updateRnSchoolDtoSchema = schoolSchema.pick({
 /**
  * 학교 존재 여부 DTO 객채채
  */
-export type updateRnSchoolDto = z.infer<typeof updateRnSchoolDtoSchema>;
+export type updateRnSchoolDto = z.infer<typeof schoolSchema>;
 
 /**
  * 학교 존재 여부 확인 DTO

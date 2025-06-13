@@ -111,6 +111,13 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<Sc
     const dto: updateRnSchoolDto = {
       ...validatedData,
       schoolNo: schoolNoNum,
+      modbus: 0,
+      modbusHost: null,
+      modbusPort: 502,
+      useOrderSheet: 'N',
+      active: 'Y',
+      created: null,
+      parentNo: null,
     };
 
     const context = await getCommonContext(request);
