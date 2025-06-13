@@ -156,22 +156,30 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(response, { status: 201 });
   } catch (error) {
     console.error('[POST] 에러 발생:', error);
+
+    // AppError를 먼저 체크
     if (error instanceof AppError) {
-      console.error('[POST] AppError:', error.message, error.code);
       return NextResponse.json(
         {
           success: false,
           message: error.message,
-          code: error.code,
         },
         { status: error.statusCode },
       );
     }
+
+    // 그 다음 ZodError 체크
     const zodError = handleZodError(error);
-    if (zodError) {
-      console.error('[POST] ZodError:', zodError);
-      return zodError;
-    }
-    return handleError(error, '그룹 생성');
+    if (zodError) return zodError;
+
+    // 예상치 못한 에러
+    console.error('[POST] 예상치 못한 에러 발생:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        message: '그룹 생성 중 오류가 발생했습니다.',
+      },
+      { status: 500 },
+    );
   }
 }

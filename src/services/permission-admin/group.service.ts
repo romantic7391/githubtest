@@ -115,8 +115,7 @@ export async function createGroupS(group: CreateGroup, meta: LogMeta): Promise<{
     if (conn) {
       await rollbackTransaction(conn);
     }
-    console.error('그룹 생성 중 오류 발생:', error);
-    throw new AppError('그룹 생성 중 오류가 발생했습니다.', 500);
+    throw error;
   } finally {
     if (conn) {
       try {
@@ -195,11 +194,7 @@ export async function updateGroupS(group: Group, meta: LogMeta): Promise<{ group
     if (conn) {
       await rollbackTransaction(conn);
     }
-    if (error instanceof AppError) {
-      throw error;
-    }
-    console.error('그룹 수정 중 오류 발생:', error);
-    throw new AppError('그룹 수정 중 오류가 발생했습니다.', 500);
+    throw error;
   } finally {
     if (conn) {
       try {
@@ -251,10 +246,7 @@ export async function deleteGroupS(groupNo: number, meta: LogMeta) {
     if (conn) {
       await rollbackTransaction(conn);
     }
-    if (error instanceof AppError) {
-      throw error;
-    }
-    throw new AppError('그룹 삭제 중 오류가 발생했습니다.', 500);
+    throw error;
   } finally {
     if (conn) {
       try {
