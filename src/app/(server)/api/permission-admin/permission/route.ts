@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth/session';
 import { handleError, handleZodError } from '@/utils/error.utils';
+import { AppError } from '@/utils/error.utils';
 import { getPermissionsS, createPermissionS } from '@/services/permission-admin/permission.service';
 import {
   createPermissionRequestSchema,
@@ -53,6 +54,16 @@ export async function GET(request: NextRequest) {
       { status: 200 },
     );
   } catch (error) {
+    if (error instanceof AppError) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: error.message,
+          code: error.code,
+        },
+        { status: error.statusCode },
+      );
+    }
     const zodError = handleZodError(error);
     if (zodError) return zodError;
     return handleError(error, '권한 목록 조회');
@@ -99,8 +110,23 @@ export async function POST(request: NextRequest) {
       { status: 200 },
     );
   } catch (error) {
+    if (error instanceof AppError) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: error.message,
+        },
+        { status: error.statusCode },
+      );
+    }
     const zodError = handleZodError(error);
     if (zodError) return zodError;
-    return handleError(error, '권한 생성');
+    return NextResponse.json(
+      {
+        success: false,
+        message: '권한 생성 중 오류가 발생했습니다.',
+      },
+      { status: 500 },
+    );
   }
 }

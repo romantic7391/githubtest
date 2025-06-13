@@ -45,7 +45,6 @@ export function handleError(error: unknown, action: string): NextResponse {
   return NextResponse.json(
     {
       success: false,
-      message: DEFAULT_ERROR_MESSAGE_500,
     },
     { status: 500 },
   );

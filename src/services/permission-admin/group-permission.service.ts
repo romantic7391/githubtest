@@ -191,7 +191,7 @@ export async function deleteGroupPermissionS(groupNo: number, permissionNo: numb
       permissionNo,
     });
     if (!existingPermission) {
-      throw new AppError('삭제할 그룹 권한이 존재하지 않습니다.', 404, 'GROUP_PERMISSION_NOT_FOUND');
+      throw new AppError('삭제할 그룹 권한이 존재하지 않습니다.', 404);
     }
 
     // 2. 그룹 권한 삭제

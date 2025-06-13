@@ -5,7 +5,7 @@ import { baseApiResponseSchema, paginationSchema } from '../common';
  * 권한 기본 스키마
  */
 export const permissionSchema = z.object({
-  permission_no: z.number(),
+  permissionNo: z.number(),
   name: z.string().min(1, '권한 이름은 필수입니다.').max(50, '권한 이름은 50자를 초과할 수 없습니다.'),
   description: z.string().nullable(),
   defaultExtraCondition: z.string().nullable(),
@@ -81,7 +81,7 @@ export const permissionListRequestSchema = z.object({
 export const permissionResponseSchema = permissionSchema;
 
 export const permissionListResponseSchema = z.object({
-  permissions: z.array(permissionSchema),
+  permissions: z.array(permissionResponseSchema),
   pagination: paginationSchema,
 });
 
@@ -92,7 +92,11 @@ export const permissionCreateResponseSchema = z.object({
 export const permissionUpdateResponseSchema = permissionCreateResponseSchema;
 
 export const permissionDeleteResponseSchema = z.object({
-  permissionNo: z.number(),
+  success: z.boolean(),
+  message: z.string(),
+  data: z.object({
+    permissionNo: z.number(),
+  }),
 });
 
 // API 응답 래퍼 스키마

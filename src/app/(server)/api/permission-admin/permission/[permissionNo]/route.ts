@@ -3,15 +3,12 @@ import { getSession } from '@/lib/auth/session';
 import {
   PermissionRouteParams,
   permissionCreateOrUpdateApiResponseSchema,
-  updatePermissionDtoSchema,
   permissionDeleteResponseSchema,
   UpdatePermissionDto,
-  // permissionUpdateApiResponseSchema,
-  // permissionDeleteApiResponseSchema,
-  // updatePermissionRequestSchema,
+  createPermissionDtoSchema,
 } from '@/types/permission/permission';
 import { handleError, handleZodError } from '@/utils/error.utils';
-// import{AppError } from '@/utils/error.utils';
+import { AppError } from '@/utils/error.utils';
 import { updatePermissionS, deletePermissionS } from '@/services/permission-admin/permission.service';
 
 /**
@@ -40,7 +37,7 @@ export async function PUT(request: NextRequest, context: PermissionRouteParams) 
     }
 
     // 요청 데이터 검증
-    const validatedData = updatePermissionDtoSchema.parse(body);
+    const validatedData = createPermissionDtoSchema.parse(body);
 
     const dto: UpdatePermissionDto = {
       permission_no: permissionNoNum,
@@ -65,6 +62,16 @@ export async function PUT(request: NextRequest, context: PermissionRouteParams) 
       { status: 200 },
     );
   } catch (error) {
+    if (error instanceof AppError) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: error.message,
+          code: error.code,
+        },
+        { status: error.statusCode },
+      );
+    }
     const zodError = handleZodError(error);
     if (zodError) return zodError;
     return handleError(error, '권한 수정');
@@ -112,6 +119,16 @@ export async function DELETE(request: NextRequest, context: PermissionRouteParam
       { status: 200 },
     );
   } catch (error) {
+    if (error instanceof AppError) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: error.message,
+          code: error.code,
+        },
+        { status: error.statusCode },
+      );
+    }
     const zodError = handleZodError(error);
     if (zodError) return zodError;
     return handleError(error, '권한 삭제');

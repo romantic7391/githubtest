@@ -4,6 +4,7 @@ import {
   deletePermission,
   findPermissions,
   findPermission,
+  findPermissionByName,
 } from '@/models/permission/permission.model';
 import { CreatePermissionDto, UpdatePermissionDto, FindPermissionsDto } from '@/types/permission/permission';
 import { logAction, makeLogParams } from '@/services/log-action/log-action.service';
@@ -26,15 +27,6 @@ export async function getPermissionsS(
 
     const result = await findPermissions(dto);
 
-    // 데이터베이스 필드명을 카멜케이스로 변환
-    const transformedPermissions = result.permissions.map((permission) => ({
-      permissionNo: permission.permission_no,
-      name: permission.name,
-      description: permission.description,
-      defaultExtraCondition: permission.defaultExtraCondition,
-      defaultExtraLimit: permission.defaultExtraLimit,
-    }));
-
     // 로그 기록
     await logAction(
       makeLogParams({
@@ -52,7 +44,7 @@ export async function getPermissionsS(
     );
 
     return {
-      permissions: transformedPermissions,
+      permissions: result.permissions,
       pagination: {
         ...dto.pagination,
         total: result.total,
@@ -60,7 +52,8 @@ export async function getPermissionsS(
       },
     };
   } catch (error) {
-    throw error;
+    console.error('권한 목록 조회 중 오류 발생:', error);
+    throw new AppError('권한 목록 조회 중 오류가 발생했습니다.', 500);
   }
 }
 
@@ -69,6 +62,12 @@ export async function createPermissionS(dto: CreatePermissionDto, meta: LogMeta)
   let conn;
   try {
     conn = await beginTransaction();
+
+    // 1. 이름 중복 체크
+    const existingPermission = await findPermissionByName(dto.name);
+    if (existingPermission) {
+      throw new AppError('이미 존재하는 권한 이름입니다.', 400, 'DUPLICATE_PERMISSION_NAME');
+    }
 
     const result = await insertPermission(dto, conn);
 
@@ -96,13 +95,18 @@ export async function createPermissionS(dto: CreatePermissionDto, meta: LogMeta)
     if (conn) {
       await rollbackTransaction(conn);
     }
-    throw error;
+    if (error instanceof AppError) {
+      throw error;
+    }
+    console.error('권한 생성 중 오류 발생:', error);
+    throw new AppError('권한 생성 중 오류가 발생했습니다.', 500);
   } finally {
     if (conn) {
       try {
         await conn.release();
       } catch (error) {
         console.error('트랜잭션 커넥션 해제 중 오류:', error);
+        // 트랜잭션 커넥션 해제 중 오류는 무시
       }
     }
   }
@@ -117,7 +121,7 @@ export async function updatePermissionS(dto: UpdatePermissionDto, meta: LogMeta)
     // 1. 권한 존재 여부 확인
     const existingPermission = await findPermission({ permission_no: dto.permission_no });
     if (!existingPermission) {
-      throw new AppError('존재하지 않는 권한입니다.', 404, 'PERMISSION_NOT_FOUND');
+      throw new AppError('존재하지 않는 권한입니다.', 404);
     }
 
     // 2. 권한 수정
@@ -143,13 +147,18 @@ export async function updatePermissionS(dto: UpdatePermissionDto, meta: LogMeta)
     if (conn) {
       await rollbackTransaction(conn);
     }
-    throw error;
+    if (error instanceof AppError) {
+      throw error;
+    }
+    console.error('권한 수정 중 오류 발생:', error);
+    throw new AppError('권한 수정 중 오류가 발생했습니다.', 500);
   } finally {
     if (conn) {
       try {
         await conn.release();
       } catch (error) {
         console.error('트랜잭션 커넥션 해제 중 오류:', error);
+        // 트랜잭션 커넥션 해제 중 오류는 무시
       }
     }
   }
@@ -164,7 +173,7 @@ export async function deletePermissionS(permissionNo: number, meta: LogMeta) {
     // 1. 권한 존재 여부 확인
     const existingPermission = await findPermission({ permission_no: permissionNo });
     if (!existingPermission) {
-      throw new AppError('존재하지 않는 권한입니다.', 404, 'PERMISSION_NOT_FOUND');
+      throw new AppError('존재하지 않는 권한입니다.', 404);
     }
 
     // 2. 권한 삭제
@@ -189,13 +198,18 @@ export async function deletePermissionS(permissionNo: number, meta: LogMeta) {
     if (conn) {
       await rollbackTransaction(conn);
     }
-    throw error;
+    if (error instanceof AppError) {
+      throw error;
+    }
+    console.error('권한 삭제 중 오류 발생:', error);
+    throw new AppError('권한 삭제 중 오류가 발생했습니다.', 500);
   } finally {
     if (conn) {
       try {
         await conn.release();
       } catch (error) {
         console.error('트랜잭션 커넥션 해제 중 오류:', error);
+        // 트랜잭션 커넥션 해제 중 오류는 무시
       }
     }
   }
@@ -206,7 +220,7 @@ export async function getPermissionS(permissionNo: number, meta: LogMeta): Promi
   try {
     const permission = await findPermission({ permission_no: permissionNo });
     if (!permission) {
-      throw new AppError('존재하지 않는 권한입니다.', 404, 'PERMISSION_NOT_FOUND');
+      throw new AppError('존재하지 않는 권한입니다.', 404);
     }
 
     // 로그 기록
@@ -225,9 +239,13 @@ export async function getPermissionS(permissionNo: number, meta: LogMeta): Promi
     );
 
     return {
-      permissionNo: permission.permission_no,
+      permissionNo: permission.permissionNo,
     };
   } catch (error) {
-    throw error;
+    if (error instanceof AppError) {
+      throw error;
+    }
+    console.error('권한 조회 중 오류 발생:', error);
+    throw new AppError('권한 조회 중 오류가 발생했습니다.', 500);
   }
 }

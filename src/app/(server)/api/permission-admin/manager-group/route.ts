@@ -82,7 +82,6 @@ export async function GET(request: NextRequest) {
         {
           success: false,
           message: error.message,
-          code: error.code,
         },
         { status: error.statusCode },
       );
@@ -144,7 +143,6 @@ export async function POST(request: NextRequest) {
         {
           success: false,
           message: error.message,
-          code: error.code,
         },
         { status: error.statusCode },
       );
@@ -212,7 +210,6 @@ export async function PUT(request: NextRequest) {
         {
           success: false,
           message: error.message,
-          code: error.code,
         },
         { status: error.statusCode },
       );
