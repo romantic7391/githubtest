@@ -1,9 +1,9 @@
 name: Semgrep
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   semgrep:
@@ -11,9 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Semgrep scan
         uses: returntocorp/semgrep-action@v1
         with:
-          config: "p/default"
-          github_token: ${{ secrets.GITHUB_TOKEN }} 
+          config: 'p/default'
+          github_token: ${{ secrets.GITHUB_TOKEN }}
