@@ -47,13 +47,16 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const context = await getCommonContext(request);
     const result = await createRnSchool(validatedData.administrationCode || '', { ...validatedData, area }, context);
 
-    return NextResponse.json({
-      success: true,
-      message: '학교가 성공적으로 등록되었습니다.',
-      data: {
-        schoolNo: result.school.school_no,
-      },
-    } satisfies SchoolCreateOrUpdateApiResponse);
+    return NextResponse.json(
+      {
+        success: true,
+        message: '학교가 성공적으로 등록되었습니다.',
+        data: {
+          schoolNo: result.school.school_no,
+        },
+      } satisfies SchoolCreateOrUpdateApiResponse,
+      { status: 201 },
+    );
   } catch (error) {
     if (error instanceof AppError) {
       return NextResponse.json(

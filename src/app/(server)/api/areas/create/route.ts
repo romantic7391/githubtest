@@ -35,7 +35,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     };
     console.log('[POST /api/areas/create] 응답:', response);
 
-    return NextResponse.json(response satisfies AreaCreateOrUpdateApiResponse, { status: 200 });
+    return NextResponse.json(response satisfies AreaCreateOrUpdateApiResponse, { status: 201 });
   } catch (error) {
     console.error('[POST /api/areas/create] Error:', error);
 

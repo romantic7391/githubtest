@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
         data: result,
         message: '권한이 성공적으로 생성되었습니다.',
       }),
-      { status: 200 },
+      { status: 201 },
     );
   } catch (error) {
     if (error instanceof AppError) {

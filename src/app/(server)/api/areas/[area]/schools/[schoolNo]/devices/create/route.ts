@@ -32,13 +32,16 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       user_agent: userAgent,
     });
 
-    return NextResponse.json({
-      success: true,
-      message: '센서가 성공적으로 등록되었습니다.',
-      data: {
-        mac: validatedData.mac,
-      },
-    } satisfies DeviceCreateOrUpdateApiResponse);
+    return NextResponse.json(
+      {
+        success: true,
+        message: '센서가 성공적으로 등록되었습니다.',
+        data: {
+          mac: validatedData.mac,
+        },
+      } satisfies DeviceCreateOrUpdateApiResponse,
+      { status: 201 },
+    );
   } catch (error) {
     console.error('Error in POST /api/areas/[area]/schools/[schoolNo]/devices/create:', error);
 

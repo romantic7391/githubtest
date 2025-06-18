@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
         message: '관리자 그룹이 성공적으로 생성되었습니다.',
         data: result,
       }),
-      { status: 200 },
+      { status: 201 },
     );
   } catch (error) {
     if (error instanceof AppError) {
