@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <Container fluid w="100vw" h="100vh" bg="blue.1" p="lg" m={0}>
+    <Container fluid w="100vw" h="100vh" bg="blue.1" p={0} m={0}>
       <SignInForm />
     </Container>
   );
