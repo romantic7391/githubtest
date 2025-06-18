@@ -1,0 +1,11 @@
+.modal {
+  background-color: red;
+}
+
+.modal-title {
+  flex: 1;
+}
+
+.modal-title p {
+  text-align: center;
+}

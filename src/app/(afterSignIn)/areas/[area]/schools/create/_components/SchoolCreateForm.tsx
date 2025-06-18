@@ -10,6 +10,8 @@ import { Anchor, Button, Group, NumberInput, Radio, Stack, Text, TextInput } fro
 import { notifications } from '@mantine/notifications';
 import { IconAlertCircleFilled, IconCheck } from '@tabler/icons-react';
 import { DEFAULT_NOTIFICATION_AUTOCLOSE_MS } from '@/lib/default.constant';
+import SchoolSearchModal from './SchoolSearchModal';
+import { useSchoolSearchModalStore } from '@/stores/modal/school-search-modal.store';
 
 export default function SchoolCreateForm() {
   const { area } = useParams();
@@ -21,6 +23,10 @@ export default function SchoolCreateForm() {
     return `/areas/${area}/schools/${data.schoolNo}`;
   }, [data?.schoolNo, area]);
 
+  const open = useSchoolSearchModalStore((state) => state.open);
+  const selectedSchool = useSchoolSearchModalStore((state) => state.selectedSchool);
+  const setSelectedSchool = useSchoolSearchModalStore((state) => state.setSelectedSchool);
+
   const form = useForm({
     initialValues: {
       sname: '',
@@ -28,7 +34,7 @@ export default function SchoolCreateForm() {
       area: '',
       useOrderSheet: 'Y',
       active: 'Y',
-      administrationCode: null,
+      administrationCode: '',
       parentNo: null,
       modbus: '0',
       modbusHost: '',
@@ -156,6 +162,32 @@ export default function SchoolCreateForm() {
     }, DEFAULT_NOTIFICATION_AUTOCLOSE_MS);
   }, [notificationId, isSuccess, data, router, schoolLink]);
 
+  // 학교 검색 결과를 폼에 적용합니다.
+  useEffect(() => {
+    if (!selectedSchool) return;
+    form.setValues({
+      sname: selectedSchool.sname,
+      scode: selectedSchool.scode,
+      area: selectedSchool.area || '',
+      administrationCode: selectedSchool.administrationCode || '',
+    });
+  }, [selectedSchool]);
+
+  function handleSearchButtonClick() {
+    const { hasError } = form.validateField('sname');
+
+    if (!hasError) {
+      // 좀 이상한 거 같음. 검색할 때 다른 속성으로 만들어서 검색하는 것이 나아보임.
+      setSelectedSchool({
+        sname: form.values.sname,
+        scode: form.values.scode,
+        area: form.values.area,
+        administrationCode: form.values.administrationCode,
+      });
+      open();
+    }
+  }
+
   return (
     <form onSubmit={form.onSubmit(handleSubmit)}>
       <Stack>
@@ -173,7 +205,7 @@ export default function SchoolCreateForm() {
           inputContainer={(children) => (
             <Group align="flex-start">
               {children}
-              <Button>학교 검색</Button>
+              <Button onClick={handleSearchButtonClick}>학교 검색</Button>
             </Group>
           )}
           {...form.getInputProps('sname')}
@@ -274,6 +306,8 @@ export default function SchoolCreateForm() {
           </Button>
         </Group>
       </Stack>
+
+      <SchoolSearchModal />
     </form>
   );
 }

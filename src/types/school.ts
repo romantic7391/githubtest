@@ -210,3 +210,13 @@ export const schoolDtoSchema = schoolSchema.pick({
  * 학교 DTO
  */
 export type SchoolDto = z.infer<typeof schoolDtoSchema>;
+
+export const selectedSchoolSchema = schoolCreateSchema
+  .pick({
+    sname: true,
+    scode: true,
+    area: true,
+    administrationCode: true,
+  })
+  .nullable();
+export type SelectedSchool = z.infer<typeof selectedSchoolSchema>;
