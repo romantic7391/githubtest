@@ -436,4 +436,22 @@ describe('센서 등록 서비스 테스트', () => {
       new Error('이미 등록된 mac 주소 입니다. (학교마다 mac주소는 유일해야 합니다)'),
     );
   });
+
+  it('Error가 아닌 다양한 타입의 에러가 발생해도 기본 에러 메시지를 반환해야 함', async () => {
+    const dtos: DeviceCreate[] = [createTestDevice('00:11:22:33:44:55', '테스트 센서')];
+    const meta: LogMeta = {
+      ip: '127.0.0.1',
+      manager_no: 1,
+      user_agent: 'test-agent',
+      school_no: 12345,
+    };
+
+    // 다양한 non-Error 타입의 에러들
+    const nonErrorValues = [null, undefined, 123, { message: '에러 메시지' }, ['에러 배열'], Symbol('에러')];
+
+    for (const errorValue of nonErrorValues) {
+      (beginTransaction as jest.Mock).mockRejectedValueOnce(errorValue);
+      await expect(createRnDevicesRel(dtos, meta)).rejects.toThrow(DEFAULT_ERROR_MESSAGE_500);
+    }
+  });
 });
