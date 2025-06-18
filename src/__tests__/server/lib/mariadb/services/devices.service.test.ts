@@ -3,6 +3,13 @@ import { findRnDevicesRelBySchoolNo } from '@/models/rnDevicesRel/rnDevicesRel.m
 import { beginTransaction, commitTransaction, rollbackTransaction } from '@/lib/mariadb/query';
 import { AppError } from '@/utils/error.utils';
 
+// Next.js 모듈 모킹
+jest.mock('next/server', () => ({
+  NextResponse: {
+    json: jest.fn(),
+  },
+}));
+
 jest.mock('@/models/rnDevicesRel/rnDevicesRel.model');
 jest.mock('@/lib/mariadb/query');
 jest.mock('@/services/log-action/log-action.service', () => ({

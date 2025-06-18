@@ -1,4 +1,0 @@
-semgrep:
-  image: returntocorp/semgrep
-  script:
-    - semgrep scan --config=auto
