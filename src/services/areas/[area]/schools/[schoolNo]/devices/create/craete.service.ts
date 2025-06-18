@@ -40,6 +40,11 @@ export async function createRnDevicesRel(dtos: DeviceCreate[], meta: LogMeta) {
 async function createDevicesAndRelationsFn(dtos: DeviceCreate[], conn: PoolConnection, meta: LogMeta) {
   console.log('[createDevicesAndRelationsFn] dtos:', JSON.stringify(dtos));
 
+  // 빈 배열인 경우 에러 발생
+  if (dtos.length === 0) {
+    throw new Error('등록할 센서 정보가 없습니다.');
+  }
+
   // 1. MAC 주소 중복 체크를 병렬로 처리
   const macChecks = await Promise.all(dtos.map((dto) => findRelByMac(dto.mac, conn)));
 
