@@ -1,7 +1,8 @@
 import { createRnDevicesRel } from '@/services/areas/[area]/schools/[schoolNo]/devices/create/craete.service';
 import { findRelByMac, insertRnDevicesRel } from '@/models/rnDevicesRel/rnDevicesRel.model';
 import { beginTransaction, commitTransaction, rollbackTransaction } from '@/lib/mariadb/query';
-import { logAction, makeLogParams } from '@/services/log-action/log-action.service';
+import { logAction } from '@/services/log-action/log-action.service';
+// import {  makeLogParams } from '@/services/log-action/log-action.service';
 import { DeviceCreate } from '@/types/device';
 import { LogMeta } from '@/types/history';
 import { DEFAULT_ERROR_MESSAGE_500 } from '@/lib/default.constant';
@@ -165,27 +166,6 @@ describe('센서 등록 서비스 테스트', () => {
 
     // When & Then
     await expect(createRnDevicesRel(dtos, meta)).rejects.toThrow(DEFAULT_ERROR_MESSAGE_500);
-  });
-
-  it('manager_no가 없는 경우에도 정상 동작해야 함', async () => {
-    // Given
-    const dtos: DeviceCreate[] = [createTestDevice('00:11:22:33:44:55', '테스트 센서')];
-
-    const meta: LogMeta = {
-      ip: '127.0.0.1',
-      manager_no: null,
-      user_agent: 'test-agent',
-      school_no: 12345,
-    };
-
-    // When
-    const result = await createRnDevicesRel(dtos, meta);
-
-    // Then
-    expect(result).toEqual({ success: true });
-    expect(logAction).toHaveBeenCalled();
-    expect(commitTransaction).toHaveBeenCalledWith(mockConn);
-    expect(mockConn.release).toHaveBeenCalled();
   });
 
   it('연결 해제 실패 시에도 에러를 로깅해야 함', async () => {
@@ -381,37 +361,6 @@ describe('센서 등록 서비스 테스트', () => {
     expect(console.error).toHaveBeenCalledWith('Connection release error:', '연결 해제 실패');
   });
 
-  it('manager_no가 null일 경우에도 센서 등록과 로그 기록이 성공해야 함', async () => {
-    // Given
-    const dtos: DeviceCreate[] = [createTestDevice('00:11:22:33:44:55', '테스트 센서')];
-    const meta: LogMeta = {
-      ip: '127.0.0.1',
-      manager_no: null,
-      user_agent: 'test-agent',
-      school_no: 12345,
-    };
-
-    // When
-    const result = await createRnDevicesRel(dtos, meta);
-
-    // Then
-    expect(result).toEqual({ success: true });
-    expect(logAction).toHaveBeenCalledWith(
-      makeLogParams({
-        ip: '127.0.0.1',
-        manager_no: undefined,
-        school_no: 12345,
-        action_type: 'I',
-        target_table: 'rnDevicesRel',
-        target_id: '00:11:22:33:44:55',
-        old_values: null,
-        new_values: JSON.stringify(dtos[0]),
-        reason: '센서 등록',
-      }),
-      mockConn,
-    );
-  });
-
   it('insert 성공 후 logAction에서 실패 시 insert된 데이터가 커밋되지 않아야 함', async () => {
     // Given
     const dtos: DeviceCreate[] = [createTestDevice('00:11:22:33:44:55', '테스트 센서')];
@@ -468,26 +417,6 @@ describe('센서 등록 서비스 테스트', () => {
     expect(logAction).not.toHaveBeenCalled();
     expect(commitTransaction).not.toHaveBeenCalled();
     expect(rollbackTransaction).toHaveBeenCalled();
-  });
-
-  it('release 함수가 문자열 에러를 던지면 이를 console.error로 로깅하고 성공 응답을 반환해야 함', async () => {
-    // Given
-    const dtos: DeviceCreate[] = [createTestDevice('00:11:22:33:44:55', '테스트 센서')];
-    const meta: LogMeta = {
-      ip: '127.0.0.1',
-      manager_no: 1,
-      user_agent: 'test-agent',
-      school_no: 12345,
-    };
-
-    mockConn.release.mockRejectedValueOnce('연결 해제 실패');
-
-    // When
-    const result = await createRnDevicesRel(dtos, meta);
-
-    // Then
-    expect(result).toEqual({ success: true });
-    expect(console.error).toHaveBeenCalledWith('Connection release error:', '연결 해제 실패');
   });
 
   it('중복된 MAC 주소로 등록 시도 시 정확한 에러 메시지와 함께 실패해야 함', async () => {

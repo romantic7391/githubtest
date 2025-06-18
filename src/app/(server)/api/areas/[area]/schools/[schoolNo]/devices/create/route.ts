@@ -26,7 +26,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     // 3. 센서 등록
     await createRnDevicesRel([validatedData], {
-      manager_no: 1, // TODO: 실제 매니저 번호로 변경 필요
+      manager_no: 1, // TODO: 실제 사용자의 manager_no로 변경 필요
       school_no: parseInt(schoolNo, 10),
       ip,
       user_agent: userAgent,

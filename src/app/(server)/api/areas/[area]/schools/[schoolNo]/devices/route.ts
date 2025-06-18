@@ -46,10 +46,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     // 2. 센서 목록 조회
     const result = await getRnDevicesRelBySchoolNo(queryParams, {
-      manager_no: 1, // 임시로 1로 설정
+      manager_no: 1, // TODO: 실제 사용자의 manager_no로 변경 필요
       school_no: parseInt(schoolNo),
-      ip,
-      user_agent: userAgent,
+      ip: ip ?? 'unknown',
+      user_agent: userAgent ?? 'unknown',
     });
 
     return NextResponse.json(

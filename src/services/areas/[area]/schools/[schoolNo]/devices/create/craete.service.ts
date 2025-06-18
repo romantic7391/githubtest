@@ -58,10 +58,8 @@ async function createDevicesAndRelationsFn(dtos: DeviceCreate[], conn: PoolConne
   // 3. 로그 기록 (rnDevicesRel) - 병렬 처리
   await Promise.all(
     dtos.map((dto) => {
-      const { manager_no, ...restMeta } = meta;
       const logParams = {
-        ...restMeta,
-        manager_no: manager_no || undefined,
+        ...meta,
         school_no: dto.schoolNo,
         action_type: 'I' as const,
         target_table: 'rnDevicesRel',
