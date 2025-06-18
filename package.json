@@ -16,7 +16,10 @@
     "test:e2e-report": "dotenv -e .env pnpm exec playwright show-report",
     "prepare": "husky",
     "audit": "pnpm audit",
-    "audit:fix": "pnpm audit fix"
+    "audit:fix": "pnpm audit fix",
+    "semgrep": "semgrep scan --config=auto",
+    "semgrep:fix": "semgrep scan --config=auto --autofix",
+    "semgrep:test": "semgrep scan --config=auto --test"
   },
   "dependencies": {
     "@mantine/carousel": "8.0.0",
@@ -78,6 +81,7 @@
     "postcss-preset-mantine": "^1.17.0",
     "postcss-simple-vars": "^7.0.1",
     "prettier": "3.5.3",
+    "semgrep": "^0.0.1",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
     "typescript": "^5"

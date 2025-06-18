@@ -1,0 +1,35 @@
+rules:
+  - id: sql-injection
+    pattern: |
+      $QUERY = `SELECT ... FROM ... WHERE ... = '${...}'`
+    message: "Potential SQL injection vulnerability"
+    severity: ERROR
+    languages: [typescript]
+
+  - id: xss
+    pattern: |
+      document.write($...)
+    message: "Potential XSS vulnerability"
+    severity: ERROR
+    languages: [typescript]
+
+  - id: hardcoded-password
+    pattern: |
+      const $PASSWORD = "..."
+    message: "Hardcoded password detected"
+    severity: WARNING
+    languages: [typescript]
+
+  - id: unsafe-eval
+    pattern: |
+      eval($...)
+    message: "Unsafe eval usage detected"
+    severity: ERROR
+    languages: [typescript]
+
+  - id: console-log
+    pattern: |
+      console.log($...)
+    message: "Console.log statement detected"
+    severity: WARNING
+    languages: [typescript] 
