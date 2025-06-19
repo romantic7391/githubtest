@@ -131,7 +131,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
         success: true,
         message: '지역이 삭제되었습니다.',
       } satisfies BaseApiResponse,
-      { status: 200 },
+      { status: 204 },
     );
   } catch (error) {
     console.error('[DELETE /api/areas] Error:', error);
