@@ -57,6 +57,7 @@ export async function GET(request: NextRequest) {
       manager_no: session.manager_no,
       ip: request.headers.get('x-forwarded-for') || '',
       user_agent: request.headers.get('user-agent') || '',
+      school_no: 0,
     });
 
     return NextResponse.json(
@@ -101,6 +102,7 @@ export async function POST(request: NextRequest) {
       manager_no: session.manager_no,
       ip: request.headers.get('x-forwarded-for') || '',
       user_agent: request.headers.get('user-agent') || '',
+      school_no: 0,
     });
 
     return NextResponse.json(
@@ -157,6 +159,7 @@ export async function PUT(request: NextRequest) {
       manager_no: session.manager_no,
       ip: request.headers.get('x-forwarded-for') || '',
       user_agent: request.headers.get('user-agent') || '',
+      school_no: 0,
     });
 
     return NextResponse.json(
@@ -241,6 +244,7 @@ export async function DELETE(request: NextRequest) {
       manager_no: session.manager_no,
       ip: request.headers.get('x-forwarded-for') || '',
       user_agent: request.headers.get('user-agent') || '',
+      school_no: 0,
     });
 
     return NextResponse.json(

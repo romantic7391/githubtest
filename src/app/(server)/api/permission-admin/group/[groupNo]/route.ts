@@ -65,6 +65,7 @@ export async function PUT(request: NextRequest, context: GroupRouteParams) {
       manager_no: session.manager_no,
       ip: request.headers.get('x-forwarded-for') || '',
       user_agent: request.headers.get('user-agent') || '',
+      school_no: 0,
     });
 
     // 응답 데이터 검증
@@ -123,6 +124,7 @@ export async function DELETE(request: NextRequest, context: GroupRouteParams) {
       manager_no: session.manager_no,
       ip: request.headers.get('x-forwarded-for') || '',
       user_agent: request.headers.get('user-agent') || '',
+      school_no: 0,
     });
 
     return NextResponse.json(
