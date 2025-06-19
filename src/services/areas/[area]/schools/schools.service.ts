@@ -62,7 +62,11 @@ export async function getRnSchoolsByArea(
     };
   } catch (error) {
     if (conn) {
-      await rollbackTransaction(conn);
+      try {
+        await rollbackTransaction(conn);
+      } catch (rollbackError) {
+        console.error('Rollback error:', rollbackError);
+      }
     }
     console.error('학교 목록 조회 중 오류 발생:', error);
     if (error instanceof AppError) {

@@ -57,7 +57,14 @@ export async function createRnSchool(administrationCode: string, userInput: Part
       school: { ...dto, school_no },
     };
   } catch (error) {
-    if (conn) await rollbackTransaction(conn);
+    if (conn) {
+      try {
+        await rollbackTransaction(conn);
+      } catch (rollbackError) {
+        console.error('Rollback 실패:', rollbackError);
+        // 다른 서비스들과 일관성을 위해 에러를 throw하지 않고 로깅만 함
+      }
+    }
     console.error('학교 등록 중 오류 발생:', error);
     if (error instanceof AppError) {
       throw error;
