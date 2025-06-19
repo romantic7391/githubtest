@@ -19,6 +19,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     const areas = await getAreaByArea(area, {
       manager_no: 1, // 임시로 1로 설정
+      school_no: 0, // 지역 관련 API이므로 0으로 설정
       ip,
       user_agent: userAgent,
     });
@@ -65,6 +66,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     await updateArea(validatedData, {
       manager_no: 1, // 임시로 1로 설정
+      school_no: 0, // 지역 관련 API이므로 0으로 설정
       ip,
       user_agent: userAgent,
     });
@@ -119,6 +121,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
     await deleteArea(area, {
       manager_no: 1, // 임시로 1로 설정
+      school_no: 0, // 지역 관련 API이므로 0으로 설정
       ip,
       user_agent: userAgent,
     });

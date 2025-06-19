@@ -28,6 +28,7 @@ async function getCommonContext(request: NextRequest) {
 
   return {
     manager_no: session.user.managerNo,
+    school_no: 0,
     ip: ip || '',
     user_agent: userAgent || '',
   };
