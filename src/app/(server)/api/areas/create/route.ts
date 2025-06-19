@@ -23,6 +23,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const { userAgent, ip } = getClientInfo(request);
     await createArea(validatedData, {
       manager_no: 1, // 임시로 1로 설정
+      school_no: 0, // 지역 생성 시에는 0으로 설정
       ip,
       user_agent: userAgent,
     });
