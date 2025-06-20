@@ -34,7 +34,7 @@ export async function getSchoolHierarchy(
   const targetSchool = schools.find((s) => s.schoolNo === targetSchoolNo);
   if (!targetSchool) {
     console.log('학교를 찾을 수 없음:', { area, targetSchoolNo, schools });
-    throw new Error(`학교를 찾을 수 없습니다. (학교번호: ${targetSchoolNo}, 지역: ${area})`);
+    throw new Error('요청한 학교 정보를 찾을 수 없습니다.');
   }
 
   // 3. 계층 구조는 parentNo로 파악

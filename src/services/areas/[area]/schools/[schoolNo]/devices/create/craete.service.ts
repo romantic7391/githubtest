@@ -22,7 +22,7 @@ export async function createRnDevicesRel(dtos: DeviceCreate[], meta: LogMeta) {
     if (conn) await rollbackTransaction(conn);
     console.error('[createRnDevicesRel] 에러:', error);
     if (error instanceof Error) {
-      throw new Error(error.message);
+      throw new Error('센서 등록 중 오류가 발생했습니다.');
     }
     throw new Error(DEFAULT_ERROR_MESSAGE_500);
   }
@@ -41,7 +41,7 @@ async function createDevicesAndRelationsFn(dtos: DeviceCreate[], conn: PoolConne
   const macChecks = await Promise.all(dtos.map((dto) => findRelByMac(dto.mac, conn)));
 
   if (macChecks.some((exists) => exists)) {
-    throw new Error('이미 등록된 mac 주소 입니다. (학교마다 mac주소는 유일해야 합니다)');
+    throw new Error('이미 등록된 MAC 주소입니다.');
   }
 
   // 2. rnDevicesRel 테이블에 등록

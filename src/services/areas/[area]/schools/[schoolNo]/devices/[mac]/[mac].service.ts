@@ -222,7 +222,7 @@ export async function updateMac(
     console.log('[updateMac] 중복 체크 결과:', exists);
     if (exists) {
       console.error(`[updateMac] 이미 존재하는 mac입니다: school_no=${dto.school_no}, newMac=${dto.newMac}`);
-      throw new Error(`[updateMac] 이미 존재하는 mac입니다: school_no=${dto.school_no}, newMac=${dto.newMac}`);
+      throw new Error('MAC 주소가 이미 존재합니다.');
     }
 
     // 2. UPDATE 실행
@@ -232,9 +232,7 @@ export async function updateMac(
       console.error(
         `[updateMac] mac 변경 실패: school_no=${dto.school_no}, oldMac=${dto.oldMac}, newMac=${dto.newMac}`,
       );
-      throw new Error(
-        `[updateMac] mac 변경 실패: school_no=${dto.school_no}, oldMac=${dto.oldMac}, newMac=${dto.newMac}`,
-      );
+      throw new Error('MAC 주소 변경에 실패했습니다.');
     }
 
     // 3. rnDevices 테이블도 같이 mac 변경
