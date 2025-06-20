@@ -28,10 +28,10 @@ export async function insertRnDevices(
 }
 
 export async function findDeviceByMac(mac: string, school_no: number, conn?: PoolConnection) {
-  const query = 'SELECT * FROM rnDevicesRel WHERE mac = ? AND school_no = ?';
+  const query = 'SELECT * FROM rnDevices WHERE mac = ?';
   console.log('[findDeviceByMac] 쿼리:', query);
-  console.log('[findDeviceByMac] 파라미터:', [mac, school_no]);
-  const result = await getRow<{ mac: string }>(query, [mac, school_no], undefined, conn);
+  console.log('[findDeviceByMac] 파라미터:', [mac]);
+  const result = await getRow<{ mac: string }>(query, [mac], undefined, conn);
   console.log('[findDeviceByMac] 결과:', result);
   return result;
 }

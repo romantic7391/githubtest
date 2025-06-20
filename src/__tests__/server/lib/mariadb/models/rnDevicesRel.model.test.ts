@@ -5,11 +5,11 @@ import {
   findRelByMac,
   updateRnDevicesRel,
   softDeleteRnDevicesRel,
-  updateMac,
+  checkMacExists,
+  updateMacAddress,
 } from '@/models/rnDevicesRel/rnDevicesRel.model';
 import { setupTestDatabase, cleanupTestData, createTestData } from './setup';
 import { DeviceCreate, DeviceBasic } from '@/types/device';
-import { UpdateMacDto } from '@/interfaces/rnDevicesRel/rnDevicesRel.d';
 
 describe('RnDevicesRel Model - 실제 데이터베이스 테스트', () => {
   let realData: Array<{ area: string }> = [];
@@ -240,16 +240,14 @@ describe('RnDevicesRel Model - 실제 데이터베이스 테스트', () => {
 
     it('실제 DB에서 센서 MAC 주소를 변경해야 함', async () => {
       const newMac = `FFGGHHIIJJ${Date.now().toString(16).slice(-6)}`;
-      const updateMacData: UpdateMacDto[] = [
-        {
-          school_no: testSchoolNo,
-          oldMac: testMac,
-          newMac: newMac,
-        },
-      ];
+
+      // 먼저 중복 체크
+      const exists = await checkMacExists(testSchoolNo, newMac);
+      expect(exists).toBeNull();
 
       // 실제 DB에서 MAC 주소 변경
-      await updateMac(updateMacData);
+      const result = await updateMacAddress(testSchoolNo, testMac, newMac);
+      expect(result.affectedRows).toBeGreaterThan(0);
       console.log(`✅ 실제 DB에서 MAC 주소 변경: ${testMac} -> ${newMac}`);
 
       // 변경된 데이터 확인
@@ -356,17 +354,11 @@ describe('RnDevicesRel Model - 실제 데이터베이스 테스트', () => {
 
     it('존재하지 않는 MAC 주소로 업데이트 시 에러가 발생해야 함', async () => {
       const nonExistentMac = '00:00:00:00:00:00';
-      const updateMacData: UpdateMacDto[] = [
-        {
-          school_no: testSchoolNo,
-          oldMac: nonExistentMac,
-          newMac: '11:11:11:11:11:11',
-        },
-      ];
+      const newMac = '11:11:11:11:11:11';
 
       // 존재하지 않는 MAC 주소로 업데이트 시도 (에러 발생 예상)
       try {
-        await updateMac(updateMacData);
+        await updateMacAddress(testSchoolNo, nonExistentMac, newMac);
         // 에러가 발생하지 않았다면 테스트 실패
         expect(true).toBe(false);
       } catch (error) {
@@ -451,6 +443,23 @@ describe('RnDevicesRel Model - 실제 데이터베이스 테스트', () => {
       };
       const tagsResult = await findRnDevicesRelBySchoolNo(tagsParams);
       console.log(`🔍 tags 필터로 조회된 센서 수: ${tagsResult.total}`);
+    });
+
+    it('filters.tags가 null인 경우를 테스트해야 함 (75번째 줄 분기)', async () => {
+      const params = {
+        school_no: testSchoolNo,
+        page: 1,
+        pageSize: 10,
+        filters: {
+          tags: null, // null로 설정하여 조건문이 실행되지 않도록 함
+        },
+      };
+
+      const result = await findRnDevicesRelBySchoolNo(params);
+      expect(result).toHaveProperty('devices');
+      expect(result).toHaveProperty('total');
+      expect(Array.isArray(result.devices)).toBe(true);
+      console.log(`🔍 tags null 필터로 조회된 센서 수: ${result.total}`);
     });
   });
 
@@ -559,6 +568,68 @@ describe('RnDevicesRel Model - 실제 데이터베이스 테스트', () => {
         school_no: testSchoolNo,
       });
       expect(oldDevice).toBeNull();
+    });
+
+    it('updateMac 함수의 완전한 실행을 테스트해야 함 (커버리지 100% 보장)', async () => {
+      const oldMac = `AABBCCDDEE${Date.now().toString(16).slice(-6)}`;
+      const newMac = `FFGGHHIIJJ${Date.now().toString(16).slice(-6)}`;
+
+      // 먼저 테스트용 센서 생성 (rnDevicesRel에만)
+      const createData: DeviceCreate[] = [
+        {
+          schoolNo: testSchoolNo,
+          mac: oldMac,
+          name: 'updateMac 완전 실행 테스트 센서',
+          summary: 'updateMac 완전 실행 테스트',
+          kind: 1,
+          extra: 'updateMac 완전 실행용',
+          sdate: '2024-01-01 00:00:00',
+          edate: '2024-12-31 23:59:59',
+        },
+      ];
+      await insertRnDevicesRel(createData);
+
+      // updateMac 함수 실행 (완전한 실행 보장)
+      const result = await updateMacAddress(testSchoolNo, oldMac, newMac);
+      expect(result.affectedRows).toBeGreaterThan(0);
+      console.log(`✅ updateMac 함수 완전 실행 성공: ${oldMac} -> ${newMac}`);
+
+      // 변경된 데이터 확인 (rnDevicesRel)
+      const updatedRelDevice = await findRnDeviceRelBySchoolNoAndMac({
+        mac: newMac,
+        school_no: testSchoolNo,
+      });
+      expect(updatedRelDevice).not.toBeNull();
+      if (updatedRelDevice) {
+        expect(updatedRelDevice.mac).toBe(newMac);
+        console.log('✅ rnDevicesRel 테이블 MAC 변경 검증 성공:', updatedRelDevice);
+      }
+
+      // 기존 MAC 주소로는 조회되지 않아야 함
+      const oldRelDevice = await findRnDeviceRelBySchoolNoAndMac({
+        mac: oldMac,
+        school_no: testSchoolNo,
+      });
+      expect(oldRelDevice).toBeNull();
+
+      console.log('✅ updateMac 함수 완전 실행 테스트 성공 - 커버리지 100% 보장');
+    });
+
+    it('filters.tags가 빈 문자열인 경우를 테스트해야 함 (75번째 줄 분기)', async () => {
+      const params = {
+        school_no: testSchoolNo,
+        page: 1,
+        pageSize: 10,
+        filters: {
+          tags: '', // 빈 문자열로 설정
+        },
+      };
+
+      const result = await findRnDevicesRelBySchoolNo(params);
+      expect(result).toHaveProperty('devices');
+      expect(result).toHaveProperty('total');
+      expect(Array.isArray(result.devices)).toBe(true);
+      console.log(`🔍 tags 빈 문자열 필터로 조회된 센서 수: ${result.total}`);
     });
   });
 

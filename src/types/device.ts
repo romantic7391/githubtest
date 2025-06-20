@@ -56,8 +56,30 @@ export const deviceDbSchema = z
     edate: datetimeSchema.nullable(),
     created: datetimeSchema.nullable(),
     model: z.string().nullable(),
-    ip: z.string().ip({ version: 'v4' }).nullable(),
-    rip: z.string().ip({ version: 'v4' }).nullable(),
+    ip: z
+      .string()
+      .nullable()
+      .refine(
+        (val) => {
+          if (val === null || val === '') return true;
+          // IP 주소 형식 검증 (null이나 빈 문자열은 허용)
+          const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+          return ipRegex.test(val);
+        },
+        { message: '유효하지 않은 IP 주소 형식입니다.' },
+      ),
+    rip: z
+      .string()
+      .nullable()
+      .refine(
+        (val) => {
+          if (val === null || val === '') return true;
+          // IP 주소 형식 검증 (null이나 빈 문자열은 허용)
+          const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+          return ipRegex.test(val);
+        },
+        { message: '유효하지 않은 IP 주소 형식입니다.' },
+      ),
     splrate: z.number().nullable(),
     interval: z.number().nullable(),
     ver: z.string().nullable(),
