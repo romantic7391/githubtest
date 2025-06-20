@@ -59,3 +59,19 @@ if (typeof global.Response === 'undefined') {
     }
   } as unknown as typeof Response;
 }
+
+// Node.js 환경 폴리필 (모델 테스트용)
+if (typeof (globalThis as Record<string, unknown>).setImmediate === 'undefined') {
+  (globalThis as Record<string, unknown>).setImmediate = (
+    callback: (...args: unknown[]) => void,
+    ...args: unknown[]
+  ) => {
+    return setTimeout(() => callback(...args), 0);
+  };
+}
+
+if (typeof (globalThis as Record<string, unknown>).clearImmediate === 'undefined') {
+  (globalThis as Record<string, unknown>).clearImmediate = (id: number) => {
+    clearTimeout(id);
+  };
+}

@@ -78,13 +78,5 @@ export async function getRnDevicesRelBySchoolNo(
       throw error;
     }
     throw new AppError('센서 장치 목록 조회 중 오류가 발생했습니다.', 500);
-  } finally {
-    if (conn) {
-      try {
-        await conn.release();
-      } catch (err) {
-        console.error('Connection release error:', err);
-      }
-    }
   }
 }

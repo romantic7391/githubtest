@@ -100,15 +100,6 @@ export async function createPermissionS(dto: CreatePermissionDto, meta: LogMeta)
     }
     console.error('권한 생성 중 오류 발생:', error);
     throw new AppError('권한 생성 중 오류가 발생했습니다.', 500);
-  } finally {
-    if (conn) {
-      try {
-        await conn.release();
-      } catch (error) {
-        console.error('트랜잭션 커넥션 해제 중 오류:', error);
-        // 트랜잭션 커넥션 해제 중 오류는 무시
-      }
-    }
   }
 }
 
@@ -152,15 +143,6 @@ export async function updatePermissionS(dto: UpdatePermissionDto, meta: LogMeta)
     }
     console.error('권한 수정 중 오류 발생:', error);
     throw new AppError('권한 수정 중 오류가 발생했습니다.', 500);
-  } finally {
-    if (conn) {
-      try {
-        await conn.release();
-      } catch (error) {
-        console.error('트랜잭션 커넥션 해제 중 오류:', error);
-        // 트랜잭션 커넥션 해제 중 오류는 무시
-      }
-    }
   }
 }
 
@@ -203,15 +185,6 @@ export async function deletePermissionS(permissionNo: number, meta: LogMeta) {
     }
     console.error('권한 삭제 중 오류 발생:', error);
     throw new AppError('권한 삭제 중 오류가 발생했습니다.', 500);
-  } finally {
-    if (conn) {
-      try {
-        await conn.release();
-      } catch (error) {
-        console.error('트랜잭션 커넥션 해제 중 오류:', error);
-        // 트랜잭션 커넥션 해제 중 오류는 무시
-      }
-    }
   }
 }
 

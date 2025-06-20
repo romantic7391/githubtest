@@ -59,14 +59,6 @@ export async function getDevice(
     }
     console.error('[getDeviceService] DB 조회 에러:', error);
     throw new Error('센서 조회 중 오류가 발생했습니다.');
-  } finally {
-    if (conn) {
-      try {
-        await conn.release();
-      } catch (err) {
-        console.error('Connection release error:', err);
-      }
-    }
   }
 }
 
@@ -147,14 +139,6 @@ export async function updateDevice(
     }
     console.error('[updateDeviceService] 센서 수정 중 오류 발생:', error);
     throw new Error('센서 수정 중 오류가 발생했습니다.');
-  } finally {
-    if (conn) {
-      try {
-        await conn.release();
-      } catch (err) {
-        console.error('Connection release error:', err);
-      }
-    }
   }
 }
 
@@ -216,13 +200,5 @@ export async function deleteDevice(
     }
     console.error('[deleteDeviceService] 센서 삭제 중 오류 발생:', error);
     throw new Error('센서 삭제 중 오류가 발생했습니다.');
-  } finally {
-    if (conn) {
-      try {
-        await conn.release();
-      } catch (err) {
-        console.error('Connection release error:', err);
-      }
-    }
   }
 }

@@ -116,14 +116,6 @@ export async function createGroupS(group: CreateGroup, meta: LogMeta): Promise<{
       await rollbackTransaction(conn);
     }
     throw error;
-  } finally {
-    if (conn) {
-      try {
-        await conn.release();
-      } catch (error) {
-        console.error('트랜잭션 커넥션 해제 중 오류:', error);
-      }
-    }
   }
 }
 
@@ -195,14 +187,6 @@ export async function updateGroupS(group: Group, meta: LogMeta): Promise<{ group
       await rollbackTransaction(conn);
     }
     throw error;
-  } finally {
-    if (conn) {
-      try {
-        await conn.release();
-      } catch (error) {
-        console.error('트랜잭션 커넥션 해제 중 오류:', error);
-      }
-    }
   }
 }
 
@@ -247,13 +231,5 @@ export async function deleteGroupS(groupNo: number, meta: LogMeta) {
       await rollbackTransaction(conn);
     }
     throw error;
-  } finally {
-    if (conn) {
-      try {
-        await conn.release();
-      } catch (error) {
-        console.error('트랜잭션 커넥션 해제 중 오류:', error);
-      }
-    }
   }
 }

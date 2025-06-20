@@ -70,13 +70,5 @@ export async function createRnSchool(administrationCode: string, userInput: Part
       throw error;
     }
     throw new AppError('학교 등록 중 오류가 발생했습니다.', 500);
-  } finally {
-    if (conn) {
-      try {
-        await conn.release();
-      } catch (err) {
-        console.error('Connection release error:', err);
-      }
-    }
   }
 }

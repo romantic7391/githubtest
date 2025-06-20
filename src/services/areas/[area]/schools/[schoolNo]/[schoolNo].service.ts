@@ -49,14 +49,6 @@ export async function getSchoolBySchoolNo(
       throw error;
     }
     throw new AppError('학교 정보 조회 중 오류가 발생했습니다.', 500);
-  } finally {
-    if (conn) {
-      try {
-        await conn.release();
-      } catch (err) {
-        console.error('Connection release error:', err);
-      }
-    }
   }
 }
 
@@ -102,14 +94,6 @@ export async function updateRnSchool(
       throw error;
     }
     throw new AppError('학교 정보 수정 중 오류가 발생했습니다.', 500);
-  } finally {
-    if (conn) {
-      try {
-        await conn.release();
-      } catch (err) {
-        console.error('Connection release error:', err);
-      }
-    }
   }
 }
 
@@ -155,13 +139,5 @@ export async function deleteRnSchool(
       throw error;
     }
     throw new AppError('학교 삭제 중 오류가 발생했습니다.', 500);
-  } finally {
-    if (conn) {
-      try {
-        await conn.release();
-      } catch (err) {
-        console.error('Connection release error:', err);
-      }
-    }
   }
 }

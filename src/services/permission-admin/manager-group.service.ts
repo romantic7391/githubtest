@@ -81,14 +81,6 @@ export async function getManagerGroupsS(
       throw error;
     }
     throw new AppError('관리자 그룹 목록 조회 중 오류가 발생했습니다.', 500);
-  } finally {
-    if (conn) {
-      try {
-        await conn.release();
-      } catch (error) {
-        console.error('트랜잭션 커넥션 해제 중 오류:', error);
-      }
-    }
   }
 }
 
@@ -140,14 +132,6 @@ export async function createManagerGroupS(managerGroup: ManagerGroup, meta: LogM
     }
     console.error('관리자 그룹 생성 중 오류 발생:', error);
     throw error instanceof AppError ? error : new AppError('관리자 그룹 생성 중 오류가 발생했습니다.', 500);
-  } finally {
-    if (conn) {
-      try {
-        await conn.release();
-      } catch (error) {
-        console.error('트랜잭션 커넥션 해제 중 오류:', error);
-      }
-    }
   }
 }
 
@@ -211,14 +195,6 @@ export async function updateManagerGroupS(
     }
     console.error('관리자 그룹 수정 중 오류 발생:', error);
     throw error instanceof AppError ? error : new AppError('관리자 그룹 수정 중 오류가 발생했습니다.', 500);
-  } finally {
-    if (conn) {
-      try {
-        await conn.release();
-      } catch (error) {
-        console.error('트랜잭션 커넥션 해제 중 오류:', error);
-      }
-    }
   }
 }
 
@@ -265,13 +241,5 @@ export async function deleteManagerGroupS(no: number, groupNo: number, meta: Log
     }
     console.error('관리자 그룹 삭제 중 오류 발생:', error);
     throw error instanceof AppError ? error : new AppError('관리자 그룹 삭제 중 오류가 발생했습니다.', 500);
-  } finally {
-    if (conn) {
-      try {
-        await conn.release();
-      } catch (error) {
-        console.error('트랜잭션 커넥션 해제 중 오류:', error);
-      }
-    }
   }
 }

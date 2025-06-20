@@ -73,13 +73,5 @@ export async function getRnSchoolsByArea(
       throw error;
     }
     throw new AppError('학교 목록 조회 중 오류가 발생했습니다.', 500);
-  } finally {
-    if (conn) {
-      try {
-        await conn.release();
-      } catch (error) {
-        console.error('트랜잭션 커넥션 해제 중 오류:', error);
-      }
-    }
   }
 }

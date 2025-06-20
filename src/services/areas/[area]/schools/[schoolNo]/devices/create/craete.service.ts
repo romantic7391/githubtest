@@ -25,14 +25,6 @@ export async function createRnDevicesRel(dtos: DeviceCreate[], meta: LogMeta) {
       throw new Error(error.message);
     }
     throw new Error(DEFAULT_ERROR_MESSAGE_500);
-  } finally {
-    if (conn) {
-      try {
-        await conn.release();
-      } catch (err) {
-        console.error('Connection release error:', err);
-      }
-    }
   }
 }
 

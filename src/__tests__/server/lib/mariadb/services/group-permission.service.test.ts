@@ -163,6 +163,17 @@ describe('Group Permission Service', () => {
       expect(rollbackTransaction).toHaveBeenCalled();
     });
 
+    it('DB 조회 중 AppError 발생 시 원본 에러를 그대로 전파해야 함', async () => {
+      const filters = { groupNo: 1 };
+      const customAppError = new AppError('커스텀 에러', 400);
+
+      (selectGroupPermission as jest.Mock).mockRejectedValue(customAppError);
+
+      await expect(getGroupPermissionsS(pagination, filters, meta)).rejects.toThrow(customAppError);
+
+      expect(rollbackTransaction).toHaveBeenCalled();
+    });
+
     it('meta가 없어도 조회가 가능해야 함', async () => {
       const filters = { groupNo: 1 };
       const mockResult = {
@@ -233,6 +244,16 @@ describe('Group Permission Service', () => {
       await expect(createGroupPermissionS(mockCreateGroupPermission, meta)).rejects.toThrow(
         new AppError('그룹 권한 생성 중 오류가 발생했습니다.', 500),
       );
+
+      expect(rollbackTransaction).toHaveBeenCalled();
+    });
+
+    it('그룹 권한 생성 중 AppError 발생 시 원본 에러를 그대로 전파해야 함', async () => {
+      (findGroupPermission as jest.Mock).mockResolvedValue(null);
+      const customAppError = new AppError('커스텀 생성 에러', 400);
+      (insertGroupPermission as jest.Mock).mockRejectedValue(customAppError);
+
+      await expect(createGroupPermissionS(mockCreateGroupPermission, meta)).rejects.toThrow(customAppError);
 
       expect(rollbackTransaction).toHaveBeenCalled();
     });
@@ -408,6 +429,27 @@ describe('Group Permission Service', () => {
       await expect(updateGroupPermissionS(mockUpdateGroupPermission, meta)).rejects.toThrow(
         new AppError('그룹 권한 수정 중 오류가 발생했습니다.', 500),
       );
+
+      expect(rollbackTransaction).toHaveBeenCalled();
+    });
+
+    it('그룹 권한 수정 중 AppError 발생 시 원본 에러를 그대로 전파해야 함', async () => {
+      const originalPermission = {
+        groupNo: 1,
+        permissionNo: 1,
+        isAllowed: 'N' as const,
+        override: 'N' as const,
+        extraCondition: 'old_condition',
+        extraLimit: '50',
+      };
+
+      (findGroupPermission as jest.Mock)
+        .mockResolvedValueOnce(originalPermission) // 원본 권한 조회
+        .mockResolvedValueOnce(null); // 새로운 권한 중복 체크 (없음)
+      const customAppError = new AppError('커스텀 수정 에러', 400);
+      (updateGroupPermission as jest.Mock).mockRejectedValue(customAppError);
+
+      await expect(updateGroupPermissionS(mockUpdateGroupPermission, meta)).rejects.toThrow(customAppError);
 
       expect(rollbackTransaction).toHaveBeenCalled();
     });

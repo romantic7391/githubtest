@@ -35,13 +35,5 @@ export async function getAreas(page: number = 1, limit: number = 10, areas: stri
     if (conn) await rollbackTransaction(conn);
     console.error('[getAreas] DB 조회 에러:', error);
     throw new Error('학교 목록 조회 중 오류가 발생했습니다.');
-  } finally {
-    if (conn) {
-      try {
-        await conn.release();
-      } catch (err) {
-        console.error('Connection release error:', err);
-      }
-    }
   }
 }
