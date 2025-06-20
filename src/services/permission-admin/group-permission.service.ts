@@ -58,6 +58,14 @@ export async function getGroupPermissionsS(pagination: Pagination, filters?: Gro
       throw error;
     }
     throw new AppError('그룹 권한 목록 조회 중 오류가 발생했습니다.', 500);
+  } finally {
+    if (conn) {
+      try {
+        await conn.release();
+      } catch (error) {
+        console.error('트랜잭션 커넥션 해제 중 오류:', error);
+      }
+    }
   }
 }
 
@@ -107,7 +115,16 @@ export async function createGroupPermissionS(
     if (conn) {
       await rollbackTransaction(conn);
     }
-    throw error;
+    console.error('그룹 권한 생성 중 오류 발생:', error);
+    throw error instanceof AppError ? error : new AppError('그룹 권한 생성 중 오류가 발생했습니다.', 500);
+  } finally {
+    if (conn) {
+      try {
+        await conn.release();
+      } catch (error) {
+        console.error('트랜잭션 커넥션 해제 중 오류:', error);
+      }
+    }
   }
 }
 
@@ -175,7 +192,16 @@ export async function updateGroupPermissionS(
     if (conn) {
       await rollbackTransaction(conn);
     }
-    throw error;
+    console.error('그룹 권한 수정 중 오류 발생:', error);
+    throw error instanceof AppError ? error : new AppError('그룹 권한 수정 중 오류가 발생했습니다.', 500);
+  } finally {
+    if (conn) {
+      try {
+        await conn.release();
+      } catch (error) {
+        console.error('트랜잭션 커넥션 해제 중 오류:', error);
+      }
+    }
   }
 }
 
@@ -222,6 +248,15 @@ export async function deleteGroupPermissionS(groupNo: number, permissionNo: numb
     if (conn) {
       await rollbackTransaction(conn);
     }
-    throw error;
+    console.error('그룹 권한 삭제 중 오류 발생:', error);
+    throw error instanceof AppError ? error : new AppError('그룹 권한 삭제 중 오류가 발생했습니다.', 500);
+  } finally {
+    if (conn) {
+      try {
+        await conn.release();
+      } catch (error) {
+        console.error('트랜잭션 커넥션 해제 중 오류:', error);
+      }
+    }
   }
 }
