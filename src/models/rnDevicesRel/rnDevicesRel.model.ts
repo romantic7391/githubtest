@@ -178,8 +178,6 @@ export async function updateRnDevicesRel(
   conn?: PoolConnection,
 ): Promise<void> {
   for (const dto of dtos) {
-    console.log('[updateRnDevicesRel] 업데이트 데이터:', dto);
-
     // MAC 주소가 변경된 경우 (oldMac이 존재하고 mac과 다른 경우)
     if (dto.oldMac && dto.mac !== dto.oldMac) {
       const query = `
@@ -204,10 +202,7 @@ export async function updateRnDevicesRel(
         dto.oldMac,
         dto.school_no,
       ];
-      console.log('[updateRnDevicesRel] MAC 변경 쿼리:', query);
-      console.log('[updateRnDevicesRel] MAC 변경 파라미터:', params);
-      const result = await exec(query, params, conn);
-      console.log('[updateRnDevicesRel] MAC 변경 결과:', result);
+      await exec(query, params, conn);
     } else {
       // MAC 주소가 변경되지 않은 경우
       const query = `
@@ -221,10 +216,7 @@ export async function updateRnDevicesRel(
         WHERE mac = ? and school_no = ?
       `;
       const params = [dto.name, dto.summary, dto.kind, dto.extra, dto.sdate, dto.edate, dto.mac, dto.school_no];
-      console.log('[updateRnDevicesRel] 일반 업데이트 쿼리:', query);
-      console.log('[updateRnDevicesRel] 일반 업데이트 파라미터:', params);
-      const result = await exec(query, params, conn);
-      console.log('[updateRnDevicesRel] 일반 업데이트 결과:', result);
+      await exec(query, params, conn);
     }
   }
 }
@@ -236,8 +228,6 @@ export async function softDeleteRnDevicesRel(dtos: DeviceBasic[], conn?: PoolCon
     WHERE (mac, school_no) IN (${dtos.map(() => '(?, ?)').join(', ')})
   `;
   const params = dtos.flatMap((dto) => [dto.mac, dto.school_no]);
-  console.log('[softDeleteRnDevicesRel] 쿼리:', query);
-  console.log('[softDeleteRnDevicesRel] 파라미터:', params);
   await exec(query, params, conn);
 }
 

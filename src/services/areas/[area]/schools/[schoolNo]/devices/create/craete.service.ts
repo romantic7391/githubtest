@@ -11,7 +11,6 @@ import { DEFAULT_ERROR_MESSAGE_500 } from '@/lib/default.constant';
  * 지역 학교 센서 장치 추가
  */
 export async function createRnDevicesRel(dtos: DeviceCreate[], meta: LogMeta) {
-  console.log('[createRnDevicesRel] 호출, dtos:', JSON.stringify(dtos));
   let conn;
   try {
     conn = await beginTransaction();
@@ -30,8 +29,6 @@ export async function createRnDevicesRel(dtos: DeviceCreate[], meta: LogMeta) {
 
 // 내부 private 센서등록 함수
 async function createDevicesAndRelationsFn(dtos: DeviceCreate[], conn: PoolConnection, meta: LogMeta) {
-  console.log('[createDevicesAndRelationsFn] dtos:', JSON.stringify(dtos));
-
   // 빈 배열인 경우 에러 발생
   if (dtos.length === 0) {
     throw new Error('등록할 센서 정보가 없습니다.');

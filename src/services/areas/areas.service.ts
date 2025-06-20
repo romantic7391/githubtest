@@ -8,7 +8,6 @@ export async function getAreas(page: number = 1, limit: number = 10, areas: stri
   let conn;
   try {
     conn = await beginTransaction();
-    console.log('[getAreas] 호출, 파라미터:', { page, limit, areas });
 
     const result = await findAreas(page, limit, areas);
 
@@ -29,7 +28,6 @@ export async function getAreas(page: number = 1, limit: number = 10, areas: stri
     }
 
     await commitTransaction(conn);
-    console.log('[getAreas] 결과:', { total: result.total, areasCount: result.areas.length });
     return result;
   } catch (error) {
     if (conn) await rollbackTransaction(conn);

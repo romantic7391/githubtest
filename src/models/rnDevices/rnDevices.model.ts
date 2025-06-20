@@ -29,10 +29,7 @@ export async function insertRnDevices(
 
 export async function findDeviceByMac(mac: string, school_no: number, conn?: PoolConnection) {
   const query = 'SELECT * FROM rnDevices WHERE mac = ?';
-  console.log('[findDeviceByMac] 쿼리:', query);
-  console.log('[findDeviceByMac] 파라미터:', [mac]);
   const result = await getRow<{ mac: string }>(query, [mac], undefined, conn);
-  console.log('[findDeviceByMac] 결과:', result);
   return result;
 }
 
@@ -81,8 +78,6 @@ export async function softDeleteRnDevice(dtos: { mac: string }[], conn?: PoolCon
     WHERE mac IN (${dtos.map(() => '?').join(', ')})
   `;
   const params = dtos.map((dto) => dto.mac);
-  console.log('[softDeleteRnDevice] 쿼리:', query);
-  console.log('[softDeleteRnDevice] 파라미터:', params);
   return await exec(query, params, conn);
 }
 

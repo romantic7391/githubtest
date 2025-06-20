@@ -217,28 +217,22 @@ export async function updateMac(
 ) {
   for (const dto of dtos) {
     // 1. newMac 중복 체크
-    console.log('[updateMac] 중복 체크 쿼리 실행: school_no=', dto.school_no, ', newMac=', dto.newMac);
     const exists = await checkMacExists(dto.school_no, dto.newMac, conn);
-    console.log('[updateMac] 중복 체크 결과:', exists);
     if (exists) {
-      console.error(`[updateMac] 이미 존재하는 mac입니다: school_no=${dto.school_no}, newMac=${dto.newMac}`);
       throw new Error('MAC 주소가 이미 존재합니다.');
     }
 
     // 2. UPDATE 실행
     const result = await updateMacAddress(dto.school_no, dto.oldMac, dto.newMac, conn);
-    console.log('[updateMac] UPDATE 결과 affectedRows:', result.affectedRows);
     if (result.affectedRows === 0) {
-      console.error(
-        `[updateMac] mac 변경 실패: school_no=${dto.school_no}, oldMac=${dto.oldMac}, newMac=${dto.newMac}`,
-      );
       throw new Error('MAC 주소 변경에 실패했습니다.');
     }
 
     // 3. rnDevices 테이블도 같이 mac 변경
     const deviceResult = await updateDeviceMac(dto.oldMac, dto.newMac, conn);
-    console.log('[updateMac] rnDevices mac 변경 결과:', deviceResult.affectedRows);
-    console.log(`[updateMac] mac 변경 성공: school_no=${dto.school_no}, oldMac=${dto.oldMac}, newMac=${dto.newMac}`);
+    if (deviceResult.affectedRows === 0) {
+      throw new Error('MAC 주소 변경에 실패했습니다.');
+    }
 
     // 4. 로그 기록
     try {
