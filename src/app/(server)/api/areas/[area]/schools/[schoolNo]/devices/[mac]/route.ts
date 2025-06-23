@@ -39,7 +39,14 @@ export async function GET(
     // Zod로 응답 데이터 검증
     try {
       const validatedDevice = deviceRelSchema.parse(device);
-      return NextResponse.json({ success: true, data: validatedDevice });
+      return NextResponse.json(
+        {
+          success: true,
+          message: '센서가 성공적으로 조회되었습니다.',
+          data: validatedDevice,
+        },
+        { status: 200 },
+      );
     } catch (validationError) {
       console.error('[GET] 데이터 검증 에러:', validationError);
       if (validationError instanceof z.ZodError) {
@@ -87,11 +94,14 @@ export async function PUT(
       ip,
       user_agent: userAgent,
     });
-    return NextResponse.json({
-      success: true,
-      message: '센서가 성공적으로 수정되었습니다.',
-      data: result,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        message: '센서가 성공적으로 수정되었습니다.',
+        data: result,
+      },
+      { status: 200 },
+    );
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ success: false, message: '데이터 검증에 실패했습니다.' } satisfies BaseApiResponse, {
@@ -123,7 +133,7 @@ export async function DELETE(
         user_agent: userAgent,
       },
     );
-    return NextResponse.json({ success: true, message: '센서가 성공적으로 삭제되었습니다.' });
+    return NextResponse.json({ success: true, message: '센서가 성공적으로 삭제되었습니다.' }, { status: 200 });
   } catch (error) {
     console.error('[DELETE] 센서 삭제 에러:', error);
     return NextResponse.json({ success: false, message: DEFAULT_ERROR_MESSAGE_500 } satisfies BaseApiResponse, {
