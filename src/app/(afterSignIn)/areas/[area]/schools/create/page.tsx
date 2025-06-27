@@ -2,6 +2,7 @@ import { Anchor, Breadcrumbs, Stack, Title } from '@mantine/core';
 import React from 'react';
 import SchoolCreateForm from './_components/SchoolCreateForm';
 import { Metadata } from 'next';
+import SchoolSearchModal from './_components/SchoolSearchModal';
 
 export const metadata: Metadata = {
   title: '학교 추가',
@@ -35,6 +36,7 @@ export default async function Page({ params }: { params: Promise<{ area: string 
         <Title order={3}>학교 추가</Title>
       </Stack>
       <SchoolCreateForm />
+      <SchoolSearchModal />
     </Stack>
   );
 }
