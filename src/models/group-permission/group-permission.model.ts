@@ -1,7 +1,14 @@
 import { exec, getRow, getAll } from '@/lib/mariadb/query';
-import { GroupPermission } from '@/types/permission';
+import {
+  GroupPermissionDetail,
+  FindGroupPermissionDto,
+  InsertGroupPermissionDto,
+  UpdateGroupPermissionDto,
+  DeleteGroupPermissionDto,
+} from '@/types/permission/group-permission';
 import { PoolConnection } from 'mariadb';
 import { Pagination } from '@/types/common';
+import { AppError } from '@/utils/error.utils';
 
 // 그룹 권한 조회
 export async function selectGroupPermission(
@@ -11,7 +18,7 @@ export async function selectGroupPermission(
     permissionNo?: number;
   },
 ): Promise<{
-  groupPermissions: GroupPermission[];
+  groupPermissions: GroupPermissionDetail[];
   pagination: {
     page: number;
     pageSize: number;
@@ -58,17 +65,17 @@ export async function selectGroupPermission(
   // 그룹 권한 목록 조회
   const query = `
     SELECT 
-      gp.group_no,
-      g.name as group_name,
-      g.parent_group_no,
-      pg.name as parent_group_name,
-      gp.permission_no,
-      p.name as permission_name,
-      p.description as permission_description,
-      gp.is_allowed,
-      gp.override,
-      gp.extra_condition,
-      gp.extra_limit
+      gp.group_no as groupNo,
+      g.name as groupName,
+      g.parent_group_no as parentGroupNo,
+      pg.name as parentGroupName,
+      gp.permission_no as permissionNo,
+      p.name as permissionName,
+      p.description as permissionDescription,
+      gp.is_allowed as isAllowed,
+      gp.override as override,
+      gp.extra_condition as extraCondition,
+      gp.extra_limit as extraLimit
     FROM groupPermission gp
     JOIN \`group\` g ON gp.group_no = g.group_no
     LEFT JOIN \`group\` pg ON g.parent_group_no = pg.group_no
@@ -81,7 +88,7 @@ export async function selectGroupPermission(
   console.log('Select Query:', query);
   console.log('Final Params:', [...params, pagination.pageSize, offset]);
 
-  const groupPermissions = await getAll<GroupPermission>(query, [...params, pagination.pageSize, offset]);
+  const groupPermissions = await getAll<GroupPermissionDetail>(query, [...params, pagination.pageSize, offset]);
 
   console.log('Query Result:', { groupPermissions });
   console.log('=== selectGroupPermission End ===');
@@ -98,52 +105,82 @@ export async function selectGroupPermission(
 }
 
 // 그룹 권한 추가
-export async function insertGroupPermission(dto: GroupPermission, conn?: PoolConnection) {
-  const query = `
-    INSERT INTO \`groupPermission\` (
-      group_no, 
-      permission_no,
-      is_allowed,
-      override,
-      extra_condition,
-      extra_limit
-    ) VALUES (?, ?, ?, ?, ?, ?);
-  `;
-  const params = [dto.groupNo, dto.permissionNo, dto.isAllowed, dto.override, dto.extraCondition, dto.extraLimit];
-  return exec(query, params, conn);
+export async function insertGroupPermission(dto: InsertGroupPermissionDto, conn?: PoolConnection) {
+  try {
+    const query = `
+      INSERT INTO \`groupPermission\` (
+        group_no, 
+        permission_no,
+        is_allowed,
+        override,
+        extra_condition,
+        extra_limit
+      ) VALUES (?, ?, ?, ?, ?, ?);
+    `;
+    const params = [dto.groupNo, dto.permissionNo, dto.isAllowed, dto.override, dto.extraCondition, dto.extraLimit];
+    return exec(query, params, conn);
+  } catch (error) {
+    console.error('그룹 권한 생성 중 오류 발생:', error);
+    throw new AppError('그룹 권한 생성 중 오류가 발생했습니다.', 500);
+  }
 }
 
 // 그룹 권한 수정
-export async function updateGroupPermission(
-  dto: GroupPermission,
-  original: { originalGroupNo: number; originalPermissionNo: number },
-  conn?: PoolConnection,
-) {
-  const query = `
-    UPDATE \`groupPermission\` 
-    SET group_no = ?, 
-        permission_no = ?,
-        is_allowed = ?,
-        override = ?,
-        extra_condition = ?,
-        extra_limit = ?
-    WHERE group_no = ? AND permission_no = ?
-  `;
-  const params = [
-    dto.groupNo,
-    dto.permissionNo,
-    dto.isAllowed,
-    dto.override,
-    dto.extraCondition,
-    dto.extraLimit,
-    original.originalGroupNo,
-    original.originalPermissionNo,
-  ];
-  return exec(query, params, conn);
+export async function updateGroupPermission(dto: UpdateGroupPermissionDto, conn?: PoolConnection) {
+  try {
+    const query = `
+      UPDATE \`groupPermission\` 
+      SET group_no = ?, 
+          permission_no = ?,
+          is_allowed = ?,
+          override = ?,
+          extra_condition = ?,
+          extra_limit = ?
+      WHERE group_no = ? AND permission_no = ?
+    `;
+    const params = [
+      dto.groupNo,
+      dto.permissionNo,
+      dto.isAllowed,
+      dto.override,
+      dto.extraCondition,
+      dto.extraLimit,
+      dto.originalGroupNo,
+      dto.originalPermissionNo,
+    ];
+    return exec(query, params, conn);
+  } catch (error) {
+    console.error('그룹 권한 수정 중 오류 발생:', error);
+    throw new AppError('그룹 권한 수정 중 오류가 발생했습니다.', 500);
+  }
 }
 
 // 그룹 권한 삭제
-export async function deleteGroupPermission(groupNo: number, permissionNo: number, conn?: PoolConnection) {
-  const query = `DELETE FROM \`groupPermission\` WHERE group_no = ? AND permission_no = ?`;
-  return exec(query, [groupNo, permissionNo], conn);
+export async function deleteGroupPermission(dto: DeleteGroupPermissionDto, conn?: PoolConnection) {
+  try {
+    const query = `DELETE FROM \`groupPermission\` WHERE group_no = ? AND permission_no = ?`;
+    return exec(query, [dto.groupNo, dto.permissionNo], conn);
+  } catch (error) {
+    console.error('그룹 권한 삭제 중 오류 발생:', error);
+    throw new AppError('그룹 권한 삭제 중 오류가 발생했습니다.', 500);
+  }
+}
+
+// 그룹 권한 조회 (중복 체크용)
+export async function findGroupPermission(dto: FindGroupPermissionDto): Promise<boolean> {
+  try {
+    const query = `
+      SELECT 
+        COUNT(1) as count
+      FROM groupPermission AS gp
+      WHERE gp.group_no = ? AND gp.permission_no = ?
+      AND gp.deleted IS NULL
+    `;
+
+    const result = await getRow<{ count: number }>(query, [dto.groupNo, dto.permissionNo]);
+    return (result?.count ?? 0) > 0;
+  } catch (error) {
+    console.error('그룹 권한 조회 중 오류 발생:', error);
+    throw new AppError('그룹 권한 조회 중 오류가 발생했습니다.', 500);
+  }
 }

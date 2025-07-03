@@ -6,7 +6,7 @@ import type { PoolConnection } from 'mariadb';
 export function makeLogParams(params: Partial<History>) {
   return historySchema.parse({
     ...params,
-    school_no: params.school_no ?? null,
+    school_no: params.school_no ?? 0,
     old_values: params.old_values ?? '',
   });
 }

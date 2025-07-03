@@ -93,12 +93,12 @@ export async function checkPermission(
         parentGroupNo: validatedGroup.parent_group_no,
       });
 
-      const groupPermission = await findGroupPermission(currentGroupNo, permission.permission_no);
+      const groupPermission = await findGroupPermission(currentGroupNo, permission.permissionNo);
       if (groupPermission) {
         const validatedGroupPermission = groupPermissionSchema.parse(groupPermission);
         console.log('그룹 권한 정보:', {
           groupNo: currentGroupNo,
-          permissionNo: permission.permission_no,
+          permissionNo: permission.permissionNo,
           isAllowed: validatedGroupPermission.isAllowed,
           override: validatedGroupPermission.override,
         });

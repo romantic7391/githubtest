@@ -11,7 +11,6 @@ import { DEFAULT_ERROR_MESSAGE_500 } from '@/lib/default.constant';
  * 지역 학교 센서 장치 추가
  */
 export async function createRnDevicesRel(dtos: DeviceCreate[], meta: LogMeta) {
-  console.log('[createRnDevicesRel] 호출, dtos:', JSON.stringify(dtos));
   let conn;
   try {
     conn = await beginTransaction();
@@ -22,29 +21,24 @@ export async function createRnDevicesRel(dtos: DeviceCreate[], meta: LogMeta) {
     if (conn) await rollbackTransaction(conn);
     console.error('[createRnDevicesRel] 에러:', error);
     if (error instanceof Error) {
-      throw new Error(error.message);
+      throw new Error('센서 등록 중 오류가 발생했습니다.');
     }
     throw new Error(DEFAULT_ERROR_MESSAGE_500);
-  } finally {
-    if (conn) {
-      try {
-        await conn.release();
-      } catch (err) {
-        console.error('Connection release error:', err);
-      }
-    }
   }
 }
 
 // 내부 private 센서등록 함수
 async function createDevicesAndRelationsFn(dtos: DeviceCreate[], conn: PoolConnection, meta: LogMeta) {
-  console.log('[createDevicesAndRelationsFn] dtos:', JSON.stringify(dtos));
+  // 빈 배열인 경우 에러 발생
+  if (dtos.length === 0) {
+    throw new Error('등록할 센서 정보가 없습니다.');
+  }
 
   // 1. MAC 주소 중복 체크를 병렬로 처리
   const macChecks = await Promise.all(dtos.map((dto) => findRelByMac(dto.mac, conn)));
 
   if (macChecks.some((exists) => exists)) {
-    throw new Error('이미 등록된 mac 주소 입니다. (학교마다 mac주소는 유일해야 합니다)');
+    throw new Error('이미 등록된 MAC 주소입니다.');
   }
 
   // 2. rnDevicesRel 테이블에 등록
@@ -53,10 +47,8 @@ async function createDevicesAndRelationsFn(dtos: DeviceCreate[], conn: PoolConne
   // 3. 로그 기록 (rnDevicesRel) - 병렬 처리
   await Promise.all(
     dtos.map((dto) => {
-      const { manager_no, ...restMeta } = meta;
       const logParams = {
-        ...restMeta,
-        manager_no: manager_no || undefined,
+        ...meta,
         school_no: dto.schoolNo,
         action_type: 'I' as const,
         target_table: 'rnDevicesRel',

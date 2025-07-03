@@ -26,23 +26,25 @@ export const managerGroupSchema = z.object({
  * 그룹
  */
 export const groupSchema = z.object({
-  group_no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
-  school_no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER).nullable(),
-  name: z.string().max(20).optional(),
-  parent_group_no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER).nullable(),
-  // created: datetimeSchema.nullable(),
+  group_no: z.number(),
+  name: z.string().min(1, '그룹 이름은 필수입니다.').max(50, '그룹 이름은 50자를 초과할 수 없습니다.'),
+  school_no: z.number().nullable(),
+  parent_group_no: z.number().nullable(),
+  school_name: z.string().nullable(),
+  parent_group_name: z.string().nullable(),
+  created: z.string().optional(),
+  updated: z.string().optional(),
 });
 
 /**
  * 권한
  */
 export const permissionSchema = z.object({
-  permission_no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
-  name: z.string().min(1, '권한 이름은 필수입니다.').max(50),
-  description: z.string().max(200).nullable(),
-  defaultExtraCondition: z.string().max(50).nullable(),
-  defaultExtraLimit: z.string().max(50).nullable(),
-  // created: datetimeSchema.nullable(),
+  permission_no: z.number(),
+  name: z.string().min(1, '권한 이름은 필수입니다.').max(50, '권한 이름은 50자를 초과할 수 없습니다.'),
+  description: z.string().nullable(),
+  default_extra_condition: z.string().nullable(),
+  default_extra_limit: z.string().nullable(),
 });
 
 /**
@@ -53,7 +55,7 @@ export const groupPermissionSchema = z.object({
   permissionNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
   isAllowed: z.enum(['Y', 'N']).nullable(),
   override: z.enum(['Y', 'N']).nullable(),
-  extraCondition: z.string().nullable(),
+  extraCondition: z.string().max(50).nullable(),
   extraLimit: z.string().max(50).nullable(),
   // created: datetimeSchema.nullable(),
 });
@@ -61,12 +63,18 @@ export const groupPermissionSchema = z.object({
 /**
  * 그룹 권한 상세 정보 (조회용)
  */
-export const groupPermissionDetailSchema = groupPermissionSchema.extend({
+export const groupPermissionDetailSchema = z.object({
+  groupNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
   groupName: z.string(),
   parentGroupNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER).nullable(),
   parentGroupName: z.string().nullable(),
+  permissionNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
   permissionName: z.string(),
-  permissionDescription: z.string(),
+  permissionDescription: z.string().nullable(),
+  isAllowed: z.enum(['Y', 'N']).nullable(),
+  override: z.enum(['Y', 'N']).nullable(),
+  extraCondition: z.string().nullable(),
+  extraLimit: z.string().nullable(),
 });
 
 /**
@@ -91,8 +99,8 @@ export const updateGroupSchema = createGroupSchema.extend({
 export const createPermissionSchema = permissionSchema.pick({
   name: true,
   description: true,
-  defaultExtraCondition: true,
-  defaultExtraLimit: true,
+  default_extra_condition: true,
+  default_extra_limit: true,
 });
 
 /**
@@ -191,6 +199,13 @@ export const permissionCreateOrUpdateApiResponseSchema = baseApiResponseSchema.e
   }),
 });
 
+export const groupPermissionsApiResponseSchema = baseApiResponseSchema.extend({
+  data: z.object({
+    groupPermissions: groupPermissionDetailSchema.array(),
+    pagination: paginationSchema,
+  }),
+});
+
 /**
  * 그룹 권한 필터 스키마
  */
@@ -229,13 +244,6 @@ export const groupPermissionApiResponseSchema = baseApiResponseSchema.extend({
   data: groupPermissionSchema,
 });
 
-export const groupPermissionsApiResponseSchema = baseApiResponseSchema.extend({
-  data: z.object({
-    groupPermissions: groupPermissionDetailSchema.array(),
-    pagination: paginationSchema,
-  }),
-});
-
 /**
  * 그룹 권한 생성/수정 API 응답
  */
@@ -266,9 +274,27 @@ export const managerGroupApiResponseSchema = baseApiResponseSchema.extend({
   data: managerGroupSchema,
 });
 
+/**
+ * 매니저 그룹 상세 조회 스키마
+ */
+export const managerGroupDetailSchema = z.object({
+  managerNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
+  managerName: z.string(),
+  schoolNo: z.number().nullable(),
+  schoolName: z.string().nullable(),
+  groupNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
+  groupName: z.string(),
+  permissionNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
+  permissionName: z.string(),
+  isAllowed: z.string().nullable(),
+  override: z.string().nullable(),
+  extraCondition: z.string().nullable(),
+  extraLimit: z.number().nullable(),
+});
+
 export const managerGroupsApiResponseSchema = baseApiResponseSchema.extend({
   data: z.object({
-    managerGroups: managerGroupSchema.array(),
+    managerGroups: managerGroupDetailSchema.array(),
     pagination: paginationSchema,
   }),
 });
@@ -287,8 +313,6 @@ export type CreateGroup = z.infer<typeof createGroupSchema>;
 export type UpdateGroup = z.infer<typeof updateGroupSchema>;
 export type CreateGroupPermission = z.infer<typeof createGroupPermissionSchema>;
 export type UpdateGroupPermission = z.infer<typeof updateGroupPermissionSchema>;
-export type CreateManagerGroup = z.infer<typeof createManagerGroupSchema>;
-export type UpdateManagerGroup = z.infer<typeof updateManagerGroupSchema>;
 export type ManagerGroupCreateOrUpdateResponse = z.infer<typeof managerGroupCreateOrUpdateApiResponseSchema>['data'];
 export type Permission = z.infer<typeof permissionSchema>;
 export type PermissionCreateOrUpdateResponse = z.infer<typeof permissionCreateOrUpdateApiResponseSchema>['data'];
@@ -296,7 +320,13 @@ export type PermissionCreateOrUpdateResponse = z.infer<typeof permissionCreateOr
 /**
  * 권한 검색 필터 스키마
  */
-export const permissionFilterSchema = permissionSchema.pick({ name: true });
+export const permissionFilterSchema = z.object({
+  name: z
+    .string()
+    .max(50, '검색어는 50자를 초과할 수 없습니다.')
+    .regex(/^[가-힣a-zA-Z0-9_-]*$/, '검색어는 한글, 영문, 숫자, 언더스코어, 하이픈만 사용할 수 있습니다.')
+    .optional(),
+});
 
 export type PermissionFilter = z.infer<typeof permissionFilterSchema>;
 
@@ -321,3 +351,162 @@ export const permissionRouteParamsSchema = z.object({
 
 export type RouteParams = z.infer<typeof routeParamsSchema>;
 export type PermissionRouteParams = z.infer<typeof permissionRouteParamsSchema>;
+
+// 2. API 요청 스키마
+export const createPermissionRequestSchema = z.object({
+  name: z.string().min(1, '권한 이름은 필수입니다.').max(50, '권한 이름은 50자를 초과할 수 없습니다.'),
+  description: z.string().nullable(),
+  defaultExtraCondition: z.string().nullable(),
+  defaultExtraLimit: z.string().nullable(),
+});
+
+export const updatePermissionRequestSchema = createPermissionRequestSchema.extend({
+  permission_no: z.number().min(1, '권한 번호는 필수입니다.').max(Number.MAX_SAFE_INTEGER),
+});
+
+export const permissionListRequestSchema = z.object({
+  name: z
+    .string()
+    .max(50, '검색어는 50자를 초과할 수 없습니다.')
+    .regex(/^[가-힣a-zA-Z0-9_\s-]*$/, '검색어는 한글, 영문, 숫자, 언더스코어, 하이픈, 공백만 사용할 수 있습니다.')
+    .optional(),
+});
+
+// 3. API 응답 스키마
+export const permissionResponseSchema = permissionSchema;
+
+export const permissionListResponseSchema = z.object({
+  permissions: z.array(
+    z.object({
+      permissionNo: z.number(),
+      name: z.string(),
+      description: z.string().nullable(),
+      defaultExtraCondition: z.string().nullable(),
+      defaultExtraLimit: z.string().nullable(),
+    }),
+  ),
+  pagination: paginationSchema,
+});
+
+export const permissionCreateResponseSchema = z.object({});
+
+export const permissionUpdateResponseSchema = permissionCreateResponseSchema;
+
+export const permissionDeleteResponseSchema = z.object({
+  success: z.boolean(),
+  message: z.string(),
+  data: z.object({
+    permissionNo: z.number(),
+  }),
+});
+
+// 4. API 응답 래퍼 스키마
+export const permissionListApiResponseSchema = baseApiResponseSchema.extend({
+  data: permissionListResponseSchema,
+});
+
+export const permissionCreateApiResponseSchema = baseApiResponseSchema.extend({
+  data: z.object({
+    permissionNo: z.number(),
+  }),
+});
+
+export const permissionUpdateApiResponseSchema = baseApiResponseSchema.extend({
+  data: permissionUpdateResponseSchema,
+});
+
+export const permissionDeleteApiResponseSchema = baseApiResponseSchema.extend({
+  data: permissionDeleteResponseSchema,
+});
+
+// 5. 타입 export
+export type CreatePermissionRequest = z.infer<typeof createPermissionRequestSchema>;
+export type UpdatePermissionRequest = z.infer<typeof updatePermissionRequestSchema>;
+export type PermissionListRequest = z.infer<typeof permissionListRequestSchema>;
+export type PermissionResponse = z.infer<typeof permissionResponseSchema>;
+export type PermissionListResponse = z.infer<typeof permissionListResponseSchema>;
+export type PermissionCreateResponse = z.infer<typeof permissionCreateResponseSchema>;
+export type PermissionUpdateResponse = z.infer<typeof permissionUpdateResponseSchema>;
+export type PermissionDeleteResponse = z.infer<typeof permissionDeleteResponseSchema>;
+
+export const permissionUpdateRequestSchema = z.object({
+  name: z.string().min(1, '권한 이름은 필수입니다.').max(50, '권한 이름은 50자를 초과할 수 없습니다.'),
+  description: z.string().nullable(),
+  defaultExtraCondition: z.string().nullable(),
+  defaultExtraLimit: z.string().nullable(),
+});
+
+// 그룹 관련 타입
+export type GroupRouteParams = {
+  params: {
+    groupNo: string;
+  };
+};
+
+export const groupUpdateRequestSchema = z.object({
+  name: z.string().min(1, '그룹 이름은 필수입니다.').max(50, '그룹 이름은 50자를 초과할 수 없습니다.'),
+  schoolNo: z.number().nullable(),
+  parentGroupNo: z.number().nullable(),
+});
+
+export const groupDeleteApiResponseSchema = baseApiResponseSchema.extend({
+  data: z.object({
+    groupNo: z.number(),
+  }),
+});
+
+// 그룹 관련 스키마
+export const createGroupRequestSchema = z.object({
+  name: z.string().min(1, '그룹 이름은 필수입니다.').max(50, '그룹 이름은 50자를 초과할 수 없습니다.'),
+  schoolNo: z.number().nullable(),
+  parentGroupNo: z.number().nullable(),
+});
+
+export const groupListRequestSchema = z.object({
+  name: z.string().optional(),
+  schoolNo: z.number().nullable().optional(),
+  groupNo: z.number().optional(),
+});
+
+export const groupListApiResponseSchema = baseApiResponseSchema.extend({
+  data: z.object({
+    groups: z.array(groupSchema),
+    pagination: z.object({
+      page: z.number(),
+      pageSize: z.number(),
+      total: z.number(),
+      totalPages: z.number(),
+    }),
+  }),
+});
+
+export const groupCreateApiResponseSchema = baseApiResponseSchema.extend({
+  data: z.object({
+    groupNo: z.number(),
+  }),
+});
+
+/**
+ * 그룹 수정 응답 스키마
+ */
+export const groupUpdateResponseSchema = baseApiResponseSchema.extend({
+  data: z.object({
+    groupNo: z.number(),
+  }),
+});
+
+/**
+ * 그룹 삭제 응답 스키마
+ */
+export const groupDeleteResponseSchema = baseApiResponseSchema.extend({
+  data: z.object({
+    groupNo: z.number(),
+  }),
+});
+// 파라미터 검증을 위한 group 스키마
+export const groupNameSchema = z
+  .string()
+  .min(1, '그룹명은 필수입니다.')
+  .max(100, '그룹명은 100자를 초과할 수 없습니다.');
+export const schoolNoSchema = z.number().nullable();
+export const groupNoSchema = z.number().positive('유효하지 않은 그룹 번호입니다.');

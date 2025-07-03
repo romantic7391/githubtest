@@ -5,6 +5,7 @@ import type { Pagination } from '@/types/common';
 import { logAction, makeLogParams } from '@/services/log-action/log-action.service';
 import type { LogMeta } from '@/types/history';
 import { beginTransaction, commitTransaction, rollbackTransaction } from '@/lib/mariadb/query';
+import { AppError } from '@/utils/error.utils';
 /**
  * 지역 학교 센서 장치 목록 조회
  *
@@ -34,25 +35,27 @@ export async function getRnDevicesRelBySchoolNo(
 
     const { devices, total } = await findRnDevicesRelBySchoolNo(validatedParams);
 
+    // 센서 장치가 없는 경우는 비정상적인 상황으로 간주
+    if (total === 0) {
+      throw new AppError('해당 학교의 센서 장치가 존재하지 않습니다.', 404);
+    }
+
     const pagination: Pagination = {
       page: validatedParams.page,
       pageSize: validatedParams.pageSize,
       total,
-      totalPages: Math.ceil(total / validatedParams.pageSize) || 1,
+      totalPages: Math.ceil(total / validatedParams.pageSize),
     };
-
-    // school_no가 없으면 params에서 가져옴
-    const school_no = meta.school_no ?? params.school_no;
 
     await logAction(
       makeLogParams({
-        manager_no: meta.manager_no ?? 1, // 기본값 설정
-        school_no: school_no,
+        manager_no: meta.manager_no,
+        school_no: params.school_no,
         ip: meta.ip,
         user_agent: meta.user_agent,
         action_type: 'S',
         target_table: 'rnDevicesRel',
-        target_id: `${school_no}`,
+        target_id: `${params.school_no}`,
         old_values: null,
         new_values: JSON.stringify({ devices, pagination }),
         reason: '센서 목록 조회',
@@ -71,14 +74,9 @@ export async function getRnDevicesRelBySchoolNo(
       }
     }
     console.error('[getRnDevicesRelBySchoolNo] DB 조회 에러:', error);
-    throw new Error('조회 중 오류가 발생했습니다.');
-  } finally {
-    if (conn) {
-      try {
-        await conn.release();
-      } catch (err) {
-        console.error('Connection release error:', err);
-      }
+    if (error instanceof AppError) {
+      throw error;
     }
+    throw new AppError('센서 장치 목록 조회 중 오류가 발생했습니다.', 500);
   }
 }

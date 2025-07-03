@@ -14,7 +14,9 @@
     "test:report": "open-cli file://${PWD}/jest-coverage/lcov-report/index.html",
     "test:e2e": "pnpm exec playwright test",
     "test:e2e-report": "dotenv -e .env pnpm exec playwright show-report",
-    "prepare": "husky"
+    "prepare": "husky",
+    "audit": "pnpm audit",
+    "audit:fix": "pnpm audit fix"
   },
   "dependencies": {
     "@mantine/carousel": "8.0.0",
@@ -97,5 +99,8 @@
     "node": ">=22",
     "npm": ">=11",
     "pnpm": ">=10.6"
+  },
+  "resolutions": {
+    "brace-expansion": "^2.0.2"
   }
 }

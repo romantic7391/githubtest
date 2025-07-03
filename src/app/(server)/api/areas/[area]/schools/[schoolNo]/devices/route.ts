@@ -46,20 +46,23 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     // 2. 센서 목록 조회
     const result = await getRnDevicesRelBySchoolNo(queryParams, {
-      manager_no: 1, // 임시로 1로 설정
+      manager_no: 1, // TODO: 실제 사용자의 manager_no로 변경 필요
       school_no: parseInt(schoolNo),
-      ip,
-      user_agent: userAgent,
+      ip: ip ?? 'unknown',
+      user_agent: userAgent ?? 'unknown',
     });
 
-    return NextResponse.json({
-      success: true,
-      message: '학교 센서 장치 목록 조회 성공',
-      data: {
-        items: result.devices,
-        pagination: result.pagination,
-      },
-    } satisfies DevicesApiResponse);
+    return NextResponse.json(
+      {
+        success: true,
+        message: '학교 센서 장치 목록 조회 성공',
+        data: {
+          items: result.devices,
+          pagination: result.pagination,
+        },
+      } satisfies DevicesApiResponse,
+      { status: 200 },
+    );
   } catch (error) {
     console.error('Error in GET /api/areas/[area]/schools/[schoolNo]/devices:', error);
 

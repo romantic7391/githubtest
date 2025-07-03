@@ -23,6 +23,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       manager_no: 1, // 임시로 1로 설정
       ip,
       user_agent: userAgent,
+      school_no: 0,
     });
 
     return NextResponse.json(

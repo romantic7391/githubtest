@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth/session';
-import type { BaseApiResponse } from '@/types/common';
-import { Permission, PermissionRouteParams, permissionCreateOrUpdateApiResponseSchema } from '@/types/permission';
+import {
+  PermissionRouteParams,
+  permissionCreateOrUpdateApiResponseSchema,
+  permissionDeleteResponseSchema,
+  UpdatePermissionDto,
+  createPermissionDtoSchema,
+} from '@/types/permission/permission';
 import { handleError, handleZodError } from '@/utils/error.utils';
+import { AppError } from '@/utils/error.utils';
 import { updatePermissionS, deletePermissionS } from '@/services/permission-admin/permission.service';
 
 /**
@@ -20,7 +26,6 @@ export async function PUT(request: NextRequest, context: PermissionRouteParams) 
     }
 
     const session = await getSession(request);
-
     if (!session) {
       return NextResponse.json(
         {
@@ -31,15 +36,22 @@ export async function PUT(request: NextRequest, context: PermissionRouteParams) 
       );
     }
 
-    const permissionData: Permission = {
-      ...body,
+    // 요청 데이터 검증
+    const validatedData = createPermissionDtoSchema.parse(body);
+
+    const dto: UpdatePermissionDto = {
       permission_no: permissionNoNum,
+      name: validatedData.name,
+      description: validatedData.description,
+      defaultExtraCondition: validatedData.defaultExtraCondition,
+      defaultExtraLimit: validatedData.defaultExtraLimit,
     };
 
-    const result = await updatePermissionS(permissionData, {
+    const result = await updatePermissionS(dto, {
       manager_no: session.manager_no,
       ip: request.headers.get('x-forwarded-for') || '',
       user_agent: request.headers.get('user-agent') || '',
+      school_no: 0,
     });
 
     return NextResponse.json(
@@ -51,6 +63,16 @@ export async function PUT(request: NextRequest, context: PermissionRouteParams) 
       { status: 200 },
     );
   } catch (error) {
+    if (error instanceof AppError) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: error.message,
+          code: error.code,
+        },
+        { status: error.statusCode },
+      );
+    }
     const zodError = handleZodError(error);
     if (zodError) return zodError;
     return handleError(error, '권한 수정');
@@ -71,7 +93,6 @@ export async function DELETE(request: NextRequest, context: PermissionRouteParam
     }
 
     const session = await getSession(request);
-
     if (!session) {
       return NextResponse.json(
         {
@@ -86,16 +107,30 @@ export async function DELETE(request: NextRequest, context: PermissionRouteParam
       manager_no: session.manager_no,
       ip: request.headers.get('x-forwarded-for') || '',
       user_agent: request.headers.get('user-agent') || '',
+      school_no: 0,
     });
 
     return NextResponse.json(
-      {
+      permissionDeleteResponseSchema.parse({
         success: true,
         message: '권한이 성공적으로 삭제되었습니다.',
-      } satisfies BaseApiResponse,
+        data: {
+          permissionNo: permissionNoNum,
+        },
+      }),
       { status: 200 },
     );
   } catch (error) {
+    if (error instanceof AppError) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: error.message,
+          code: error.code,
+        },
+        { status: error.statusCode },
+      );
+    }
     const zodError = handleZodError(error);
     if (zodError) return zodError;
     return handleError(error, '권한 삭제');

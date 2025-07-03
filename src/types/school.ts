@@ -102,8 +102,6 @@ export type SchoolListFilter = z.infer<typeof schoolListFilterSchema>;
  * 학교 목록 파라미터
  */
 export const schoolListParamsSchema = z.object({
-  page: z.number().positive().default(1),
-  pageSize: z.number().positive().default(10),
   filters: schoolListFilterSchema.optional(),
 });
 /**
@@ -202,12 +200,16 @@ export const schoolFormSchema = schoolSchema.merge(
   }),
 );
 
+/**
+ * 학교 DTO
+ */
+
 export const schoolDtoSchema = schoolSchema.pick({
   schoolNo: true,
   area: true,
 });
 /**
- * 학교 DTO
+ * 학교 DTO 객체
  */
 export type SchoolDto = z.infer<typeof schoolDtoSchema>;
 
@@ -220,3 +222,96 @@ export const selectedSchoolSchema = schoolCreateSchema
   })
   .nullable();
 export type SelectedSchool = z.infer<typeof selectedSchoolSchema>;
+/**
+ * 학교 존재 여부 확인 DTO
+ */
+
+export const existsRnSchoolByScodeDtoSchema = schoolSchema.pick({
+  scode: true,
+});
+
+/**
+ * 학교 존재 여부 DTO 객채채
+ */
+export type existsRnSchoolByScodeDto = z.infer<typeof existsRnSchoolByScodeDtoSchema>;
+
+/**
+ * 학교 존재 여부 확인 응답
+ */
+export const existsRnSchoolByAdministrationCodeDtoSchema = schoolSchema.pick({
+  administrationCode: true,
+});
+
+/**
+ * 학교 존재 여부 DTO 객체
+ */
+export type existsRnSchoolByAdministrationCodeDto = z.infer<typeof existsRnSchoolByAdministrationCodeDtoSchema>;
+
+/**
+ * 학교 존재 여부 확인 DTO
+ */
+
+export const getRnSchoolByScodeDtoSchema = schoolSchema.pick({
+  scode: true,
+});
+
+/**
+ * 학교 존재 여부 DTO 객채채
+ */
+export type getRnSchoolByScodeDto = z.infer<typeof getRnSchoolByScodeDtoSchema>;
+
+/**
+ * 학교 존재 여부 확인 DTO
+ */
+
+export const findRnSchoolsByAreasDtoSchema = schoolSchema.pick({
+  area: true,
+});
+
+/**
+ * 학교 존재 여부 DTO 객채채
+ */
+export type findRnSchoolsByAreasDto = z.infer<typeof findRnSchoolsByAreasDtoSchema>;
+
+/**
+ * 학교 존재 여부 확인 DTO
+ */
+
+export const findSchoolBySchoolNoDtoSchema = schoolSchema.pick({
+  schoolNo: true,
+});
+
+/**
+ * 학교 존재 여부 DTO 객채채
+ */
+export type findSchoolBySchoolNoDto = z.infer<typeof findSchoolBySchoolNoDtoSchema>;
+
+/**
+ * 학교 수정 DTO
+ */
+
+export const updateRnSchoolDtoSchema = schoolSchema.pick({
+  sname: true,
+  scode: true,
+  area: true,
+  administrationCode: true,
+  schoolNo: true,
+});
+
+/**
+ * 학교 존재 여부 DTO 객채채
+ */
+export type updateRnSchoolDto = z.infer<typeof schoolSchema>;
+
+/**
+ * 학교 존재 여부 확인 DTO
+ */
+
+export const deleteRnSchoolDtoSchema = schoolSchema.pick({
+  schoolNo: true,
+});
+
+/**
+ * 학교 존재 여부 DTO 객채채
+ */
+export type deleteRnSchoolDto = z.infer<typeof deleteRnSchoolDtoSchema>;

@@ -8,7 +8,6 @@ export async function getAreas(page: number = 1, limit: number = 10, areas: stri
   let conn;
   try {
     conn = await beginTransaction();
-    console.log('[getAreas] 호출, 파라미터:', { page, limit, areas });
 
     const result = await findAreas(page, limit, areas);
 
@@ -29,19 +28,10 @@ export async function getAreas(page: number = 1, limit: number = 10, areas: stri
     }
 
     await commitTransaction(conn);
-    console.log('[getAreas] 결과:', { total: result.total, areasCount: result.areas.length });
     return result;
   } catch (error) {
     if (conn) await rollbackTransaction(conn);
     console.error('[getAreas] DB 조회 에러:', error);
     throw new Error('학교 목록 조회 중 오류가 발생했습니다.');
-  } finally {
-    if (conn) {
-      try {
-        await conn.release();
-      } catch (err) {
-        console.error('Connection release error:', err);
-      }
-    }
   }
 }

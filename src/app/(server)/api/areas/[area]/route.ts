@@ -21,6 +21,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       manager_no: 1, // 임시로 1로 설정
       ip,
       user_agent: userAgent,
+      school_no: 0,
     });
 
     if (!areas || areas.length === 0) {
@@ -67,6 +68,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       manager_no: 1, // 임시로 1로 설정
       ip,
       user_agent: userAgent,
+      school_no: 0,
     });
 
     return NextResponse.json(
@@ -121,6 +123,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       manager_no: 1, // 임시로 1로 설정
       ip,
       user_agent: userAgent,
+      school_no: 0,
     });
 
     return NextResponse.json(
@@ -128,7 +131,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
         success: true,
         message: '지역이 삭제되었습니다.',
       } satisfies BaseApiResponse,
-      { status: 200 },
+      { status: 204 },
     );
   } catch (error) {
     console.error('[DELETE /api/areas] Error:', error);

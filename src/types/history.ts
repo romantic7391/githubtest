@@ -16,10 +16,10 @@ export const historySchema = z.object({
 
 // 히스토리 메타 정보 스키마
 export const logMetaSchema = z.object({
-  manager_no: z.number().nullable(),
   ip: z.string().nullable(),
+  manager_no: z.number(),
   user_agent: z.string().nullable(),
-  school_no: z.number().nullable().optional(),
+  school_no: z.number(),
 });
 
 // 히스토리 번호 스키마

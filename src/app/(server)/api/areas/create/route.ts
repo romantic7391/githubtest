@@ -13,32 +13,26 @@ import { getClientInfo } from '@/services/log-action/log-action.service';
 export async function POST(request: NextRequest, { params }: { params: Promise<{ area: string }> }) {
   try {
     await params; // area는 사용하지 않으므로 구조 분해 할당 제거
-    console.log('[POST /api/areas/create] 요청 시작');
     const body = await request.json();
-    console.log('[POST /api/areas/create] 요청 데이터:', body);
 
     const validatedData = areaCreateShcema.parse(body);
-    console.log('[POST /api/areas/create] 검증된 데이터:', validatedData);
 
     const { userAgent, ip } = getClientInfo(request);
     await createArea(validatedData, {
       manager_no: 1, // 임시로 1로 설정
+      school_no: 0, // 지역 생성 시에는 0으로 설정
       ip,
       user_agent: userAgent,
     });
-    console.log('[POST /api/areas/create] 지역 생성 완료');
 
     const response = {
       success: true,
       message: '지역이 성공적으로 생성되었습니다.',
       data: { area: validatedData.area },
     };
-    console.log('[POST /api/areas/create] 응답:', response);
 
-    return NextResponse.json(response satisfies AreaCreateOrUpdateApiResponse, { status: 200 });
+    return NextResponse.json(response satisfies AreaCreateOrUpdateApiResponse, { status: 201 });
   } catch (error) {
-    console.error('[POST /api/areas/create] Error:', error);
-
     if (error instanceof ZodError) {
       return NextResponse.json(
         {

@@ -1,7 +1,5 @@
 import { exec, getAll, getRow } from '@/lib/mariadb/query';
 import type { PoolConnection } from 'mariadb';
-import { updateDeviceMac } from '@/models/rnDevices/rnDevices.model';
-import { UpdateMacDto } from '@/interfaces/rnDevicesRel/rnDevicesRel.d';
 import { Device, DeviceCreate, DeviceBasic, DeviceDb, DeviceListParams, deviceDbSchema } from '@/types/device';
 
 // 학교별 내용 조회
@@ -180,8 +178,8 @@ export async function updateRnDevicesRel(
   conn?: PoolConnection,
 ): Promise<void> {
   for (const dto of dtos) {
-    // MAC 주소가 변경된 경우
-    if (dto.mac !== dto.oldMac) {
+    // MAC 주소가 변경된 경우 (oldMac이 존재하고 mac과 다른 경우)
+    if (dto.oldMac && dto.mac !== dto.oldMac) {
       const query = `
         UPDATE rnDevicesRel SET
           mac = ?,
@@ -201,7 +199,7 @@ export async function updateRnDevicesRel(
         dto.extra,
         dto.sdate,
         dto.edate,
-        dto.oldMac ?? null,
+        dto.oldMac,
         dto.school_no,
       ];
       await exec(query, params, conn);
@@ -230,49 +228,22 @@ export async function softDeleteRnDevicesRel(dtos: DeviceBasic[], conn?: PoolCon
     WHERE (mac, school_no) IN (${dtos.map(() => '(?, ?)').join(', ')})
   `;
   const params = dtos.flatMap((dto) => [dto.mac, dto.school_no]);
-  console.log('[softDeleteRnDevicesRel] 쿼리:', query);
-  console.log('[softDeleteRnDevicesRel] 파라미터:', params);
   await exec(query, params, conn);
 }
 
-export async function updateMac(dtos: UpdateMacDto[], conn?: PoolConnection) {
-  for (const dto of dtos) {
-    // 1. newMac 중복 체크
-    console.log('[updateMac] 중복 체크 쿼리 실행: school_no=', dto.school_no, ', newMac=', dto.newMac);
-    const exists = await getRow(
-      'SELECT 1 FROM rnDevicesRel WHERE school_no = ? AND mac = ? ',
-      [dto.school_no, dto.newMac],
-      undefined,
-      conn,
-    );
-    console.log('[updateMac] 중복 체크 결과:', exists);
-    if (exists) {
-      console.error(`[updateMac] 이미 존재하는 mac입니다: school_no=${dto.school_no}, newMac=${dto.newMac}`);
-      throw new Error(`[updateMac] 이미 존재하는 mac입니다: school_no=${dto.school_no}, newMac=${dto.newMac}`);
-    }
+// MAC 주소 중복 체크 (순수 데이터 액세스)
+export async function checkMacExists(school_no: number, mac: string, conn?: PoolConnection) {
+  const query = 'SELECT 1 FROM rnDevicesRel WHERE school_no = ? AND mac = ?';
+  return await getRow(query, [school_no, mac], undefined, conn);
+}
 
-    // 2. UPDATE 실행 (deleted IS NULL 추가)
-    const query = `
-      UPDATE rnDevicesRel
-      SET mac = ?
-      WHERE school_no = ? AND mac = ? 
-    `;
-    const params = [dto.newMac, dto.school_no, dto.oldMac];
-    console.log('[updateMac] UPDATE 쿼리 실행: ', query);
-    console.log('[updateMac] 파라미터:', params);
-    const result = await exec(query, params, conn);
-    console.log('[updateMac] UPDATE 결과 affectedRows:', result.affectedRows);
-    if (result.affectedRows === 0) {
-      console.error(
-        `[updateMac] mac 변경 실패: school_no=${dto.school_no}, oldMac=${dto.oldMac}, newMac=${dto.newMac}`,
-      );
-      throw new Error(
-        `[updateMac] mac 변경 실패: school_no=${dto.school_no}, oldMac=${dto.oldMac}, newMac=${dto.newMac}`,
-      );
-    }
-    // rnDevices 테이블도 같이 mac 변경
-    const deviceResult = await updateDeviceMac(dto.oldMac, dto.newMac, conn);
-    console.log('[updateMac] rnDevices mac 변경 결과:', deviceResult.affectedRows);
-    console.log(`[updateMac] mac 변경 성공: school_no=${dto.school_no}, oldMac=${dto.oldMac}, newMac=${dto.newMac}`);
-  }
+// MAC 주소 업데이트 (순수 데이터 액세스)
+export async function updateMacAddress(school_no: number, oldMac: string, newMac: string, conn?: PoolConnection) {
+  const query = `
+    UPDATE rnDevicesRel
+    SET mac = ?
+    WHERE school_no = ? AND mac = ?
+  `;
+  const params = [newMac, school_no, oldMac];
+  return await exec(query, params, conn);
 }

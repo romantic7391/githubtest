@@ -1,5 +1,11 @@
 import type { BaseApiResponse } from '@/types/common';
-import type { SchoolApiResponse, SchoolCreateOrUpdateApiResponse, School, SchoolDto } from '@/types/school';
+import type {
+  SchoolApiResponse,
+  SchoolCreateOrUpdateApiResponse,
+  School,
+  SchoolDto,
+  updateRnSchoolDto,
+} from '@/types/school';
 import type { CommonContext } from '@/types/permission';
 import { NextRequest, NextResponse } from 'next/server';
 import {
@@ -12,6 +18,14 @@ import { getClientInfo } from '@/services/log-action/log-action.service';
 import { handleError, handleZodError } from '@/utils/error.utils';
 import { auth } from '@/auth';
 import { Session } from 'next-auth';
+import { z } from 'zod';
+
+const updateSchoolSchema = z.object({
+  sname: z.string().min(1, '학교 이름은 필수입니다.'),
+  scode: z.string().min(1, '학교 코드는 필수입니다.'),
+  area: z.string().min(1, '지역은 필수입니다.'),
+  administrationCode: z.string().min(1, '행정코드는 필수입니다.'),
+});
 
 /**
  * 공통 컨텍스트 정보 가져오기
@@ -88,14 +102,22 @@ export async function GET(request: NextRequest, { params }: { params: Promise<Sc
 export async function PUT(request: NextRequest, { params }: { params: Promise<SchoolDto> }) {
   try {
     const resolvedParams = await params;
-
-    // 권한 체크
-
     const schoolNoNum = Number(resolvedParams.schoolNo);
     const body = await request.json();
-    const dto: School = {
-      ...body,
+
+    // 요청 데이터 검증
+    const validatedData = updateSchoolSchema.parse(body);
+
+    const dto: updateRnSchoolDto = {
+      ...validatedData,
       schoolNo: schoolNoNum,
+      modbus: 0,
+      modbusHost: null,
+      modbusPort: 502,
+      useOrderSheet: 'N',
+      active: 'Y',
+      created: null,
+      parentNo: null,
     };
 
     const context = await getCommonContext(request);
@@ -124,7 +146,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<Sc
 export async function DELETE(request: NextRequest, { params }: { params: Promise<SchoolDto> }) {
   try {
     const resolvedParams = await params;
-
     const schoolNoNum = Number(resolvedParams.schoolNo);
     const dto: School = {
       schoolNo: schoolNoNum,
