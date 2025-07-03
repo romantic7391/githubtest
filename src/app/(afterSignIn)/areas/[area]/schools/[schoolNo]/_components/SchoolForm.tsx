@@ -212,7 +212,7 @@ export default function SchoolForm({ schoolNo }: { schoolNo: number }) {
 
   return (
     <>
-      <Accordion multiple defaultValue={['devices']} variant="contained">
+      <Accordion multiple defaultValue={['groups']} variant="contained">
         <Accordion.Item value="school">
           <Accordion.Control>
             <Title order={4}>학교 기본 정보</Title>
@@ -345,7 +345,7 @@ export default function SchoolForm({ schoolNo }: { schoolNo: number }) {
           </Accordion.Panel>
         </Accordion.Item>
 
-        <Accordion.Item value="school-group">
+        <Accordion.Item value="groups">
           <Accordion.Control>
             <Title order={4}>학교 그룹</Title>
           </Accordion.Control>

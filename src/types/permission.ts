@@ -308,6 +308,7 @@ export const managerGroupCreateOrUpdateApiResponseSchema = baseApiResponseSchema
 
 export type ManagerGroup = z.infer<typeof managerGroupSchema>;
 export type Group = z.infer<typeof groupSchema>;
+export type GroupsApiResponse = z.infer<typeof groupsApiResponseSchema>;
 export type GroupPermission = z.infer<typeof groupPermissionSchema>;
 export type CreateGroup = z.infer<typeof createGroupSchema>;
 export type UpdateGroup = z.infer<typeof updateGroupSchema>;

@@ -1,6 +1,7 @@
 import { HTTPStatusError } from '@/lib/common.error';
 import { isJsonResponse } from '@/lib/util/common.util';
 import { Pagination, paginationSchema } from '@/types/common';
+import { GroupsApiResponse } from '@/types/permission';
 import { School } from '@/types/school';
 import { useQuery } from '@tanstack/react-query';
 
@@ -12,14 +13,14 @@ interface UseFilteredGroupsProps {
 }
 
 export default function useFilteredGroups({ area = 'all', schoolNo, page, pageSize }: UseFilteredGroupsProps) {
-  function getInitialData() {
+  function getInitialData(): GroupsApiResponse['data'] {
     return {
       groups: [],
       pagination: paginationSchema.parse({}),
-    };
+    } satisfies GroupsApiResponse['data'];
   }
 
-  async function fetchData() {
+  async function fetchData(): Promise<GroupsApiResponse['data']> {
     const requestUrl = new URL(`/api/permission-admin/group`, window.location.origin);
     requestUrl.searchParams.set('schoolNo', schoolNo.toString());
 
@@ -46,7 +47,7 @@ export default function useFilteredGroups({ area = 'all', schoolNo, page, pageSi
       return getInitialData();
     }
 
-    return data;
+    return data satisfies GroupsApiResponse['data'];
   }
 
   return useQuery({
