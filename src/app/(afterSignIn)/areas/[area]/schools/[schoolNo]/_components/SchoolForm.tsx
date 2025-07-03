@@ -12,6 +12,7 @@ import { notifications } from '@mantine/notifications';
 import { IconAlertCircleFilled, IconCheck } from '@tabler/icons-react';
 import useUpdateSchool from '../_hooks/useUpdateSchool';
 import DeviceList from './DeviceList';
+import GroupList from './GroupList';
 
 export default function SchoolForm({ schoolNo }: { schoolNo: number }) {
   const { area } = useParams();
@@ -341,6 +342,15 @@ export default function SchoolForm({ schoolNo }: { schoolNo: number }) {
                 </Grid>
               </Stack>
             </form>
+          </Accordion.Panel>
+        </Accordion.Item>
+
+        <Accordion.Item value="school-group">
+          <Accordion.Control>
+            <Title order={4}>학교 그룹</Title>
+          </Accordion.Control>
+          <Accordion.Panel bg="white" pt="sm">
+            <GroupList area={area as string} schoolNo={schoolNo} />
           </Accordion.Panel>
         </Accordion.Item>
 
