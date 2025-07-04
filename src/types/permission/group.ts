@@ -19,7 +19,7 @@ export const groupSchema = z.object({
  * 그룹 생성 스키마
  */
 export const createGroupSchema = z.object({
-  name: z.string().min(1, '그룹 이름은 필수입니다.').max(20),
+  name: z.string().min(1, '그룹 이름은 필수입니다.').max(50, '그룹 이름은 50자를 초과할 수 없습니다.'),
   schoolNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER).nullable(),
   parentGroupNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER).nullable(),
 });

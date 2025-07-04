@@ -5,7 +5,10 @@ import {
   findGroupPermission,
   getPermissionStatusReport,
 } from '@/models/permission/permission.model';
-import { groupPermissionSchema, groupSchema, managerGroupSchema } from '@/types/permission';
+import { groupPermissionSchema } from '@/types/permission/group-permission';
+import { groupSchema } from '@/types/permission/group';
+import { managerGroupSchema } from '@/types/permission/manager-group';
+
 import { getSchoolBySchoolNo } from '@/services/areas/[area]/schools/[schoolNo]/[schoolNo].service';
 
 /**
