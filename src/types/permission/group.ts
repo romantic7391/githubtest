@@ -5,12 +5,12 @@ import { baseApiResponseSchema, paginationSchema } from '../common';
  * 그룹 기본 스키마
  */
 export const groupSchema = z.object({
-  group_no: z.number(),
+  groupNo: z.number(),
   name: z.string().min(1, '그룹 이름은 필수입니다.').max(50, '그룹 이름은 50자를 초과할 수 없습니다.'),
-  school_no: z.number().nullable(),
-  parent_group_no: z.number().nullable(),
-  school_name: z.string().nullable(),
-  parent_group_name: z.string().nullable(),
+  schoolNo: z.number().nullable(),
+  parentGroupNo: z.number().nullable(),
+  schoolName: z.string().nullable(),
+  parentGroupName: z.string().nullable(),
   created: z.string().optional(),
   updated: z.string().optional(),
 });

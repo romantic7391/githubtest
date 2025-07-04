@@ -25,12 +25,12 @@ export const managerGroupSchema = z.object({
 });
 
 export const groupPermissionSchema = z.object({
-  group_no: z.number(),
-  permission_no: z.number(),
-  is_allowed: z.enum(['Y', 'N']).nullable(),
+  groupNo: z.number(),
+  permissionNo: z.number(),
+  isAllowed: z.enum(['Y', 'N']).nullable(),
   override: z.enum(['Y', 'N']).nullable(),
-  extra_condition: z.string().nullable(),
-  extra_limit: z.string().nullable(),
+  extraCondition: z.string().nullable(),
+  extraLimit: z.string().nullable(),
 });
 
 /**
