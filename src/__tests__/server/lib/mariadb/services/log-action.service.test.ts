@@ -14,14 +14,14 @@ describe('로그 액션 서비스 테스트', () => {
   it('로그 파라미터를 올바르게 생성해야 함', () => {
     const params = {
       ip: '127.0.0.1',
-      manager_no: 1,
-      user_agent: 'test-agent',
-      school_no: 12345,
-      action_type: 'I' as const,
-      target_table: 'test_table',
-      target_id: 'test_id',
-      old_values: null,
-      new_values: '{"key": "value"}',
+      managerNo: 1,
+      userAgent: 'test-agent',
+      schoolNo: 12345,
+      actionType: 'I' as const,
+      targetTable: 'test_table',
+      targetId: 'test_id',
+      oldValues: null,
+      newValues: '{"key": "value"}',
       reason: '테스트',
     };
 
@@ -29,21 +29,21 @@ describe('로그 액션 서비스 테스트', () => {
 
     expect(result).toEqual({
       ...params,
-      old_values: '',
+      oldValues: '',
     });
   });
 
-  it('school_no가 null인 경우에도 로그 파라미터를 생성할 수 있어야 함', () => {
+  it('schoolNo가 null인 경우에도 로그 파라미터를 생성할 수 있어야 함', () => {
     const params = {
       ip: '127.0.0.1',
-      manager_no: 1,
-      user_agent: 'test-agent',
-      school_no: null,
-      action_type: 'I' as const,
-      target_table: 'test_table',
-      target_id: 'test_id',
-      old_values: null,
-      new_values: '{"key": "value"}',
+      managerNo: 1,
+      userAgent: 'test-agent',
+      schoolNo: null,
+      actionType: 'I' as const,
+      targetTable: 'test_table',
+      targetId: 'test_id',
+      oldValues: null,
+      newValues: '{"key": "value"}',
       reason: '테스트',
     };
 
@@ -51,39 +51,62 @@ describe('로그 액션 서비스 테스트', () => {
 
     expect(result).toEqual({
       ...params,
-      old_values: '',
+      schoolNo: null, // null을 그대로 유지
+      oldValues: '',
     });
   });
 
-  it('old_values가 null인 경우 빈 문자열로 변환되어야 함', () => {
+  it('schoolNo가 undefined인 경우에도 로그 파라미터를 생성할 수 있어야 함', () => {
     const params = {
       ip: '127.0.0.1',
-      manager_no: 1,
-      user_agent: 'test-agent',
-      school_no: 12345,
-      action_type: 'I' as const,
-      target_table: 'test_table',
-      target_id: 'test_id',
-      old_values: null,
-      new_values: '{"key": "value"}',
+      managerNo: 1,
+      userAgent: 'test-agent',
+      actionType: 'I' as const,
+      targetTable: 'test_table',
+      targetId: 'test_id',
+      oldValues: null,
+      newValues: '{"key": "value"}',
       reason: '테스트',
     };
 
     const result = makeLogParams(params);
 
-    expect(result.old_values).toBe('');
+    expect(result).toEqual({
+      ...params,
+      schoolNo: undefined, // undefined를 그대로 유지
+      oldValues: '',
+    });
   });
 
-  it('manager_no가 없는 경우 에러를 발생시켜야 함', () => {
+  it('oldValues가 null인 경우 빈 문자열로 변환되어야 함', () => {
     const params = {
       ip: '127.0.0.1',
-      user_agent: 'test-agent',
-      school_no: 12345,
-      action_type: 'I' as const,
-      target_table: 'test_table',
-      target_id: 'test_id',
-      old_values: null,
-      new_values: '{"key": "value"}',
+      managerNo: 1,
+      userAgent: 'test-agent',
+      schoolNo: 12345,
+      actionType: 'I' as const,
+      targetTable: 'test_table',
+      targetId: 'test_id',
+      oldValues: null,
+      newValues: '{"key": "value"}',
+      reason: '테스트',
+    };
+
+    const result = makeLogParams(params);
+
+    expect(result.oldValues).toBe('');
+  });
+
+  it('managerNo가 없는 경우 에러를 발생시켜야 함', () => {
+    const params = {
+      ip: '127.0.0.1',
+      userAgent: 'test-agent',
+      schoolNo: 12345,
+      actionType: 'I' as const,
+      targetTable: 'test_table',
+      targetId: 'test_id',
+      oldValues: null,
+      newValues: '{"key": "value"}',
       reason: '테스트',
     };
 
@@ -93,14 +116,14 @@ describe('로그 액션 서비스 테스트', () => {
   it('로그 액션을 성공적으로 기록해야 함', async () => {
     const history = {
       ip: '127.0.0.1',
-      manager_no: 1,
-      user_agent: 'test-agent',
-      school_no: 12345,
-      action_type: 'I' as const,
-      target_table: 'test_table',
-      target_id: 'test_id',
-      old_values: '',
-      new_values: '{"key": "value"}',
+      managerNo: 1,
+      userAgent: 'test-agent',
+      schoolNo: 12345,
+      actionType: 'I' as const,
+      targetTable: 'test_table',
+      targetId: 'test_id',
+      oldValues: '',
+      newValues: '{"key": "value"}',
       reason: '테스트',
     };
 
@@ -112,14 +135,14 @@ describe('로그 액션 서비스 테스트', () => {
   it('로그 액션 기록 실패 시 에러를 발생시켜야 함', async () => {
     const history = {
       ip: '127.0.0.1',
-      manager_no: 1,
-      user_agent: 'test-agent',
-      school_no: 12345,
-      action_type: 'I' as const,
-      target_table: 'test_table',
-      target_id: 'test_id',
-      old_values: '',
-      new_values: '{"key": "value"}',
+      managerNo: 1,
+      userAgent: 'test-agent',
+      schoolNo: 12345,
+      actionType: 'I' as const,
+      targetTable: 'test_table',
+      targetId: 'test_id',
+      oldValues: '',
+      newValues: '{"key": "value"}',
       reason: '테스트',
     };
 
@@ -132,19 +155,19 @@ describe('로그 액션 서비스 테스트', () => {
     const actionTypes = ['I', 'U', 'D'] as const;
     const history = {
       ip: '127.0.0.1',
-      manager_no: 1,
-      user_agent: 'test-agent',
-      school_no: 12345,
-      target_table: 'test_table',
-      target_id: 'test_id',
-      old_values: '',
-      new_values: '{"key": "value"}',
+      managerNo: 1,
+      userAgent: 'test-agent',
+      schoolNo: 12345,
+      targetTable: 'test_table',
+      targetId: 'test_id',
+      oldValues: '',
+      newValues: '{"key": "value"}',
       reason: '테스트',
     };
 
     for (const actionType of actionTypes) {
-      await logAction({ ...history, action_type: actionType });
-      expect(insertLogAction).toHaveBeenCalledWith({ ...history, action_type: actionType }, undefined);
+      await logAction({ ...history, actionType });
+      expect(insertLogAction).toHaveBeenCalledWith({ ...history, actionType }, undefined);
     }
   });
 

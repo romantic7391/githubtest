@@ -22,8 +22,8 @@ export async function findAreas(
     SELECT 
       ad.area_no AS areaNo, 
       ad.area,
-      ad.X,
-      ad.Y,
+      ad.X AS x,
+      ad.Y AS y,
       ad.areacode AS areaCode
     FROM AreaData as ad
     ${areas && areas.length > 0 ? `WHERE ad.area IN ${placeholders}` : ''}
@@ -48,8 +48,8 @@ export async function findAreaByArea(area: string): Promise<Area[]> {
     SELECT 
       ad.area_no AS areaNo, 
       ad.area,
-      ad.X,
-      ad.Y,
+      ad.X AS x,
+      ad.Y AS y,
       ad.areacode AS areaCode
     FROM AreaData as ad
     WHERE ad.area = ?;

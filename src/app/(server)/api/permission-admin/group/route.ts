@@ -60,10 +60,10 @@ export async function GET(request: NextRequest) {
     const result = await getGroupsS(
       pagination,
       {
-        manager_no: session.manager_no,
+        managerNo: session.manager_no,
         ip: request.headers.get('x-forwarded-for') || '',
-        user_agent: request.headers.get('user-agent') || '',
-        school_no: 0,
+        userAgent: request.headers.get('user-agent') || '',
+        schoolNo: 0,
       },
       filters,
     );
@@ -75,11 +75,11 @@ export async function GET(request: NextRequest) {
     });
 
     return NextResponse.json(
-      groupFilterSchema.parse({
+      {
         success: true,
         data: result,
         message: '그룹 목록을 조회했습니다.',
-      }),
+      },
       { status: 200 },
     );
   } catch (error) {
@@ -140,10 +140,10 @@ export async function POST(request: NextRequest) {
 
     console.log('[POST] createGroupS 호출 전');
     const result = await createGroupS(groupData, {
-      manager_no: session.manager_no,
+      managerNo: session.manager_no,
       ip: request.headers.get('x-forwarded-for') || '',
-      user_agent: request.headers.get('user-agent') || '',
-      school_no: 0,
+      userAgent: request.headers.get('user-agent') || '',
+      schoolNo: 0,
     });
     console.log('[POST] createGroupS 결과:', result);
 

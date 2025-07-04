@@ -72,8 +72,8 @@ export const findGroupsDtoSchema = z.object({
 
 export const insertGroupDtoSchema = z.object({
   name: z.string().min(1, '그룹 이름은 필수입니다.').max(50, '그룹 이름은 50자를 초과할 수 없습니다.'),
-  school_no: z.number().nullable(),
-  parent_group_no: z.number().nullable(),
+  schoolNo: z.number().nullable(),
+  parentGroupNo: z.number().nullable(),
 });
 
 export const updateGroupDtoSchema = groupSchema;

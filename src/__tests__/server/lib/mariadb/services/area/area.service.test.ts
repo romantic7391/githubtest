@@ -15,7 +15,7 @@ describe('지역 서비스 테스트', () => {
     // makeLogParams mock 설정
     (makeLogParams as jest.Mock).mockImplementation((params) => ({
       ...params,
-      old_values: params.old_values ?? '',
+      oldValues: params.oldValues ?? '',
     }));
 
     // logAction mock 설정
@@ -40,10 +40,10 @@ describe('지역 서비스 테스트', () => {
       (findAreas as jest.Mock).mockResolvedValue(mockResult);
 
       const mockMeta = {
-        manager_no: 1,
-        school_no: 0,
+        managerNo: 1,
+        schoolNo: 0,
         ip: '127.0.0.1',
-        user_agent: 'test-agent',
+        userAgent: 'test-agent',
       };
 
       // Execute
@@ -53,28 +53,28 @@ describe('지역 서비스 테스트', () => {
       expect(result).toEqual(mockResult);
       expect(findAreas).toHaveBeenCalledWith(1, 10, []);
       expect(makeLogParams).toHaveBeenCalledWith({
-        manager_no: 1,
-        school_no: 0,
+        managerNo: 1,
+        schoolNo: 0,
         ip: '127.0.0.1',
-        user_agent: 'test-agent',
-        action_type: 'S',
-        target_table: 'AreaData',
-        target_id: 'seoul,daejeon',
-        old_values: null,
-        new_values: JSON.stringify({ data: mockAreas }),
+        userAgent: 'test-agent',
+        actionType: 'S',
+        targetTable: 'AreaData',
+        targetId: 'seoul,daejeon',
+        oldValues: null,
+        newValues: JSON.stringify({ data: mockAreas }),
         reason: '지역 목록 조회',
       });
       expect(logAction).toHaveBeenCalledWith(
         expect.objectContaining({
-          manager_no: 1,
-          school_no: 0,
+          managerNo: 1,
+          schoolNo: 0,
           ip: '127.0.0.1',
-          user_agent: 'test-agent',
-          action_type: 'S',
-          target_table: 'AreaData',
-          target_id: 'seoul,daejeon',
-          old_values: '',
-          new_values: JSON.stringify({ data: mockAreas }),
+          userAgent: 'test-agent',
+          actionType: 'S',
+          targetTable: 'AreaData',
+          targetId: 'seoul,daejeon',
+          oldValues: '',
+          newValues: JSON.stringify({ data: mockAreas }),
           reason: '지역 목록 조회',
         }),
         mockConn,
@@ -216,10 +216,10 @@ describe('지역 서비스 테스트', () => {
       (findAreas as jest.Mock).mockResolvedValue(mockResult);
 
       const mockMeta = {
-        manager_no: 1,
-        school_no: 0,
+        managerNo: 1,
+        schoolNo: 0,
         ip: '127.0.0.1',
-        user_agent: 'test-agent',
+        userAgent: 'test-agent',
       };
 
       // Execute
@@ -229,7 +229,7 @@ describe('지역 서비스 테스트', () => {
       expect(result).toEqual(mockResult);
       expect(logAction).toHaveBeenCalledWith(
         expect.objectContaining({
-          target_id: null,
+          targetId: null,
         }),
         mockConn,
       );

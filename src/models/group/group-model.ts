@@ -46,12 +46,12 @@ export async function findGroups(dto: FindGroupsDto): Promise<{ groups: Group[];
   // 그룹 목록 조회
   const query = `
     SELECT 
-      g.group_no as group_no,
-      g.school_no as school_no,
-      r.sname as school_name,
+      g.group_no as groupNo,
+      g.school_no as schoolNo,
+      r.sname as schoolName,
       g.name as name,
-      g.parent_group_no as parent_group_no,
-      p.name as parent_group_name,
+      g.parent_group_no as parentGroupNo,
+      p.name as parentGroupName,
       g.created,
       g.updated
     FROM \`group\` g
@@ -79,7 +79,7 @@ export async function insertGroup(dto: InsertGroupDto, conn?: PoolConnection): P
       parent_group_no
     ) VALUES (?, ?, ?)
   `;
-  const params = [dto.name, dto.school_no, dto.parent_group_no];
+  const params = [dto.name, dto.schoolNo, dto.parentGroupNo];
   const result = await exec(query, params, conn);
   return { insertId: result.insertId };
 }
@@ -93,13 +93,13 @@ export async function updateGroup(dto: UpdateGroupDto, conn?: PoolConnection): P
     updates.push('name = ?');
     params.push(dto.name);
   }
-  if (dto.school_no !== undefined) {
+  if (dto.schoolNo !== undefined) {
     updates.push('school_no = ?');
-    params.push(dto.school_no);
+    params.push(dto.schoolNo);
   }
-  if (dto.parent_group_no !== undefined) {
+  if (dto.parentGroupNo !== undefined) {
     updates.push('parent_group_no = ?');
-    params.push(dto.parent_group_no);
+    params.push(dto.parentGroupNo);
   }
 
   if (updates.length === 0) {
@@ -112,7 +112,7 @@ export async function updateGroup(dto: UpdateGroupDto, conn?: PoolConnection): P
     WHERE group_no = ? 
       AND deleted IS NULL
   `;
-  params.push(dto.group_no);
+  params.push(dto.groupNo);
   await exec(query, params, conn);
 }
 
@@ -126,12 +126,12 @@ export async function deleteGroup(dto: DeleteGroupDto, conn?: PoolConnection): P
 export async function findGroup(dto: FindGroupDto): Promise<Group | null> {
   const query = `
     SELECT 
-      g.group_no as group_no,
-      g.school_no as school_no,
-      r.sname as school_name,
+      g.group_no as groupNo,
+      g.school_no as schoolNo,
+      r.sname as schoolName,
       g.name as name,
-      g.parent_group_no as parent_group_no,
-      p.name as parent_group_name,
+      g.parent_group_no as parentGroupNo,
+      p.name as parentGroupName,
       g.created,
       g.updated
     FROM \`group\` g

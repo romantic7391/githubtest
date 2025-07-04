@@ -35,7 +35,7 @@ describe('학교 등록 서비스 테스트', () => {
     // makeLogParams mock 설정
     (makeLogParams as jest.Mock).mockImplementation((params) => ({
       ...params,
-      old_values: params.old_values ?? '',
+      oldValues: params.oldValues ?? '',
     }));
 
     // logAction mock 설정
@@ -43,10 +43,10 @@ describe('학교 등록 서비스 테스트', () => {
   });
 
   const mockMeta = {
-    manager_no: 1,
-    school_no: 0,
+    managerNo: 1,
+    schoolNo: 0,
     ip: '127.0.0.1',
-    user_agent: 'test-agent',
+    userAgent: 'test-agent',
   };
 
   const mockUserInput: Partial<SchoolCreate> = {
@@ -89,15 +89,15 @@ describe('학교 등록 서비스 테스트', () => {
         parentNo: null,
       });
       expect(makeLogParams).toHaveBeenCalledWith({
-        manager_no: 1,
-        school_no: 123,
+        managerNo: 1,
+        schoolNo: 123,
         ip: '127.0.0.1',
-        user_agent: 'test-agent',
-        action_type: 'I',
-        target_table: 'rnschool',
-        target_id: '123',
-        old_values: null,
-        new_values: JSON.stringify({
+        userAgent: 'test-agent',
+        actionType: 'I',
+        targetTable: 'rnschool',
+        targetId: '123',
+        oldValues: null,
+        newValues: JSON.stringify({
           sname: '테스트 학교',
           scode: 'TEST001',
           area: 'seoul',
@@ -108,21 +108,21 @@ describe('학교 등록 서비스 테스트', () => {
           useOrderSheet: 'Y',
           active: 'Y',
           parentNo: null,
-          school_no: 123,
+          schoolNo: 123,
         }),
         reason: '학교 등록',
       });
       expect(logAction).toHaveBeenCalledWith(
         expect.objectContaining({
-          manager_no: 1,
-          school_no: 123,
+          managerNo: 1,
+          schoolNo: 123,
           ip: '127.0.0.1',
-          user_agent: 'test-agent',
-          action_type: 'I',
-          target_table: 'rnschool',
-          target_id: '123',
-          old_values: '',
-          new_values: JSON.stringify({
+          userAgent: 'test-agent',
+          actionType: 'I',
+          targetTable: 'rnschool',
+          targetId: '123',
+          oldValues: '',
+          newValues: JSON.stringify({
             sname: '테스트 학교',
             scode: 'TEST001',
             area: 'seoul',
@@ -133,7 +133,7 @@ describe('학교 등록 서비스 테스트', () => {
             useOrderSheet: 'Y',
             active: 'Y',
             parentNo: null,
-            school_no: 123,
+            schoolNo: 123,
           }),
           reason: '학교 등록',
         }),
@@ -153,7 +153,7 @@ describe('학교 등록 서비스 테스트', () => {
           useOrderSheet: 'Y',
           active: 'Y',
           parentNo: null,
-          school_no: 123,
+          schoolNo: 123,
         },
       });
       expect(mockConn.release).toHaveBeenCalled();
@@ -216,7 +216,7 @@ describe('학교 등록 서비스 테스트', () => {
         useOrderSheet: 'N',
         active: 'Y',
         parentNo: null,
-        school_no: 456,
+        schoolNo: 456,
       });
     });
 

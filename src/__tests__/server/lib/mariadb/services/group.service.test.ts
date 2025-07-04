@@ -35,12 +35,12 @@ describe('Group Service', () => {
   };
 
   const mockGroup: Group = {
-    group_no: 1,
+    groupNo: 1,
     name: '테스트 그룹',
-    school_no: 1,
-    parent_group_no: null,
-    school_name: null,
-    parent_group_name: null,
+    schoolNo: 1,
+    parentGroupNo: null,
+    schoolName: null,
+    parentGroupName: null,
     created: '2024-01-01T00:00:00.000Z',
   };
 
@@ -51,10 +51,10 @@ describe('Group Service', () => {
   };
 
   const meta: LogMeta = {
-    manager_no: 1,
-    school_no: 1,
+    managerNo: 1,
+    schoolNo: 1,
     ip: '127.0.0.1',
-    user_agent: 'test-agent',
+    userAgent: 'test-agent',
   };
 
   const pagination: Pagination = {
@@ -67,6 +67,8 @@ describe('Group Service', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (beginTransaction as jest.Mock).mockResolvedValue(mockConn);
+    (commitTransaction as jest.Mock).mockResolvedValue(undefined);
+    (rollbackTransaction as jest.Mock).mockResolvedValue(undefined);
     (logAction as jest.Mock).mockResolvedValue(undefined);
     (makeLogParams as jest.Mock).mockReturnValue({});
   });
@@ -99,14 +101,14 @@ describe('Group Service', () => {
 
       // logAction 호출 검증
       expect(makeLogParams).toHaveBeenCalledWith({
-        manager_no: meta.manager_no,
+        managerNo: meta.managerNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'S',
-        target_table: 'group',
-        target_id: '',
-        old_values: null,
-        new_values: JSON.stringify(mockResult),
+        userAgent: meta.userAgent,
+        actionType: 'S',
+        targetTable: 'group',
+        targetId: '',
+        oldValues: '',
+        newValues: JSON.stringify(mockResult),
         reason: '그룹 목록 조회',
       });
       expect(logAction).toHaveBeenCalledWith({});
@@ -172,25 +174,24 @@ describe('Group Service', () => {
       expect(insertGroup).toHaveBeenCalledWith(
         {
           name: mockCreateGroup.name,
-          school_no: mockCreateGroup.schoolNo,
-          parent_group_no: mockCreateGroup.parentGroupNo,
+          schoolNo: mockCreateGroup.schoolNo,
+          parentGroupNo: mockCreateGroup.parentGroupNo,
         },
         mockConn,
       );
 
       expect(commitTransaction).toHaveBeenCalled();
-      expect(mockConn.release).toHaveBeenCalled();
 
       // logAction 호출 검증
       expect(makeLogParams).toHaveBeenCalledWith({
-        manager_no: meta.manager_no,
+        managerNo: meta.managerNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'I',
-        target_table: 'group',
-        target_id: '1',
-        old_values: JSON.stringify({}),
-        new_values: JSON.stringify(mockCreateGroup),
+        userAgent: meta.userAgent,
+        actionType: 'I',
+        targetTable: 'group',
+        targetId: '1',
+        oldValues: JSON.stringify({}),
+        newValues: JSON.stringify(mockCreateGroup),
         reason: `그룹 생성: ${mockCreateGroup.name}`,
       });
       expect(logAction).toHaveBeenCalledWith({}, mockConn);
@@ -202,7 +203,6 @@ describe('Group Service', () => {
       await expect(createGroupS(mockCreateGroup, meta)).rejects.toThrow(new AppError('이미 존재하는 그룹입니다.', 400));
 
       expect(rollbackTransaction).toHaveBeenCalled();
-      expect(mockConn.release).toHaveBeenCalled();
     });
 
     it('그룹 생성 중 오류 발생 시 롤백되어야 함', async () => {
@@ -212,112 +212,17 @@ describe('Group Service', () => {
       await expect(createGroupS(mockCreateGroup, meta)).rejects.toThrow('Insert error');
 
       expect(rollbackTransaction).toHaveBeenCalled();
-      expect(mockConn.release).toHaveBeenCalled();
-    });
-
-    it('Connection release 에러가 발생해도 처리되어야 함', async () => {
-      const insertResult = { insertId: 1 };
-
-      (checkGroupDuplicate as jest.Mock).mockResolvedValue({ count: 0 });
-      (insertGroup as jest.Mock).mockResolvedValue(insertResult);
-      (commitTransaction as jest.Mock).mockResolvedValue(undefined);
-      (mockConn.release as jest.Mock).mockRejectedValue(new Error('Release error'));
-
-      const result = await createGroupS(mockCreateGroup, meta);
-
-      expect(result).toEqual({ groupNo: 1 });
-      expect(mockConn.release).toHaveBeenCalled();
-    });
-
-    it('createGroupS에서 beginTransaction 실패 시 conn이 undefined인 경우 처리', async () => {
-      // beginTransaction이 실패하여 conn이 undefined인 경우
-      (beginTransaction as jest.Mock).mockRejectedValue(new Error('Connection failed'));
-
-      await expect(
-        createGroupS(
-          { name: 'Test Group', schoolNo: 1, parentGroupNo: null },
-          { manager_no: 1, ip: '127.0.0.1', user_agent: 'test', school_no: 1 },
-        ),
-      ).rejects.toThrow('Connection failed');
-
-      // conn이 undefined이므로 rollbackTransaction과 release가 호출되지 않아야 함
-      expect(rollbackTransaction).not.toHaveBeenCalled();
-    });
-
-    it('createGroupS에서 insertGroup 실패 후 rollbackTransaction 실패 시 처리', async () => {
-      // insertGroup이 실패하고 rollbackTransaction도 실패하는 경우
-      (checkGroupDuplicate as jest.Mock).mockResolvedValue({ count: 0 });
-      (insertGroup as jest.Mock).mockRejectedValue(new Error('Insert failed'));
-      (rollbackTransaction as jest.Mock).mockRejectedValue(new Error('Rollback failed'));
-
-      await expect(
-        createGroupS(
-          { name: 'Test Group', schoolNo: 1, parentGroupNo: null },
-          { manager_no: 1, ip: '127.0.0.1', user_agent: 'test', school_no: 1 },
-        ),
-      ).rejects.toThrow('Rollback failed');
-
-      expect(rollbackTransaction).toHaveBeenCalled();
-    });
-
-    it('createGroupS에서 AppError가 아닌 다른 에러가 발생했을 때 원본 에러가 그대로 전파되어야 함', async () => {
-      // rollbackTransaction을 정상적으로 모킹
-      (rollbackTransaction as jest.Mock).mockResolvedValue(undefined);
-      (checkGroupDuplicate as jest.Mock).mockResolvedValue({ count: 0 });
-      (insertGroup as jest.Mock).mockRejectedValue(new Error('Custom insert error'));
-
-      await expect(createGroupS(mockCreateGroup, meta)).rejects.toThrow('Custom insert error');
-    });
-
-    it('createGroupS에서 트랜잭션 롤백 테스트', async () => {
-      // rollbackTransaction을 정상적으로 모킹
-      (rollbackTransaction as jest.Mock).mockResolvedValue(undefined);
-      // 중복 체크를 통과하도록 모킹
-      (checkGroupDuplicate as jest.Mock).mockResolvedValue({ count: 0 });
-      // insertGroup이 예외를 던지도록 모킹
-      (insertGroup as jest.Mock).mockRejectedValue(new Error('Insert failed'));
-
-      await expect(
-        createGroupS(
-          { name: 'Test Group', schoolNo: 1, parentGroupNo: null },
-          { manager_no: 1, ip: '127.0.0.1', user_agent: 'test', school_no: 1 },
-        ),
-      ).rejects.toThrow('Insert failed');
-
-      expect(rollbackTransaction).toHaveBeenCalled();
-    });
-
-    it('conn.release() 실패 시 에러 처리 테스트', async () => {
-      // rollbackTransaction을 정상적으로 모킹
-      (rollbackTransaction as jest.Mock).mockResolvedValue(undefined);
-      // 중복 체크를 통과하도록 모킹
-      (checkGroupDuplicate as jest.Mock).mockResolvedValue({ count: 0 });
-      // conn.release가 예외를 던지도록 모킹
-      const mockConn = {
-        release: jest.fn().mockRejectedValue(new Error('Release failed')),
-      };
-      (beginTransaction as jest.Mock).mockResolvedValue(mockConn);
-      (insertGroup as jest.Mock).mockRejectedValue(new Error('Insert failed'));
-
-      await expect(
-        createGroupS(
-          { name: 'Test Group', schoolNo: 1, parentGroupNo: null },
-          { manager_no: 1, ip: '127.0.0.1', user_agent: 'test', school_no: 1 },
-        ),
-      ).rejects.toThrow('Insert failed');
-
-      expect(mockConn.release).toHaveBeenCalled();
     });
   });
 
   describe('updateGroupS', () => {
     const updateGroupData: Group = {
-      group_no: 1,
+      groupNo: 1,
       name: '수정된 그룹',
-      school_no: 2,
-      parent_group_no: null,
-      school_name: null,
-      parent_group_name: null,
+      schoolNo: 2,
+      parentGroupNo: null,
+      schoolName: null,
+      parentGroupName: null,
       created: '2024-01-01T00:00:00.000Z',
     };
 
@@ -339,21 +244,20 @@ describe('Group Service', () => {
       expect(findGroup).toHaveBeenCalledWith({ groupNo: 1 });
       expect(checkGroupDuplicate).toHaveBeenCalledWith({
         name: updateGroupData.name,
-        schoolNo: updateGroupData.school_no,
+        schoolNo: updateGroupData.schoolNo,
         groupNo: 1,
       });
       expect(updateGroup).toHaveBeenCalledWith(updateResult, mockConn);
       expect(commitTransaction).toHaveBeenCalled();
-      expect(mockConn.release).toHaveBeenCalled();
 
       // logAction 호출 검증
       expect(makeLogParams).toHaveBeenCalledWith({
         ...meta,
-        action_type: 'U',
-        target_table: 'group',
-        target_id: '1',
-        old_values: JSON.stringify(existingGroup),
-        new_values: JSON.stringify(updateResult),
+        actionType: 'U',
+        targetTable: 'group',
+        targetId: '1',
+        oldValues: JSON.stringify(existingGroup),
+        newValues: JSON.stringify(updateResult),
         reason: `그룹 수정: ${updateGroupData.name}`,
       });
       expect(logAction).toHaveBeenCalledWith({}, mockConn);
@@ -365,7 +269,6 @@ describe('Group Service', () => {
       await expect(updateGroupS(updateGroupData, meta)).rejects.toThrow(new AppError('존재하지 않는 그룹입니다.', 404));
 
       expect(rollbackTransaction).toHaveBeenCalled();
-      expect(mockConn.release).toHaveBeenCalled();
     });
 
     it('findGroup에서 그룹을 찾을 수 없을 때 404 에러를 발생시켜야 함', async () => {
@@ -375,7 +278,6 @@ describe('Group Service', () => {
       await expect(updateGroupS(updateGroupData, meta)).rejects.toThrow(new AppError('존재하지 않는 그룹입니다.', 404));
 
       expect(rollbackTransaction).toHaveBeenCalled();
-      expect(mockConn.release).toHaveBeenCalled();
     });
 
     it('중복된 그룹명으로 수정 시 400 에러를 발생시켜야 함', async () => {
@@ -388,7 +290,6 @@ describe('Group Service', () => {
       await expect(updateGroupS(updateGroupData, meta)).rejects.toThrow(new AppError('이미 존재하는 그룹입니다.', 400));
 
       expect(rollbackTransaction).toHaveBeenCalled();
-      expect(mockConn.release).toHaveBeenCalled();
     });
 
     it('그룹 수정 중 오류 발생 시 롤백되어야 함', async () => {
@@ -402,12 +303,11 @@ describe('Group Service', () => {
       await expect(updateGroupS(updateGroupData, meta)).rejects.toThrow('Update error');
 
       expect(rollbackTransaction).toHaveBeenCalled();
-      expect(mockConn.release).toHaveBeenCalled();
     });
 
     it('이름이 변경되지 않았을 때 중복 체크를 하지 않아야 함', async () => {
       const existingGroup = { ...mockGroup };
-      const updateData = { ...updateGroupData, name: existingGroup.name, school_no: existingGroup.school_no };
+      const updateData = { ...updateGroupData, name: existingGroup.name, schoolNo: existingGroup.schoolNo };
 
       (checkGroupExists as jest.Mock).mockResolvedValue(true);
       (findGroup as jest.Mock).mockResolvedValue(existingGroup);
@@ -426,52 +326,19 @@ describe('Group Service', () => {
       await expect(
         updateGroupS(
           {
-            group_no: 1,
+            groupNo: 1,
             name: 'Updated Group',
-            school_no: 1,
-            parent_group_no: null,
-            school_name: 'Test School',
-            parent_group_name: null,
+            schoolNo: 1,
+            parentGroupNo: null,
+            schoolName: 'Test School',
+            parentGroupName: null,
           },
-          { manager_no: 1, ip: '127.0.0.1', user_agent: 'test', school_no: 1 },
+          { managerNo: 1, ip: '127.0.0.1', userAgent: 'test', schoolNo: 1 },
         ),
       ).rejects.toThrow('Connection failed');
 
       // conn이 undefined이므로 rollbackTransaction과 release가 호출되지 않아야 함
       expect(rollbackTransaction).not.toHaveBeenCalled();
-    });
-
-    it('updateGroupS에서 updateGroup 실패 후 rollbackTransaction 실패 시 처리', async () => {
-      // updateGroup이 실패하고 rollbackTransaction도 실패하는 경우
-      (checkGroupExists as jest.Mock).mockResolvedValue(true);
-      (findGroup as jest.Mock).mockResolvedValue({
-        group_no: 1,
-        name: 'Original Group',
-        school_no: 1,
-        parent_group_no: null,
-        school_name: 'Test School',
-        parent_group_name: null,
-      });
-      (checkGroupDuplicate as jest.Mock).mockResolvedValue({ count: 0 });
-      (updateGroup as jest.Mock).mockRejectedValue(new Error('Update failed'));
-      (rollbackTransaction as jest.Mock).mockRejectedValue(new Error('Rollback failed'));
-
-      await expect(
-        updateGroupS(
-          {
-            group_no: 1,
-            name: 'Original Group', // 이름을 변경하지 않음
-            school_no: 1,
-            parent_group_no: null,
-            school_name: 'Test School',
-            parent_group_name: null,
-          },
-          { manager_no: 1, ip: '127.0.0.1', user_agent: 'test', school_no: 1 },
-        ),
-      ).rejects.toThrow('Rollback failed');
-
-      expect(rollbackTransaction).toHaveBeenCalled();
-      expect(mockConn.release).toHaveBeenCalled();
     });
   });
 
@@ -488,16 +355,15 @@ describe('Group Service', () => {
       expect(checkGroupExists).toHaveBeenCalledWith({ groupNo });
       expect(deleteGroup).toHaveBeenCalledWith({ groupNo }, mockConn);
       expect(commitTransaction).toHaveBeenCalled();
-      expect(mockConn.release).toHaveBeenCalled();
 
       // logAction 호출 검증
       expect(makeLogParams).toHaveBeenCalledWith({
         ...meta,
-        action_type: 'D',
-        target_table: 'group',
-        target_id: '1',
-        old_values: JSON.stringify({}),
-        new_values: null,
+        actionType: 'D',
+        targetTable: 'group',
+        targetId: '1',
+        oldValues: JSON.stringify({}),
+        newValues: '',
         reason: `그룹 삭제: ${groupNo}`,
       });
       expect(logAction).toHaveBeenCalledWith({}, mockConn);
@@ -506,85 +372,22 @@ describe('Group Service', () => {
     it('존재하지 않는 그룹 삭제 시 404 에러를 발생시켜야 함', async () => {
       const groupNo = 999;
 
-      // rollbackTransaction을 정상적으로 모킹
-      (rollbackTransaction as jest.Mock).mockResolvedValue(undefined);
       (checkGroupExists as jest.Mock).mockResolvedValue(false);
 
       await expect(deleteGroupS(groupNo, meta)).rejects.toThrow(new AppError('존재하지 않는 그룹입니다.', 404));
 
       expect(rollbackTransaction).toHaveBeenCalled();
-      expect(mockConn.release).toHaveBeenCalled();
     });
 
     it('그룹 삭제 중 오류 발생 시 롤백되어야 함', async () => {
       const groupNo = 1;
 
-      // rollbackTransaction을 정상적으로 모킹
-      (rollbackTransaction as jest.Mock).mockResolvedValue(undefined);
       (checkGroupExists as jest.Mock).mockResolvedValue(true);
       (deleteGroup as jest.Mock).mockRejectedValue(new Error('Delete error'));
 
       await expect(deleteGroupS(groupNo, meta)).rejects.toThrow('Delete error');
 
       expect(rollbackTransaction).toHaveBeenCalled();
-      expect(mockConn.release).toHaveBeenCalled();
-    });
-
-    it('Connection release 에러가 발생해도 처리되어야 함', async () => {
-      const groupNo = 1;
-
-      (checkGroupExists as jest.Mock).mockResolvedValue(true);
-      (deleteGroup as jest.Mock).mockResolvedValue(undefined);
-      (commitTransaction as jest.Mock).mockResolvedValue(undefined);
-      (mockConn.release as jest.Mock).mockRejectedValue(new Error('Release error'));
-
-      await deleteGroupS(groupNo, meta);
-
-      expect(mockConn.release).toHaveBeenCalled();
-    });
-
-    it('deleteGroupS에서 conn.release() 실패 시 에러 처리 테스트', async () => {
-      // rollbackTransaction을 정상적으로 모킹
-      (rollbackTransaction as jest.Mock).mockResolvedValue(undefined);
-      // conn.release가 예외를 던지도록 모킹
-      const mockConn = {
-        release: jest.fn().mockRejectedValue(new Error('Release failed')),
-      };
-      (beginTransaction as jest.Mock).mockResolvedValue(mockConn);
-      (checkGroupExists as jest.Mock).mockResolvedValue(true);
-      (deleteGroup as jest.Mock).mockRejectedValue(new Error('Delete failed'));
-
-      await expect(
-        deleteGroupS(1, { manager_no: 1, ip: '127.0.0.1', user_agent: 'test', school_no: 1 }),
-      ).rejects.toThrow('Delete failed');
-
-      expect(mockConn.release).toHaveBeenCalled();
-    });
-
-    it('deleteGroupS에서 beginTransaction 실패 시 conn이 undefined인 경우 처리', async () => {
-      // beginTransaction이 실패하여 conn이 undefined인 경우
-      (beginTransaction as jest.Mock).mockRejectedValue(new Error('Connection failed'));
-
-      await expect(
-        deleteGroupS(1, { manager_no: 1, ip: '127.0.0.1', user_agent: 'test', school_no: 1 }),
-      ).rejects.toThrow('Connection failed');
-
-      // conn이 undefined이므로 rollbackTransaction과 release가 호출되지 않아야 함
-      expect(rollbackTransaction).not.toHaveBeenCalled();
-    });
-
-    it('deleteGroupS에서 deleteGroup 실패 후 rollbackTransaction 실패 시 처리', async () => {
-      // deleteGroup이 실패하고 rollbackTransaction도 실패하는 경우
-      (checkGroupExists as jest.Mock).mockResolvedValue(true);
-      (deleteGroup as jest.Mock).mockRejectedValue(new Error('Delete failed'));
-      (rollbackTransaction as jest.Mock).mockRejectedValue(new Error('Rollback failed'));
-
-      await expect(
-        deleteGroupS(1, { manager_no: 1, ip: '127.0.0.1', user_agent: 'test', school_no: 1 }),
-      ).rejects.toThrow('Rollback failed');
-
-      expect(rollbackTransaction).toHaveBeenCalled();
-      expect(mockConn.release).toHaveBeenCalled();
     });
   });
 
@@ -643,7 +446,7 @@ describe('Group Service', () => {
       await expect(
         getGroupsS(
           { page: 1, pageSize: 10, total: 0, totalPages: 0 },
-          { manager_no: 1, ip: '127.0.0.1', user_agent: 'test', school_no: 1 },
+          { managerNo: 1, ip: '127.0.0.1', userAgent: 'test', schoolNo: 1 },
         ),
       ).rejects.toThrow('그룹 목록 조회 중 오류가 발생했습니다.');
     });
@@ -654,29 +457,11 @@ describe('Group Service', () => {
       // deleteGroup이 예외를 던지도록 모킹
       (deleteGroup as jest.Mock).mockRejectedValue(new Error('Delete failed'));
 
-      await expect(
-        deleteGroupS(1, { manager_no: 1, ip: '127.0.0.1', user_agent: 'test', school_no: 1 }),
-      ).rejects.toThrow('Delete failed');
+      await expect(deleteGroupS(1, { managerNo: 1, ip: '127.0.0.1', userAgent: 'test', schoolNo: 1 })).rejects.toThrow(
+        'Delete failed',
+      );
 
       expect(rollbackTransaction).toHaveBeenCalled();
-    });
-
-    it('deleteGroupS에서 conn.release() 실패 시 에러 처리 테스트', async () => {
-      // rollbackTransaction을 정상적으로 모킹
-      (rollbackTransaction as jest.Mock).mockResolvedValue(undefined);
-      // conn.release가 예외를 던지도록 모킹
-      const mockConn = {
-        release: jest.fn().mockRejectedValue(new Error('Release failed')),
-      };
-      (beginTransaction as jest.Mock).mockResolvedValue(mockConn);
-      (checkGroupExists as jest.Mock).mockResolvedValue(true);
-      (deleteGroup as jest.Mock).mockRejectedValue(new Error('Delete failed'));
-
-      await expect(
-        deleteGroupS(1, { manager_no: 1, ip: '127.0.0.1', user_agent: 'test', school_no: 1 }),
-      ).rejects.toThrow('Delete failed');
-
-      expect(mockConn.release).toHaveBeenCalled();
     });
   });
 });

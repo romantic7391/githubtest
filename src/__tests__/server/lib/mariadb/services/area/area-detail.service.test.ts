@@ -24,10 +24,10 @@ describe('지역 상세 서비스 테스트', () => {
   });
 
   const mockMeta = {
-    manager_no: 1,
-    school_no: 0,
+    managerNo: 1,
+    schoolNo: 0,
     ip: '127.0.0.1',
-    user_agent: 'test-agent',
+    userAgent: 'test-agent',
   };
 
   describe('getAreaByArea', () => {
@@ -55,26 +55,26 @@ describe('지역 상세 서비스 테스트', () => {
       expect(result).toEqual(mockAreaData);
       expect(findAreaByArea).toHaveBeenCalledWith('seoul');
       expect(makeLogParams).toHaveBeenCalledWith({
-        manager_no: 1,
+        managerNo: 1,
         ip: '127.0.0.1',
-        user_agent: 'test-agent',
-        action_type: 'S',
-        target_table: 'AreaData',
-        target_id: 'seoul',
-        old_values: null,
-        new_values: JSON.stringify(mockAreaData[0]),
+        userAgent: 'test-agent',
+        actionType: 'S',
+        targetTable: 'AreaData',
+        targetId: 'seoul',
+        oldValues: null,
+        newValues: JSON.stringify(mockAreaData[0]),
         reason: '지역 정보 조회',
       });
       expect(logAction).toHaveBeenCalledWith(
         expect.objectContaining({
-          manager_no: 1,
+          managerNo: 1,
           ip: '127.0.0.1',
-          user_agent: 'test-agent',
-          action_type: 'S',
-          target_table: 'AreaData',
-          target_id: 'seoul',
-          old_values: '',
-          new_values: JSON.stringify(mockAreaData[0]),
+          userAgent: 'test-agent',
+          actionType: 'S',
+          targetTable: 'AreaData',
+          targetId: 'seoul',
+          oldValues: '',
+          newValues: JSON.stringify(mockAreaData[0]),
           reason: '지역 정보 조회',
         }),
         mockConn,
@@ -193,26 +193,26 @@ describe('지역 상세 서비스 테스트', () => {
       expect(findAreaByArea).toHaveBeenCalledWith('seoul');
       expect(updateAreaInfo).toHaveBeenCalledWith(mockAreaData, mockConn);
       expect(makeLogParams).toHaveBeenCalledWith({
-        manager_no: 1,
+        managerNo: 1,
         ip: '127.0.0.1',
-        user_agent: 'test-agent',
-        action_type: 'U',
-        target_table: 'AreaData',
-        target_id: 'seoul',
-        old_values: JSON.stringify([{ ...mockAreaData }]),
-        new_values: JSON.stringify(mockAreaData),
+        userAgent: 'test-agent',
+        actionType: 'U',
+        targetTable: 'AreaData',
+        targetId: 'seoul',
+        oldValues: JSON.stringify([{ ...mockAreaData }]),
+        newValues: JSON.stringify(mockAreaData),
         reason: '지역 정보 수정',
       });
       expect(logAction).toHaveBeenCalledWith(
         expect.objectContaining({
-          manager_no: 1,
+          managerNo: 1,
           ip: '127.0.0.1',
-          user_agent: 'test-agent',
-          action_type: 'U',
-          target_table: 'AreaData',
-          target_id: 'seoul',
-          old_values: JSON.stringify([{ ...mockAreaData }]),
-          new_values: JSON.stringify(mockAreaData),
+          userAgent: 'test-agent',
+          actionType: 'U',
+          targetTable: 'AreaData',
+          targetId: 'seoul',
+          oldValues: JSON.stringify([{ ...mockAreaData }]),
+          newValues: JSON.stringify(mockAreaData),
           reason: '지역 정보 수정',
         }),
         mockConn,
@@ -352,13 +352,13 @@ describe('지역 상세 서비스 테스트', () => {
       expect(findAreaByArea).toHaveBeenCalledWith('seoul');
       expect(deleteAreaFromDB).toHaveBeenCalledWith('seoul');
       expect(makeLogParams).toHaveBeenCalledWith({
-        manager_no: 1,
+        managerNo: 1,
         ip: '127.0.0.1',
-        user_agent: 'test-agent',
-        action_type: 'D',
-        target_table: 'AreaData',
-        target_id: 'seoul',
-        old_values: JSON.stringify([
+        userAgent: 'test-agent',
+        actionType: 'D',
+        targetTable: 'AreaData',
+        targetId: 'seoul',
+        oldValues: JSON.stringify([
           {
             areaNo: 1,
             area: 'seoul',
@@ -367,18 +367,18 @@ describe('지역 상세 서비스 테스트', () => {
             areaCode: 'SEO001',
           },
         ]),
-        new_values: null,
+        newValues: null,
         reason: '지역 삭제',
       });
       expect(logAction).toHaveBeenCalledWith(
         expect.objectContaining({
-          manager_no: 1,
+          managerNo: 1,
           ip: '127.0.0.1',
-          user_agent: 'test-agent',
-          action_type: 'D',
-          target_table: 'AreaData',
-          target_id: 'seoul',
-          old_values: JSON.stringify([
+          userAgent: 'test-agent',
+          actionType: 'D',
+          targetTable: 'AreaData',
+          targetId: 'seoul',
+          oldValues: JSON.stringify([
             {
               areaNo: 1,
               area: 'seoul',
@@ -387,7 +387,7 @@ describe('지역 상세 서비스 테스트', () => {
               areaCode: 'SEO001',
             },
           ]),
-          new_values: null,
+          newValues: null,
           reason: '지역 삭제',
         }),
         mockConn,
@@ -575,14 +575,14 @@ describe('지역 상세 서비스 테스트', () => {
       ]);
       (deleteAreaFromDB as jest.Mock).mockResolvedValue(undefined);
       (makeLogParams as jest.Mock).mockReturnValue({
-        manager_no: 1,
+        managerNo: 1,
         ip: '127.0.0.1',
-        user_agent: 'test-agent',
-        action_type: 'D',
-        target_table: 'AreaData',
-        target_id: 'seoul',
-        old_values: 'test',
-        new_values: null,
+        userAgent: 'test-agent',
+        actionType: 'D',
+        targetTable: 'AreaData',
+        targetId: 'seoul',
+        oldValues: 'test',
+        newValues: null,
         reason: '지역 삭제',
       });
       (logAction as jest.Mock).mockResolvedValue(undefined);

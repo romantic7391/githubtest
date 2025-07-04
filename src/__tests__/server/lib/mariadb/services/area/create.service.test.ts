@@ -16,7 +16,7 @@ describe('지역 생성 서비스 테스트', () => {
     // makeLogParams mock 설정
     (makeLogParams as jest.Mock).mockImplementation((params) => ({
       ...params,
-      old_values: params.old_values ?? '',
+      oldValues: params.oldValues ?? '',
     }));
 
     // logAction mock 설정
@@ -58,10 +58,10 @@ describe('지역 생성 서비스 테스트', () => {
     };
 
     const mockMeta = {
-      manager_no: 1,
-      school_no: 0,
+      managerNo: 1,
+      schoolNo: 0,
       ip: '127.0.0.1',
-      user_agent: 'test-agent',
+      userAgent: 'test-agent',
     };
 
     it('지역을 성공적으로 생성해야 함', async () => {
@@ -80,26 +80,26 @@ describe('지역 생성 서비스 테스트', () => {
       expect(checkAreaExists).toHaveBeenCalledWith('newarea');
       expect(insertArea).toHaveBeenCalledWith(mockAreaData);
       expect(makeLogParams).toHaveBeenCalledWith({
-        manager_no: 1,
+        managerNo: 1,
         ip: '127.0.0.1',
-        user_agent: 'test-agent',
-        action_type: 'I',
-        target_table: 'AreaData',
-        target_id: 'newarea',
-        old_values: null,
-        new_values: JSON.stringify(mockAreaData),
+        userAgent: 'test-agent',
+        actionType: 'I',
+        targetTable: 'AreaData',
+        targetId: 'newarea',
+        oldValues: null,
+        newValues: JSON.stringify(mockAreaData),
         reason: '지역 생성',
       });
       expect(logAction).toHaveBeenCalledWith(
         expect.objectContaining({
-          manager_no: 1,
+          managerNo: 1,
           ip: '127.0.0.1',
-          user_agent: 'test-agent',
-          action_type: 'I',
-          target_table: 'AreaData',
-          target_id: 'newarea',
-          old_values: '',
-          new_values: JSON.stringify(mockAreaData),
+          userAgent: 'test-agent',
+          actionType: 'I',
+          targetTable: 'AreaData',
+          targetId: 'newarea',
+          oldValues: '',
+          newValues: JSON.stringify(mockAreaData),
           reason: '지역 생성',
         }),
         mockConn,

@@ -48,9 +48,9 @@ describe('SchoolNo Service', () => {
   };
 
   const meta = {
-    manager_no: 1,
+    managerNo: 1,
     ip: '127.0.0.1',
-    user_agent: 'test-agent',
+    userAgent: 'test-agent',
   };
 
   beforeEach(() => {
@@ -76,15 +76,15 @@ describe('SchoolNo Service', () => {
 
       // logAction 호출 검증
       expect(makeLogParams).toHaveBeenCalledWith({
-        manager_no: meta.manager_no,
-        school_no: schoolNo,
+        managerNo: meta.managerNo,
+        schoolNo: schoolNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'S',
-        target_table: 'rnschool',
-        target_id: `${schoolNo}`,
-        old_values: JSON.stringify({}),
-        new_values: JSON.stringify(mockSchool),
+        userAgent: meta.userAgent,
+        actionType: 'S',
+        targetTable: 'rnschool',
+        targetId: `${schoolNo}`,
+        oldValues: JSON.stringify({}),
+        newValues: JSON.stringify(mockSchool),
         reason: '학교 정보 조회',
       });
       expect(logAction).toHaveBeenCalledWith({}, mockConn);
@@ -186,15 +186,15 @@ describe('SchoolNo Service', () => {
 
       // logAction 호출 검증
       expect(makeLogParams).toHaveBeenCalledWith({
-        manager_no: meta.manager_no,
-        school_no: updateDto.schoolNo,
+        managerNo: meta.managerNo,
+        schoolNo: updateDto.schoolNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'U',
-        target_table: 'rnschool',
-        target_id: `${updateDto.schoolNo}`,
-        old_values: JSON.stringify(mockSchool),
-        new_values: JSON.stringify(updateDto),
+        userAgent: meta.userAgent,
+        actionType: 'U',
+        targetTable: 'rnschool',
+        targetId: `${updateDto.schoolNo}`,
+        oldValues: JSON.stringify(mockSchool),
+        newValues: JSON.stringify(updateDto),
         reason: '학교 정보 수정',
       });
       expect(logAction).toHaveBeenCalledWith({}, mockConn);
@@ -294,15 +294,15 @@ describe('SchoolNo Service', () => {
 
       // logAction 호출 검증
       expect(makeLogParams).toHaveBeenCalledWith({
-        manager_no: meta.manager_no,
-        school_no: deleteDto.schoolNo,
+        managerNo: meta.managerNo,
+        schoolNo: deleteDto.schoolNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'D',
-        target_table: 'rnschool',
-        target_id: `${deleteDto.schoolNo}`,
-        old_values: JSON.stringify(mockSchool),
-        new_values: null,
+        userAgent: meta.userAgent,
+        actionType: 'D',
+        targetTable: 'rnschool',
+        targetId: `${deleteDto.schoolNo}`,
+        oldValues: JSON.stringify(mockSchool),
+        newValues: null,
         reason: '학교 삭제',
       });
       expect(logAction).toHaveBeenCalledWith({}, mockConn);
@@ -444,15 +444,15 @@ describe('SchoolNo Service', () => {
       await getSchoolBySchoolNo(schoolNo, meta);
 
       expect(makeLogParams).toHaveBeenCalledWith({
-        manager_no: meta.manager_no,
-        school_no: schoolNo,
+        managerNo: meta.managerNo,
+        schoolNo: schoolNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'S',
-        target_table: 'rnschool',
-        target_id: `${schoolNo}`,
-        old_values: JSON.stringify({}),
-        new_values: JSON.stringify(mockSchool),
+        userAgent: meta.userAgent,
+        actionType: 'S',
+        targetTable: 'rnschool',
+        targetId: `${schoolNo}`,
+        oldValues: JSON.stringify({}),
+        newValues: JSON.stringify(mockSchool),
         reason: '학교 정보 조회',
       });
     });
@@ -480,15 +480,15 @@ describe('SchoolNo Service', () => {
       await updateRnSchool(updateDto, meta);
 
       expect(makeLogParams).toHaveBeenCalledWith({
-        manager_no: meta.manager_no,
-        school_no: updateDto.schoolNo,
+        managerNo: meta.managerNo,
+        schoolNo: updateDto.schoolNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'U',
-        target_table: 'rnschool',
-        target_id: `${updateDto.schoolNo}`,
-        old_values: JSON.stringify(mockSchool),
-        new_values: JSON.stringify(updateDto),
+        userAgent: meta.userAgent,
+        actionType: 'U',
+        targetTable: 'rnschool',
+        targetId: `${updateDto.schoolNo}`,
+        oldValues: JSON.stringify(mockSchool),
+        newValues: JSON.stringify(updateDto),
         reason: '학교 정보 수정',
       });
     });
@@ -505,15 +505,15 @@ describe('SchoolNo Service', () => {
       await deleteRnSchool(deleteDto, meta);
 
       expect(makeLogParams).toHaveBeenCalledWith({
-        manager_no: meta.manager_no,
-        school_no: deleteDto.schoolNo,
+        managerNo: meta.managerNo,
+        schoolNo: deleteDto.schoolNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'D',
-        target_table: 'rnschool',
-        target_id: `${deleteDto.schoolNo}`,
-        old_values: JSON.stringify(mockSchool),
-        new_values: null,
+        userAgent: meta.userAgent,
+        actionType: 'D',
+        targetTable: 'rnschool',
+        targetId: `${deleteDto.schoolNo}`,
+        oldValues: JSON.stringify(mockSchool),
+        newValues: null,
         reason: '학교 삭제',
       });
     });

@@ -27,7 +27,7 @@ export async function insertRnDevices(
   return await exec(query, params, conn);
 }
 
-export async function findDeviceByMac(mac: string, school_no: number, conn?: PoolConnection) {
+export async function findDeviceByMac(mac: string, schoolNo: number, conn?: PoolConnection) {
   const query = 'SELECT * FROM rnDevices WHERE mac = ?';
   const result = await getRow<{ mac: string }>(query, [mac], undefined, conn);
   return result;

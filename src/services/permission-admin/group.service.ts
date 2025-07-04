@@ -40,14 +40,14 @@ export async function getGroupsS(
     // 로그 기록
     await logAction(
       makeLogParams({
-        manager_no: meta.manager_no,
+        managerNo: meta.managerNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'S',
-        target_table: 'group',
-        target_id: '',
-        old_values: null,
-        new_values: JSON.stringify(result),
+        userAgent: meta.userAgent,
+        actionType: 'S',
+        targetTable: 'group',
+        targetId: '',
+        oldValues: '',
+        newValues: JSON.stringify(result),
         reason: `그룹 목록 조회`,
       }),
     );
@@ -84,8 +84,8 @@ export async function createGroupS(group: CreateGroup, meta: LogMeta): Promise<{
 
     const dto: InsertGroupDto = {
       name: group.name,
-      school_no: group.schoolNo,
-      parent_group_no: group.parentGroupNo,
+      schoolNo: group.schoolNo,
+      parentGroupNo: group.parentGroupNo,
     };
 
     // 1. 그룹 생성
@@ -94,14 +94,14 @@ export async function createGroupS(group: CreateGroup, meta: LogMeta): Promise<{
     // 2. 로그 기록
     await logAction(
       makeLogParams({
-        manager_no: meta.manager_no,
+        managerNo: meta.managerNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'I',
-        target_table: 'group',
-        target_id: result.insertId.toString(),
-        old_values: JSON.stringify({}),
-        new_values: JSON.stringify(group),
+        userAgent: meta.userAgent,
+        actionType: 'I',
+        targetTable: 'group',
+        targetId: result.insertId.toString(),
+        oldValues: JSON.stringify({}),
+        newValues: JSON.stringify(group),
         reason: `그룹 생성: ${group.name}`,
       }),
       conn,
@@ -127,7 +127,7 @@ export async function updateGroupS(group: Group, meta: LogMeta): Promise<{ group
 
     // 1. 그룹 존재 여부 확인
     const existsDto: CheckGroupExistsDto = {
-      groupNo: group.group_no,
+      groupNo: group.groupNo,
     };
     const exists = await checkGroupExists(existsDto);
     if (!exists) {
@@ -136,22 +136,22 @@ export async function updateGroupS(group: Group, meta: LogMeta): Promise<{ group
 
     // 2. 기존 그룹 정보 조회
     const findDto: FindGroupDto = {
-      groupNo: group.group_no,
+      groupNo: group.groupNo,
     };
     const existingGroup = await findGroup(findDto);
     if (!existingGroup) {
       throw new AppError('존재하지 않는 그룹입니다.', 404);
     }
 
-    // 3. 다른 그룹과의 중복 체크 (name이나 school_no가 변경된 경우에만)
+    // 3. 다른 그룹과의 중복 체크 (name이나 schoolNo가 변경된 경우에만)
     if (
       (group.name && group.name !== existingGroup.name) ||
-      (group.school_no !== undefined && group.school_no !== existingGroup.school_no)
+      (group.schoolNo !== undefined && group.schoolNo !== existingGroup.schoolNo)
     ) {
       const duplicateDto: CheckGroupDuplicateDto = {
         name: group.name || existingGroup.name,
-        schoolNo: group.school_no ?? existingGroup.school_no,
-        groupNo: group.group_no, // 자기 자신 제외
+        schoolNo: group.schoolNo ?? existingGroup.schoolNo,
+        groupNo: group.groupNo, // 자기 자신 제외
       };
       const existingGroupDuplicate = await checkGroupDuplicate(duplicateDto);
       if (existingGroupDuplicate && existingGroupDuplicate.count > 0) {
@@ -170,18 +170,18 @@ export async function updateGroupS(group: Group, meta: LogMeta): Promise<{ group
     await logAction(
       makeLogParams({
         ...meta,
-        action_type: 'U',
-        target_table: 'group',
-        target_id: group.group_no.toString(),
-        old_values: JSON.stringify(existingGroup),
-        new_values: JSON.stringify(updateDto),
+        actionType: 'U',
+        targetTable: 'group',
+        targetId: group.groupNo.toString(),
+        oldValues: JSON.stringify(existingGroup),
+        newValues: JSON.stringify(updateDto),
         reason: `그룹 수정: ${group.name || existingGroup.name}`,
       }),
       conn,
     );
 
     await commitTransaction(conn);
-    return { groupNo: group.group_no };
+    return { groupNo: group.groupNo };
   } catch (error) {
     if (conn) {
       await rollbackTransaction(conn);
@@ -215,11 +215,11 @@ export async function deleteGroupS(groupNo: number, meta: LogMeta) {
     await logAction(
       makeLogParams({
         ...meta,
-        action_type: 'D',
-        target_table: 'group',
-        target_id: groupNo.toString(),
-        old_values: JSON.stringify({}),
-        new_values: null,
+        actionType: 'D',
+        targetTable: 'group',
+        targetId: groupNo.toString(),
+        oldValues: JSON.stringify({}),
+        newValues: '',
         reason: `그룹 삭제: ${groupNo}`,
       }),
       conn,

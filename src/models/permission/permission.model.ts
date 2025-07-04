@@ -181,7 +181,7 @@ export async function updatePermission(dto: UpdatePermissionDto, conn?: PoolConn
     WHERE permission_no = ? 
       AND deleted IS NULL
   `;
-  const params = [dto.name, dto.description, dto.defaultExtraCondition, dto.defaultExtraLimit, dto.permission_no];
+  const params = [dto.name, dto.description, dto.defaultExtraCondition, dto.defaultExtraLimit, dto.permissionNo];
   return exec(query, params, conn);
 }
 
@@ -204,7 +204,7 @@ export async function findPermission(dto: FindPermissionDto) {
     WHERE permission_no = ? 
       AND deleted IS NULL
   `;
-  return getRow<Permission>(query, [dto.permission_no]);
+  return getRow<Permission>(query, [dto.permissionNo]);
 }
 
 // 권한 등록 중복 체크

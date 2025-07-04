@@ -65,10 +65,10 @@ describe('Schools Service', () => {
     ];
 
     const meta = {
-      manager_no: 1,
-      school_no: 1,
+      managerNo: 1,
+      schoolNo: 1,
       ip: '127.0.0.1',
-      user_agent: 'test',
+      userAgent: 'test',
     };
 
     it('지역의 학교 목록을 성공적으로 조회해야 함', async () => {
@@ -102,14 +102,14 @@ describe('Schools Service', () => {
 
       // logAction 호출 검증
       expect(makeLogParams).toHaveBeenCalledWith({
-        manager_no: meta.manager_no,
+        managerNo: meta.managerNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'S',
-        target_table: 'rnschool',
-        target_id: `area=${area}`,
-        old_values: '',
-        new_values: JSON.stringify({ schools: mockSchools, total: 2 }),
+        userAgent: meta.userAgent,
+        actionType: 'S',
+        targetTable: 'rnschool',
+        targetId: `area=${area}`,
+        oldValues: '',
+        newValues: JSON.stringify({ schools: mockSchools, total: 2 }),
         reason: `학교 목록 조회: 지역 ${area}`,
       });
       expect(logAction).toHaveBeenCalledWith({}, mockConn);
@@ -142,14 +142,14 @@ describe('Schools Service', () => {
 
       // logAction 호출 검증 - all 지역일 때
       expect(makeLogParams).toHaveBeenCalledWith({
-        manager_no: meta.manager_no,
+        managerNo: meta.managerNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'S',
-        target_table: 'rnschool',
-        target_id: 'all',
-        old_values: '',
-        new_values: JSON.stringify({ schools: mockSchools, total: 2 }),
+        userAgent: meta.userAgent,
+        actionType: 'S',
+        targetTable: 'rnschool',
+        targetId: 'all',
+        oldValues: '',
+        newValues: JSON.stringify({ schools: mockSchools, total: 2 }),
         reason: '학교 목록 조회: 전체',
       });
     });

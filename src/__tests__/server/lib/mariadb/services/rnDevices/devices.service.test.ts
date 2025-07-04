@@ -30,16 +30,16 @@ describe('Devices Service', () => {
 
   describe('getRnDevicesRelBySchoolNo', () => {
     const params = {
-      school_no: 1,
+      schoolNo: 1,
       page: 1,
       pageSize: 10,
     };
 
     const meta = {
-      manager_no: 1,
-      school_no: 1,
+      managerNo: 1,
+      schoolNo: 1,
       ip: '127.0.0.1',
-      user_agent: 'test',
+      userAgent: 'test',
     };
 
     it('학교의 센서 장치 목록을 성공적으로 조회해야 함', async () => {

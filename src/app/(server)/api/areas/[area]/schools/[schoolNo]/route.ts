@@ -47,9 +47,9 @@ async function getCommonContext(request: NextRequest): Promise<CommonContext> {
   const { userAgent, ip } = getClientInfo(request);
 
   return {
-    manager_no: session.user.managerNo,
+    managerNo: session.user.managerNo,
     ip: ip || '',
-    user_agent: userAgent || '',
+    userAgent: userAgent || '',
   };
 }
 

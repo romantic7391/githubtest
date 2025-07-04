@@ -65,7 +65,7 @@ export async function releaseConn(conn: PoolConnection): Promise<void> {
   try {
     conn.release();
   } catch (error) {
-    console.error('Connection release error:', error);
+    console.error('트랜잭션 커넥션 해제 중 오류:', error);
   }
 }
 
@@ -75,7 +75,6 @@ export async function releaseConn(conn: PoolConnection): Promise<void> {
  * @returns {Promise<PoolConnection>} 트랜잭션 커넥션 객체
  */
 export async function beginTransaction(): Promise<PoolConnection> {
-  console.log('beginTransaction');
   let conn;
 
   try {
@@ -96,7 +95,6 @@ export async function beginTransaction(): Promise<PoolConnection> {
  * @param {PoolConnection} conn 트랜잭션 커넥션 객체
  */
 export async function commitTransaction(conn: PoolConnection): Promise<void> {
-  console.log('commitTransaction');
   try {
     await conn.commit();
   } catch (error) {
@@ -112,7 +110,6 @@ export async function commitTransaction(conn: PoolConnection): Promise<void> {
  * @param {PoolConnection} conn 트랜잭션 커넥션 객체
  */
 export async function rollbackTransaction(conn: PoolConnection): Promise<void> {
-  console.log('rollbackTransaction');
   try {
     await conn.rollback();
   } catch (error) {

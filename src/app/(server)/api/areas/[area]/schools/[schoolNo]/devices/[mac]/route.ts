@@ -23,11 +23,11 @@ export async function GET(
 
     const { userAgent, ip } = getClientInfo(request);
     const device = await getDevice(
-      { mac, school_no: parseInt(schoolNo, 10) },
+      { mac, schoolNo: parseInt(schoolNo, 10) },
       {
-        manager_no: 1, // 임시로 1로 설정
+        managerNo: 1, // 임시로 1로 설정
         ip,
-        user_agent: userAgent,
+        userAgent: userAgent,
       },
     );
     console.log('[GET] 조회된 디바이스:', device);
@@ -86,13 +86,13 @@ export async function PUT(
 
     // Zod로 요청 데이터 검증
     const validatedData = deviceRelSchema.parse(body);
-    const dto = { ...validatedData, oldMac, school_no: parseInt(schoolNo, 10) };
+    const dto = { ...validatedData, oldMac, schoolNo: parseInt(schoolNo, 10) };
 
     const { userAgent, ip } = getClientInfo(request);
     const result = await updateDevice(dto, {
-      manager_no: 1, // 임시로 1로 설정
+      managerNo: 1, // 임시로 1로 설정
       ip,
-      user_agent: userAgent,
+      userAgent: userAgent,
     });
     return NextResponse.json(
       {
@@ -126,11 +126,11 @@ export async function DELETE(
     const { mac, schoolNo } = await params;
     const { userAgent, ip } = getClientInfo(request);
     await deleteDevice(
-      { mac, school_no: parseInt(schoolNo, 10) },
+      { mac, schoolNo: parseInt(schoolNo, 10) },
       {
-        manager_no: 1, // 임시로 1로 설정
+        managerNo: 1, // 임시로 1로 설정
         ip,
-        user_agent: userAgent,
+        userAgent: userAgent,
       },
     );
     return NextResponse.json({ success: true, message: '센서가 성공적으로 삭제되었습니다.' }, { status: 200 });

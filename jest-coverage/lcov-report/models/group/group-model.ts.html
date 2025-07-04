@@ -444,12 +444,12 @@ export <span class="fstat-no" title="function not covered" >async function findG
 <span class="cstat-no" title="statement not covered" >  // 그룹 목록 조회</span>
 <span class="cstat-no" title="statement not covered" >  const query = `</span>
 <span class="cstat-no" title="statement not covered" >    SELECT </span>
-<span class="cstat-no" title="statement not covered" >      g.group_no as group_no,</span>
-<span class="cstat-no" title="statement not covered" >      g.school_no as school_no,</span>
-<span class="cstat-no" title="statement not covered" >      r.sname as school_name,</span>
+<span class="cstat-no" title="statement not covered" >      g.group_no as groupNo,</span>
+<span class="cstat-no" title="statement not covered" >      g.school_no as schoolNo,</span>
+<span class="cstat-no" title="statement not covered" >      r.sname as schoolName,</span>
 <span class="cstat-no" title="statement not covered" >      g.name as name,</span>
-<span class="cstat-no" title="statement not covered" >      g.parent_group_no as parent_group_no,</span>
-<span class="cstat-no" title="statement not covered" >      p.name as parent_group_name,</span>
+<span class="cstat-no" title="statement not covered" >      g.parent_group_no as parentGroupNo,</span>
+<span class="cstat-no" title="statement not covered" >      p.name as parentGroupName,</span>
 <span class="cstat-no" title="statement not covered" >      g.created,</span>
 <span class="cstat-no" title="statement not covered" >      g.updated</span>
 <span class="cstat-no" title="statement not covered" >    FROM \`group\` g</span>
@@ -477,7 +477,7 @@ export <span class="fstat-no" title="function not covered" >async function inser
 <span class="cstat-no" title="statement not covered" >      parent_group_no</span>
 <span class="cstat-no" title="statement not covered" >    ) VALUES (?, ?, ?)</span>
 <span class="cstat-no" title="statement not covered" >  `;</span>
-<span class="cstat-no" title="statement not covered" >  const params = [dto.name, dto.school_no, dto.parent_group_no];</span>
+<span class="cstat-no" title="statement not covered" >  const params = [dto.name, dto.schoolNo, dto.parentGroupNo];</span>
 <span class="cstat-no" title="statement not covered" >  const result = await exec(query, params, conn);</span>
 <span class="cstat-no" title="statement not covered" >  return { insertId: result.insertId };</span>
 <span class="cstat-no" title="statement not covered" >}</span>
@@ -491,13 +491,13 @@ export <span class="fstat-no" title="function not covered" >async function updat
 <span class="cstat-no" title="statement not covered" >    updates.push('name = ?');</span>
 <span class="cstat-no" title="statement not covered" >    params.push(dto.name);</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
-<span class="cstat-no" title="statement not covered" >  if (dto.school_no !== undefined) {</span>
+<span class="cstat-no" title="statement not covered" >  if (dto.schoolNo !== undefined) {</span>
 <span class="cstat-no" title="statement not covered" >    updates.push('school_no = ?');</span>
-<span class="cstat-no" title="statement not covered" >    params.push(dto.school_no);</span>
+<span class="cstat-no" title="statement not covered" >    params.push(dto.schoolNo);</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
-<span class="cstat-no" title="statement not covered" >  if (dto.parent_group_no !== undefined) {</span>
+<span class="cstat-no" title="statement not covered" >  if (dto.parentGroupNo !== undefined) {</span>
 <span class="cstat-no" title="statement not covered" >    updates.push('parent_group_no = ?');</span>
-<span class="cstat-no" title="statement not covered" >    params.push(dto.parent_group_no);</span>
+<span class="cstat-no" title="statement not covered" >    params.push(dto.parentGroupNo);</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >  if (updates.length === 0) {</span>
@@ -510,7 +510,7 @@ export <span class="fstat-no" title="function not covered" >async function updat
 <span class="cstat-no" title="statement not covered" >    WHERE group_no = ? </span>
 <span class="cstat-no" title="statement not covered" >      AND deleted IS NULL</span>
 <span class="cstat-no" title="statement not covered" >  `;</span>
-<span class="cstat-no" title="statement not covered" >  params.push(dto.group_no);</span>
+<span class="cstat-no" title="statement not covered" >  params.push(dto.groupNo);</span>
 <span class="cstat-no" title="statement not covered" >  await exec(query, params, conn);</span>
 <span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;
@@ -524,12 +524,12 @@ export <span class="fstat-no" title="function not covered" >async function delet
 export <span class="fstat-no" title="function not covered" >async function findGroup(dto: FindGroupDto): Promise&lt;Group | null&gt; {</span>
 <span class="cstat-no" title="statement not covered" >  const query = `</span>
 <span class="cstat-no" title="statement not covered" >    SELECT </span>
-<span class="cstat-no" title="statement not covered" >      g.group_no as group_no,</span>
-<span class="cstat-no" title="statement not covered" >      g.school_no as school_no,</span>
-<span class="cstat-no" title="statement not covered" >      r.sname as school_name,</span>
+<span class="cstat-no" title="statement not covered" >      g.group_no as groupNo,</span>
+<span class="cstat-no" title="statement not covered" >      g.school_no as schoolNo,</span>
+<span class="cstat-no" title="statement not covered" >      r.sname as schoolName,</span>
 <span class="cstat-no" title="statement not covered" >      g.name as name,</span>
-<span class="cstat-no" title="statement not covered" >      g.parent_group_no as parent_group_no,</span>
-<span class="cstat-no" title="statement not covered" >      p.name as parent_group_name,</span>
+<span class="cstat-no" title="statement not covered" >      g.parent_group_no as parentGroupNo,</span>
+<span class="cstat-no" title="statement not covered" >      p.name as parentGroupName,</span>
 <span class="cstat-no" title="statement not covered" >      g.created,</span>
 <span class="cstat-no" title="statement not covered" >      g.updated</span>
 <span class="cstat-no" title="statement not covered" >    FROM \`group\` g</span>
@@ -575,7 +575,7 @@ export <span class="fstat-no" title="function not covered" >async function check
     <div class="footer quiet pad2 space-top1 center small">
       Code coverage generated by
       <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-      at 2025-06-19T07:00:45.868Z
+      at 2025-07-04T07:49:43.185Z
     </div>
     <script src="../../prettify.js"></script>
     <script>

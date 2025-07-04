@@ -9,15 +9,15 @@ export async function insertLogAction(dto: History, conn?: PoolConnection) {
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
   const params = [
-    dto.manager_no,
-    dto.school_no,
+    dto.managerNo,
+    dto.schoolNo,
     dto.ip,
-    dto.user_agent,
-    dto.action_type,
-    dto.target_table,
-    dto.target_id,
-    dto.old_values,
-    dto.new_values,
+    dto.userAgent,
+    dto.actionType,
+    dto.targetTable,
+    dto.targetId,
+    dto.oldValues,
+    dto.newValues,
     dto.reason,
   ];
   return exec(query, params, conn);

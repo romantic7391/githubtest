@@ -49,9 +49,9 @@ describe('센서 등록 서비스 테스트', () => {
 
     const meta: LogMeta = {
       ip: '127.0.0.1',
-      manager_no: 1,
-      user_agent: 'test-agent',
-      school_no: 12345,
+      managerNo: 1,
+      userAgent: 'test-agent',
+      schoolNo: 12345,
     };
 
     // When
@@ -73,9 +73,9 @@ describe('센서 등록 서비스 테스트', () => {
 
     const meta: LogMeta = {
       ip: '127.0.0.1',
-      manager_no: 1,
-      user_agent: 'test-agent',
-      school_no: 12345,
+      managerNo: 1,
+      userAgent: 'test-agent',
+      schoolNo: 12345,
     };
 
     (findRelByMac as jest.Mock).mockResolvedValue(true);
@@ -97,9 +97,9 @@ describe('센서 등록 서비스 테스트', () => {
 
     const meta: LogMeta = {
       ip: '127.0.0.1',
-      manager_no: 1,
-      user_agent: 'test-agent',
-      school_no: 12345,
+      managerNo: 1,
+      userAgent: 'test-agent',
+      schoolNo: 12345,
     };
 
     // When
@@ -120,9 +120,9 @@ describe('센서 등록 서비스 테스트', () => {
 
     const meta: LogMeta = {
       ip: '127.0.0.1',
-      manager_no: 1,
-      user_agent: 'test-agent',
-      school_no: 12345,
+      managerNo: 1,
+      userAgent: 'test-agent',
+      schoolNo: 12345,
     };
 
     (logAction as jest.Mock).mockRejectedValue(new Error('로그 기록 실패'));
@@ -139,9 +139,9 @@ describe('센서 등록 서비스 테스트', () => {
 
     const meta: LogMeta = {
       ip: '127.0.0.1',
-      manager_no: 1,
-      user_agent: 'test-agent',
-      school_no: 12345,
+      managerNo: 1,
+      userAgent: 'test-agent',
+      schoolNo: 12345,
     };
 
     (beginTransaction as jest.Mock).mockRejectedValue(new Error('DB 연결 실패'));
@@ -156,9 +156,9 @@ describe('센서 등록 서비스 테스트', () => {
 
     const meta: LogMeta = {
       ip: '127.0.0.1',
-      manager_no: 1,
-      user_agent: 'test-agent',
-      school_no: 12345,
+      managerNo: 1,
+      userAgent: 'test-agent',
+      schoolNo: 12345,
     };
 
     // Error 인스턴스가 아닌 에러 발생
@@ -174,9 +174,9 @@ describe('센서 등록 서비스 테스트', () => {
 
     const meta: LogMeta = {
       ip: '127.0.0.1',
-      manager_no: 1,
-      user_agent: 'test-agent',
-      school_no: 12345,
+      managerNo: 1,
+      userAgent: 'test-agent',
+      schoolNo: 12345,
     };
 
     const releaseError = new Error('연결 해제 실패');
@@ -196,9 +196,9 @@ describe('센서 등록 서비스 테스트', () => {
 
     const meta: LogMeta = {
       ip: '127.0.0.1',
-      manager_no: 1,
-      user_agent: 'test-agent',
-      school_no: 12345,
+      managerNo: 1,
+      userAgent: 'test-agent',
+      schoolNo: 12345,
     };
 
     (findRelByMac as jest.Mock).mockResolvedValue(true); // 중복 MAC 주소로 인한 에러 발생
@@ -220,9 +220,9 @@ describe('센서 등록 서비스 테스트', () => {
 
     const meta: LogMeta = {
       ip: '127.0.0.1',
-      manager_no: 1,
-      user_agent: 'test-agent',
-      school_no: 12345,
+      managerNo: 1,
+      userAgent: 'test-agent',
+      schoolNo: 12345,
     };
 
     const releaseError = new Error('연결 해제 실패');
@@ -242,9 +242,9 @@ describe('센서 등록 서비스 테스트', () => {
 
     const meta: LogMeta = {
       ip: '127.0.0.1',
-      manager_no: 1,
-      user_agent: 'test-agent',
-      school_no: 12345,
+      managerNo: 1,
+      userAgent: 'test-agent',
+      schoolNo: 12345,
     };
 
     // Error 인스턴스가 아닌 에러 발생
@@ -260,9 +260,9 @@ describe('센서 등록 서비스 테스트', () => {
 
     const meta: LogMeta = {
       ip: '127.0.0.1',
-      manager_no: 1,
-      user_agent: 'test-agent',
-      school_no: 12345,
+      managerNo: 1,
+      userAgent: 'test-agent',
+      schoolNo: 12345,
     };
 
     // beginTransaction이 undefined를 반환하도록 설정
@@ -281,9 +281,9 @@ describe('센서 등록 서비스 테스트', () => {
     const dtos: DeviceCreate[] = [createTestDevice('00:11:22:33:44:55', '센서')];
     const meta: LogMeta = {
       ip: '127.0.0.1',
-      manager_no: 1,
-      user_agent: 'agent',
-      school_no: 12345,
+      managerNo: 1,
+      userAgent: 'agent',
+      schoolNo: 12345,
     };
 
     // conn을 undefined로 명시
@@ -303,9 +303,9 @@ describe('센서 등록 서비스 테스트', () => {
 
     const meta: LogMeta = {
       ip: '127.0.0.1',
-      manager_no: 1,
-      user_agent: 'test-agent',
-      school_no: 12345,
+      managerNo: 1,
+      userAgent: 'test-agent',
+      schoolNo: 12345,
     };
 
     // release가 성공적으로 호출되도록 설정
@@ -324,9 +324,9 @@ describe('센서 등록 서비스 테스트', () => {
     const dtos: DeviceCreate[] = [createTestDevice('AA:BB:CC:DD:EE:FF', '센서')];
     const meta: LogMeta = {
       ip: '127.0.0.1',
-      manager_no: 1,
-      user_agent: 'test-agent',
-      school_no: 12345,
+      managerNo: 1,
+      userAgent: 'test-agent',
+      schoolNo: 12345,
     };
 
     // conn 객체는 있지만 release 함수가 없음
@@ -345,9 +345,9 @@ describe('센서 등록 서비스 테스트', () => {
 
     const meta: LogMeta = {
       ip: '127.0.0.1',
-      manager_no: 1,
-      user_agent: 'test-agent',
-      school_no: 12345,
+      managerNo: 1,
+      userAgent: 'test-agent',
+      schoolNo: 12345,
     };
 
     // release가 문자열 에러를 던지도록 설정
@@ -366,9 +366,9 @@ describe('센서 등록 서비스 테스트', () => {
     const dtos: DeviceCreate[] = [createTestDevice('00:11:22:33:44:55', '테스트 센서')];
     const meta: LogMeta = {
       ip: '127.0.0.1',
-      manager_no: 1,
-      user_agent: 'test-agent',
-      school_no: 12345,
+      managerNo: 1,
+      userAgent: 'test-agent',
+      schoolNo: 12345,
     };
 
     (logAction as jest.Mock).mockRejectedValueOnce(new Error('로그 기록 실패'));
@@ -387,9 +387,9 @@ describe('센서 등록 서비스 테스트', () => {
     const dtos: DeviceCreate[] = [createTestDevice('00:11:22:33:44:55', '테스트 센서')];
     const meta: LogMeta = {
       ip: '127.0.0.1',
-      manager_no: 1,
-      user_agent: 'test-agent',
-      school_no: 12345,
+      managerNo: 1,
+      userAgent: 'test-agent',
+      schoolNo: 12345,
     };
 
     // When
@@ -405,9 +405,9 @@ describe('센서 등록 서비스 테스트', () => {
     const dtos: DeviceCreate[] = [];
     const meta: LogMeta = {
       ip: '127.0.0.1',
-      manager_no: 1,
-      user_agent: 'test-agent',
-      school_no: 12345,
+      managerNo: 1,
+      userAgent: 'test-agent',
+      schoolNo: 12345,
     };
 
     // When & Then
@@ -424,9 +424,9 @@ describe('센서 등록 서비스 테스트', () => {
     const dtos: DeviceCreate[] = [createTestDevice('00:11:22:33:44:55', '테스트 센서')];
     const meta: LogMeta = {
       ip: '127.0.0.1',
-      manager_no: 1,
-      user_agent: 'test-agent',
-      school_no: 12345,
+      managerNo: 1,
+      userAgent: 'test-agent',
+      schoolNo: 12345,
     };
 
     (findRelByMac as jest.Mock).mockResolvedValueOnce(true);
@@ -441,9 +441,9 @@ describe('센서 등록 서비스 테스트', () => {
     const dtos: DeviceCreate[] = [createTestDevice('00:11:22:33:44:55', '테스트 센서')];
     const meta: LogMeta = {
       ip: '127.0.0.1',
-      manager_no: 1,
-      user_agent: 'test-agent',
-      school_no: 12345,
+      managerNo: 1,
+      userAgent: 'test-agent',
+      schoolNo: 12345,
     };
 
     // 다양한 non-Error 타입의 에러들

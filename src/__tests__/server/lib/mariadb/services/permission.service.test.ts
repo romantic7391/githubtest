@@ -28,10 +28,10 @@ describe('Permission Service', () => {
   };
 
   const meta = {
-    manager_no: 1,
+    managerNo: 1,
     ip: '127.0.0.1',
-    user_agent: 'test',
-    school_no: 1,
+    userAgent: 'test',
+    schoolNo: 1,
   };
 
   const pagination = {
@@ -49,7 +49,7 @@ describe('Permission Service', () => {
   };
 
   const mockUpdatePermission = {
-    permission_no: 1,
+    permissionNo: 1,
     name: 'updated_permission',
     description: '수정된 권한',
     defaultExtraCondition: 'updated_condition',
@@ -59,8 +59,12 @@ describe('Permission Service', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (beginTransaction as jest.Mock).mockResolvedValue(mockConn);
-    (commitTransaction as jest.Mock).mockResolvedValue(undefined);
-    (rollbackTransaction as jest.Mock).mockResolvedValue(undefined);
+    (commitTransaction as jest.Mock).mockImplementation(async () => {
+      await mockConn.release();
+    });
+    (rollbackTransaction as jest.Mock).mockImplementation(async () => {
+      await mockConn.release();
+    });
     (logAction as jest.Mock).mockResolvedValue(undefined);
     (makeLogParams as jest.Mock).mockReturnValue({});
   });
@@ -94,15 +98,15 @@ describe('Permission Service', () => {
       });
 
       expect(makeLogParams).toHaveBeenCalledWith({
-        manager_no: meta.manager_no,
-        school_no: meta.school_no,
+        managerNo: meta.managerNo,
+        schoolNo: meta.schoolNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'S',
-        target_table: 'permission',
-        target_id: '',
-        old_values: null,
-        new_values: JSON.stringify({
+        userAgent: meta.userAgent,
+        actionType: 'S',
+        targetTable: 'permission',
+        targetId: '',
+        oldValues: null,
+        newValues: JSON.stringify({
           permissions: mockPermissions,
           total: 1,
         }),
@@ -196,14 +200,14 @@ describe('Permission Service', () => {
       expect(insertPermission).toHaveBeenCalledWith(mockCreatePermission, mockConn);
 
       expect(makeLogParams).toHaveBeenCalledWith({
-        manager_no: meta.manager_no,
+        managerNo: meta.managerNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'I',
-        target_table: 'permission',
-        target_id: '1',
-        old_values: JSON.stringify({}),
-        new_values: JSON.stringify(mockCreatePermission),
+        userAgent: meta.userAgent,
+        actionType: 'I',
+        targetTable: 'permission',
+        targetId: '1',
+        oldValues: JSON.stringify({}),
+        newValues: JSON.stringify(mockCreatePermission),
         reason: `권한 생성: ${mockCreatePermission.name}`,
       });
       expect(logAction).toHaveBeenCalledWith({}, mockConn);
@@ -242,10 +246,12 @@ describe('Permission Service', () => {
 
       (findPermissionByName as jest.Mock).mockResolvedValue(null);
       (insertPermission as jest.Mock).mockResolvedValue(insertResult);
-      (commitTransaction as jest.Mock).mockResolvedValue(undefined);
+      (commitTransaction as jest.Mock).mockImplementation(async () => {
+        await mockConn.release();
+      });
       (mockConn.release as jest.Mock).mockRejectedValue(new Error('Release error'));
 
-      await createPermissionS(mockCreatePermission, meta);
+      await expect(createPermissionS(mockCreatePermission, meta)).rejects.toThrow('권한 생성 중 오류가 발생했습니다.');
 
       expect(mockConn.release).toHaveBeenCalled();
     });
@@ -277,12 +283,11 @@ describe('Permission Service', () => {
       await expect(
         createPermissionS(
           { name: 'Test Permission', description: 'Test', defaultExtraCondition: '', defaultExtraLimit: '0' },
-          { manager_no: 1, ip: '127.0.0.1', user_agent: 'test', school_no: 1 },
+          { managerNo: 1, ip: '127.0.0.1', userAgent: 'test', schoolNo: 1 },
         ),
-      ).rejects.toThrow('Rollback failed');
+      ).rejects.toThrow('권한 생성 중 오류가 발생했습니다.');
 
       expect(rollbackTransaction).toHaveBeenCalled();
-      expect(mockConn.release).toHaveBeenCalled();
     });
   });
 
@@ -304,16 +309,16 @@ describe('Permission Service', () => {
 
       expect(result.permissionNo).toBe(1);
 
-      expect(findPermission).toHaveBeenCalledWith({ permission_no: 1 });
+      expect(findPermission).toHaveBeenCalledWith({ permissionNo: 1 });
       expect(updatePermission).toHaveBeenCalledWith(mockUpdatePermission, mockConn);
 
       expect(makeLogParams).toHaveBeenCalledWith({
         ...meta,
-        action_type: 'U',
-        target_table: 'permission',
-        target_id: '1',
-        old_values: JSON.stringify(existingPermission),
-        new_values: JSON.stringify(mockUpdatePermission),
+        actionType: 'U',
+        targetTable: 'permission',
+        targetId: '1',
+        oldValues: JSON.stringify(existingPermission),
+        newValues: JSON.stringify(mockUpdatePermission),
         reason: `권한 수정: ${mockUpdatePermission.name}`,
       });
       expect(logAction).toHaveBeenCalledWith({}, mockConn);
@@ -362,7 +367,7 @@ describe('Permission Service', () => {
       };
 
       const updateWithNulls = {
-        permission_no: 1,
+        permissionNo: 1,
         name: 'updated_permission',
         description: null,
         defaultExtraCondition: null,
@@ -393,18 +398,17 @@ describe('Permission Service', () => {
       await expect(
         updatePermissionS(
           {
-            permission_no: 1,
+            permissionNo: 1,
             name: 'Updated Permission',
             description: 'Updated',
             defaultExtraCondition: '',
             defaultExtraLimit: '0',
           },
-          { manager_no: 1, ip: '127.0.0.1', user_agent: 'test', school_no: 1 },
+          { managerNo: 1, ip: '127.0.0.1', userAgent: 'test', schoolNo: 1 },
         ),
-      ).rejects.toThrow('Rollback failed');
+      ).rejects.toThrow('권한 수정 중 오류가 발생했습니다.');
 
       expect(rollbackTransaction).toHaveBeenCalled();
-      expect(mockConn.release).toHaveBeenCalled();
     });
   });
 
@@ -424,16 +428,16 @@ describe('Permission Service', () => {
 
       await deletePermissionS(1, meta);
 
-      expect(findPermission).toHaveBeenCalledWith({ permission_no: 1 });
+      expect(findPermission).toHaveBeenCalledWith({ permissionNo: 1 });
       expect(deletePermission).toHaveBeenCalledWith(1, mockConn);
 
       expect(makeLogParams).toHaveBeenCalledWith({
         ...meta,
-        action_type: 'D',
-        target_table: 'permission',
-        target_id: '1',
-        old_values: JSON.stringify(existingPermission),
-        new_values: null,
+        actionType: 'D',
+        targetTable: 'permission',
+        targetId: '1',
+        oldValues: JSON.stringify(existingPermission),
+        newValues: null,
         reason: `권한 삭제: ${existingPermission.name}`,
       });
       expect(logAction).toHaveBeenCalledWith({}, mockConn);
@@ -480,11 +484,10 @@ describe('Permission Service', () => {
       (rollbackTransaction as jest.Mock).mockRejectedValue(new Error('Rollback failed'));
 
       await expect(
-        deletePermissionS(1, { manager_no: 1, ip: '127.0.0.1', user_agent: 'test', school_no: 1 }),
-      ).rejects.toThrow('Rollback failed');
+        deletePermissionS(1, { managerNo: 1, ip: '127.0.0.1', userAgent: 'test', schoolNo: 1 }),
+      ).rejects.toThrow('권한 삭제 중 오류가 발생했습니다.');
 
       expect(rollbackTransaction).toHaveBeenCalled();
-      expect(mockConn.release).toHaveBeenCalled();
     });
   });
 
@@ -504,17 +507,17 @@ describe('Permission Service', () => {
 
       expect(result.permissionNo).toBe(1);
 
-      expect(findPermission).toHaveBeenCalledWith({ permission_no: 1 });
+      expect(findPermission).toHaveBeenCalledWith({ permissionNo: 1 });
 
       expect(makeLogParams).toHaveBeenCalledWith({
-        manager_no: meta.manager_no,
+        managerNo: meta.managerNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'S',
-        target_table: 'permission',
-        target_id: '1',
-        old_values: null,
-        new_values: JSON.stringify(permission),
+        userAgent: meta.userAgent,
+        actionType: 'S',
+        targetTable: 'permission',
+        targetId: '1',
+        oldValues: null,
+        newValues: JSON.stringify(permission),
         reason: `권한 조회: ${permission.name}`,
       });
       expect(logAction).toHaveBeenCalledWith({});
@@ -546,7 +549,7 @@ describe('Permission Service', () => {
       const result = await getPermissionS(1, meta);
 
       expect(result.permissionNo).toBe(1);
-      expect(findPermission).toHaveBeenCalledWith({ permission_no: 1 });
+      expect(findPermission).toHaveBeenCalledWith({ permissionNo: 1 });
     });
   });
 
@@ -616,7 +619,7 @@ describe('Permission Service', () => {
       await expect(
         getPermissionsS(
           { page: 1, pageSize: 10, total: 0, totalPages: 0 },
-          { manager_no: 1, ip: '127.0.0.1', user_agent: 'test', school_no: 1 },
+          { managerNo: 1, ip: '127.0.0.1', userAgent: 'test', schoolNo: 1 },
         ),
       ).rejects.toThrow('권한 목록 조회 중 오류가 발생했습니다.');
     });
@@ -627,7 +630,7 @@ describe('Permission Service', () => {
       await expect(
         createPermissionS(
           { name: 'Test Permission', description: 'Test', defaultExtraCondition: '', defaultExtraLimit: '0' },
-          { manager_no: 1, ip: '127.0.0.1', user_agent: 'test', school_no: 1 },
+          { managerNo: 1, ip: '127.0.0.1', userAgent: 'test', schoolNo: 1 },
         ),
       ).rejects.toThrow('권한 생성 중 오류가 발생했습니다.');
 
@@ -647,13 +650,13 @@ describe('Permission Service', () => {
       await expect(
         updatePermissionS(
           {
-            permission_no: 1,
+            permissionNo: 1,
             name: 'Updated Permission',
             description: 'Updated',
             defaultExtraCondition: '',
             defaultExtraLimit: '0',
           },
-          { manager_no: 1, ip: '127.0.0.1', user_agent: 'test', school_no: 1 },
+          { managerNo: 1, ip: '127.0.0.1', userAgent: 'test', schoolNo: 1 },
         ),
       ).rejects.toThrow('권한 수정 중 오류가 발생했습니다.');
 
@@ -671,27 +674,30 @@ describe('Permission Service', () => {
       (deletePermission as jest.Mock).mockRejectedValue(new Error('Delete failed'));
 
       await expect(
-        deletePermissionS(1, { manager_no: 1, ip: '127.0.0.1', user_agent: 'test', school_no: 1 }),
+        deletePermissionS(1, { managerNo: 1, ip: '127.0.0.1', userAgent: 'test', schoolNo: 1 }),
       ).rejects.toThrow('권한 삭제 중 오류가 발생했습니다.');
 
       expect(rollbackTransaction).toHaveBeenCalled();
     });
 
     it('conn.release() 실패 시 에러 처리 테스트', async () => {
-      const mockConn = {
+      const mockConnWithReleaseError = {
         release: jest.fn().mockRejectedValue(new Error('Release failed')),
       };
-      (beginTransaction as jest.Mock).mockResolvedValue(mockConn);
+      (beginTransaction as jest.Mock).mockResolvedValue(mockConnWithReleaseError);
       (insertPermission as jest.Mock).mockRejectedValue(new Error('Insert failed'));
+      (rollbackTransaction as jest.Mock).mockImplementation(async () => {
+        await mockConnWithReleaseError.release();
+      });
 
       await expect(
         createPermissionS(
           { name: 'Test Permission', description: 'Test', defaultExtraCondition: '', defaultExtraLimit: '0' },
-          { manager_no: 1, ip: '127.0.0.1', user_agent: 'test', school_no: 1 },
+          { managerNo: 1, ip: '127.0.0.1', userAgent: 'test', schoolNo: 1 },
         ),
       ).rejects.toThrow('권한 생성 중 오류가 발생했습니다.');
 
-      expect(mockConn.release).toHaveBeenCalled();
+      expect(mockConnWithReleaseError.release).toHaveBeenCalled();
     });
 
     it('createPermissionS에서 beginTransaction 실패 시 conn이 undefined인 경우 처리', async () => {
@@ -700,7 +706,7 @@ describe('Permission Service', () => {
       await expect(
         createPermissionS(
           { name: 'Test Permission', description: 'Test', defaultExtraCondition: '', defaultExtraLimit: '0' },
-          { manager_no: 1, ip: '127.0.0.1', user_agent: 'test', school_no: 1 },
+          { managerNo: 1, ip: '127.0.0.1', userAgent: 'test', schoolNo: 1 },
         ),
       ).rejects.toThrow('권한 생성 중 오류가 발생했습니다.');
 
@@ -713,13 +719,13 @@ describe('Permission Service', () => {
       await expect(
         updatePermissionS(
           {
-            permission_no: 1,
+            permissionNo: 1,
             name: 'Updated Permission',
             description: 'Updated',
             defaultExtraCondition: '',
             defaultExtraLimit: '0',
           },
-          { manager_no: 1, ip: '127.0.0.1', user_agent: 'test', school_no: 1 },
+          { managerNo: 1, ip: '127.0.0.1', userAgent: 'test', schoolNo: 1 },
         ),
       ).rejects.toThrow('권한 수정 중 오류가 발생했습니다.');
 
@@ -730,7 +736,7 @@ describe('Permission Service', () => {
       (beginTransaction as jest.Mock).mockRejectedValue(new Error('Connection failed'));
 
       await expect(
-        deletePermissionS(1, { manager_no: 1, ip: '127.0.0.1', user_agent: 'test', school_no: 1 }),
+        deletePermissionS(1, { managerNo: 1, ip: '127.0.0.1', userAgent: 'test', schoolNo: 1 }),
       ).rejects.toThrow('권한 삭제 중 오류가 발생했습니다.');
 
       expect(rollbackTransaction).not.toHaveBeenCalled();
@@ -744,12 +750,11 @@ describe('Permission Service', () => {
       await expect(
         createPermissionS(
           { name: 'Test Permission', description: 'Test', defaultExtraCondition: '', defaultExtraLimit: '0' },
-          { manager_no: 1, ip: '127.0.0.1', user_agent: 'test', school_no: 1 },
+          { managerNo: 1, ip: '127.0.0.1', userAgent: 'test', schoolNo: 1 },
         ),
-      ).rejects.toThrow('Rollback failed');
+      ).rejects.toThrow('권한 생성 중 오류가 발생했습니다.');
 
       expect(rollbackTransaction).toHaveBeenCalled();
-      expect(mockConn.release).toHaveBeenCalled();
     });
 
     it('updatePermissionS에서 updatePermission 실패 후 rollbackTransaction 실패 시 처리', async () => {
@@ -766,18 +771,17 @@ describe('Permission Service', () => {
       await expect(
         updatePermissionS(
           {
-            permission_no: 1,
+            permissionNo: 1,
             name: 'Updated Permission',
             description: 'Updated',
             defaultExtraCondition: '',
             defaultExtraLimit: '0',
           },
-          { manager_no: 1, ip: '127.0.0.1', user_agent: 'test', school_no: 1 },
+          { managerNo: 1, ip: '127.0.0.1', userAgent: 'test', schoolNo: 1 },
         ),
-      ).rejects.toThrow('Rollback failed');
+      ).rejects.toThrow('권한 수정 중 오류가 발생했습니다.');
 
       expect(rollbackTransaction).toHaveBeenCalled();
-      expect(mockConn.release).toHaveBeenCalled();
     });
 
     it('deletePermissionS에서 deletePermission 실패 후 rollbackTransaction 실패 시 처리', async () => {
@@ -792,11 +796,10 @@ describe('Permission Service', () => {
       (rollbackTransaction as jest.Mock).mockRejectedValue(new Error('Rollback failed'));
 
       await expect(
-        deletePermissionS(1, { manager_no: 1, ip: '127.0.0.1', user_agent: 'test', school_no: 1 }),
-      ).rejects.toThrow('Rollback failed');
+        deletePermissionS(1, { managerNo: 1, ip: '127.0.0.1', userAgent: 'test', schoolNo: 1 }),
+      ).rejects.toThrow('권한 삭제 중 오류가 발생했습니다.');
 
       expect(rollbackTransaction).toHaveBeenCalled();
-      expect(mockConn.release).toHaveBeenCalled();
     });
   });
 
@@ -811,14 +814,14 @@ describe('Permission Service', () => {
       await createPermissionS(mockCreatePermission, meta);
 
       expect(makeLogParams).toHaveBeenCalledWith({
-        manager_no: meta.manager_no,
+        managerNo: meta.managerNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'I',
-        target_table: 'permission',
-        target_id: '1',
-        old_values: JSON.stringify({}),
-        new_values: JSON.stringify(mockCreatePermission),
+        userAgent: meta.userAgent,
+        actionType: 'I',
+        targetTable: 'permission',
+        targetId: '1',
+        oldValues: JSON.stringify({}),
+        newValues: JSON.stringify(mockCreatePermission),
         reason: `권한 생성: ${mockCreatePermission.name}`,
       });
       expect(logAction).toHaveBeenCalledWith({}, mockConn);
@@ -841,11 +844,11 @@ describe('Permission Service', () => {
 
       expect(makeLogParams).toHaveBeenCalledWith({
         ...meta,
-        action_type: 'U',
-        target_table: 'permission',
-        target_id: '1',
-        old_values: JSON.stringify(existingPermission),
-        new_values: JSON.stringify(mockUpdatePermission),
+        actionType: 'U',
+        targetTable: 'permission',
+        targetId: '1',
+        oldValues: JSON.stringify(existingPermission),
+        newValues: JSON.stringify(mockUpdatePermission),
         reason: `권한 수정: ${mockUpdatePermission.name}`,
       });
       expect(logAction).toHaveBeenCalledWith({}, mockConn);
@@ -868,11 +871,11 @@ describe('Permission Service', () => {
 
       expect(makeLogParams).toHaveBeenCalledWith({
         ...meta,
-        action_type: 'D',
-        target_table: 'permission',
-        target_id: '1',
-        old_values: JSON.stringify(existingPermission),
-        new_values: null,
+        actionType: 'D',
+        targetTable: 'permission',
+        targetId: '1',
+        oldValues: JSON.stringify(existingPermission),
+        newValues: null,
         reason: `권한 삭제: ${existingPermission.name}`,
       });
       expect(logAction).toHaveBeenCalledWith({}, mockConn);

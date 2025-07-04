@@ -16,11 +16,11 @@ export async function getAreas(page: number = 1, limit: number = 10, areas: stri
       await logAction(
         makeLogParams({
           ...meta,
-          action_type: 'S',
-          target_table: 'AreaData',
-          target_id: result.areas.map((area) => area.area).join(',') || null,
-          old_values: null,
-          new_values: JSON.stringify({ data: result.areas }),
+          actionType: 'S',
+          targetTable: 'AreaData',
+          targetId: result.areas.map((area) => area.area).join(',') || null,
+          oldValues: null,
+          newValues: JSON.stringify({ data: result.areas }),
           reason: '지역 목록 조회',
         }),
         conn,

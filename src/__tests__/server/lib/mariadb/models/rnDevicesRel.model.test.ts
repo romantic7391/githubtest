@@ -9,7 +9,7 @@ import {
   updateMacAddress,
 } from '@/models/rnDevicesRel/rnDevicesRel.model';
 import { setupTestDatabase, cleanupTestData, createTestData } from './setup';
-import { DeviceCreate, DeviceBasic } from '@/types/device';
+import { DeviceCreate } from '@/types/device';
 
 describe('RnDevicesRel Model - 실제 데이터베이스 테스트', () => {
   let realData: Array<{ area: string }> = [];
@@ -31,7 +31,7 @@ describe('RnDevicesRel Model - 실제 데이터베이스 테스트', () => {
   describe('실제 데이터베이스 조회 테스트', () => {
     it('실제 DB에서 학교별 센서 목록을 조회해야 함', async () => {
       const params = {
-        school_no: testSchoolNo,
+        schoolNo: testSchoolNo,
         page: 1,
         pageSize: 10,
       };
@@ -69,7 +69,7 @@ describe('RnDevicesRel Model - 실제 데이터베이스 테스트', () => {
 
     it('필터링 조건으로 센서 목록을 조회해야 함', async () => {
       const params = {
-        school_no: testSchoolNo,
+        schoolNo: testSchoolNo,
         page: 1,
         pageSize: 10,
         filters: {
@@ -91,7 +91,7 @@ describe('RnDevicesRel Model - 실제 데이터베이스 테스트', () => {
     it('실제 DB에서 특정 센서 정보를 조회해야 함', async () => {
       // 먼저 학교의 센서 목록을 가져와서 테스트용 MAC 주소 확보
       const deviceList = await findRnDevicesRelBySchoolNo({
-        school_no: testSchoolNo,
+        schoolNo: testSchoolNo,
         page: 1,
         pageSize: 1,
       });
@@ -102,9 +102,9 @@ describe('RnDevicesRel Model - 실제 데이터베이스 테스트', () => {
       }
 
       const testMac = deviceList.devices[0].mac;
-      const params: DeviceBasic = {
+      const params = {
         mac: testMac,
-        school_no: testSchoolNo,
+        schoolNo: testSchoolNo,
       };
 
       const device = await findRnDeviceRelBySchoolNoAndMac(params);
@@ -126,9 +126,9 @@ describe('RnDevicesRel Model - 실제 데이터베이스 테스트', () => {
 
     it('존재하지 않는 센서 조회 시 null 반환해야 함', async () => {
       const nonExistentMac = '00:00:00:00:00:00';
-      const params: DeviceBasic = {
+      const params = {
         mac: nonExistentMac,
-        school_no: testSchoolNo,
+        schoolNo: testSchoolNo,
       };
 
       const device = await findRnDeviceRelBySchoolNoAndMac(params);
@@ -142,7 +142,7 @@ describe('RnDevicesRel Model - 실제 데이터베이스 테스트', () => {
     it('실제 DB에 존재하는 MAC 주소는 true 반환해야 함', async () => {
       // 먼저 학교의 센서 목록을 가져와서 테스트용 MAC 주소 확보
       const deviceList = await findRnDevicesRelBySchoolNo({
-        school_no: testSchoolNo,
+        schoolNo: testSchoolNo,
         page: 1,
         pageSize: 1,
       });
@@ -196,7 +196,7 @@ describe('RnDevicesRel Model - 실제 데이터베이스 테스트', () => {
       // 삽입된 데이터 확인
       const insertedDevice = await findRnDeviceRelBySchoolNoAndMac({
         mac: testMac,
-        school_no: testSchoolNo,
+        schoolNo: testSchoolNo,
       });
       expect(insertedDevice).not.toBeNull();
       if (insertedDevice) {
@@ -211,7 +211,7 @@ describe('RnDevicesRel Model - 실제 데이터베이스 테스트', () => {
         {
           mac: testMac,
           oldMac: testMac,
-          school_no: testSchoolNo,
+          schoolNo: testSchoolNo,
           name: '업데이트된 테스트 센서',
           summary: '업데이트된 설명',
           kind: 2,
@@ -228,7 +228,7 @@ describe('RnDevicesRel Model - 실제 데이터베이스 테스트', () => {
       // 업데이트된 데이터 확인
       const updatedDevice = await findRnDeviceRelBySchoolNoAndMac({
         mac: testMac,
-        school_no: testSchoolNo,
+        schoolNo: testSchoolNo,
       });
       expect(updatedDevice).not.toBeNull();
       if (updatedDevice) {
@@ -253,7 +253,7 @@ describe('RnDevicesRel Model - 실제 데이터베이스 테스트', () => {
       // 변경된 데이터 확인
       const updatedDevice = await findRnDeviceRelBySchoolNoAndMac({
         mac: newMac,
-        school_no: testSchoolNo,
+        schoolNo: testSchoolNo,
       });
       expect(updatedDevice).not.toBeNull();
       if (updatedDevice) {
@@ -264,7 +264,7 @@ describe('RnDevicesRel Model - 실제 데이터베이스 테스트', () => {
       // 기존 MAC 주소로는 조회되지 않아야 함
       const oldDevice = await findRnDeviceRelBySchoolNoAndMac({
         mac: testMac,
-        school_no: testSchoolNo,
+        schoolNo: testSchoolNo,
       });
       expect(oldDevice).toBeNull();
     });
@@ -290,7 +290,7 @@ describe('RnDevicesRel Model - 실제 데이터베이스 테스트', () => {
       // 삭제 전 존재 확인
       const beforeDelete = await findRnDeviceRelBySchoolNoAndMac({
         mac: newMac,
-        school_no: testSchoolNo,
+        schoolNo: testSchoolNo,
       });
       expect(beforeDelete).not.toBeNull();
 
@@ -298,7 +298,7 @@ describe('RnDevicesRel Model - 실제 데이터베이스 테스트', () => {
       await softDeleteRnDevicesRel([
         {
           mac: newMac,
-          school_no: testSchoolNo,
+          schoolNo: testSchoolNo,
         },
       ]);
       console.log(`✅ 실제 DB에서 센서 삭제: ${newMac}`);
@@ -306,7 +306,7 @@ describe('RnDevicesRel Model - 실제 데이터베이스 테스트', () => {
       // 삭제 후 존재하지 않음 확인
       const afterDelete = await findRnDeviceRelBySchoolNoAndMac({
         mac: newMac,
-        school_no: testSchoolNo,
+        schoolNo: testSchoolNo,
       });
       expect(afterDelete).toBeNull();
       console.log('✅ 센서 삭제 검증 성공');
@@ -317,7 +317,7 @@ describe('RnDevicesRel Model - 실제 데이터베이스 테스트', () => {
     it('중복된 MAC 주소로 삽입 시 에러가 발생해야 함', async () => {
       // 먼저 기존 센서 목록에서 MAC 주소 확보
       const deviceList = await findRnDevicesRelBySchoolNo({
-        school_no: testSchoolNo,
+        schoolNo: testSchoolNo,
         page: 1,
         pageSize: 1,
       });
@@ -371,7 +371,7 @@ describe('RnDevicesRel Model - 실제 데이터베이스 테스트', () => {
   describe('필터링 조건별 테스트', () => {
     it('모든 필터링 조건을 사용하여 센서 목록을 조회해야 함', async () => {
       const params = {
-        school_no: testSchoolNo,
+        schoolNo: testSchoolNo,
         page: 1,
         pageSize: 10,
         filters: {
@@ -396,7 +396,7 @@ describe('RnDevicesRel Model - 실제 데이터베이스 테스트', () => {
     it('개별 필터링 조건으로 센서 목록을 조회해야 함', async () => {
       // model 필터만
       const modelParams = {
-        school_no: testSchoolNo,
+        schoolNo: testSchoolNo,
         page: 1,
         pageSize: 10,
         filters: { model: 'test' },
@@ -406,7 +406,7 @@ describe('RnDevicesRel Model - 실제 데이터베이스 테스트', () => {
 
       // ip 필터만
       const ipParams = {
-        school_no: testSchoolNo,
+        schoolNo: testSchoolNo,
         page: 1,
         pageSize: 10,
         filters: { ip: '192.168' },
@@ -416,7 +416,7 @@ describe('RnDevicesRel Model - 실제 데이터베이스 테스트', () => {
 
       // interval 필터만
       const intervalParams = {
-        school_no: testSchoolNo,
+        schoolNo: testSchoolNo,
         page: 1,
         pageSize: 10,
         filters: { interval: 60 },
@@ -426,7 +426,7 @@ describe('RnDevicesRel Model - 실제 데이터베이스 테스트', () => {
 
       // ver 필터만
       const verParams = {
-        school_no: testSchoolNo,
+        schoolNo: testSchoolNo,
         page: 1,
         pageSize: 10,
         filters: { ver: '1.0' },
@@ -436,7 +436,7 @@ describe('RnDevicesRel Model - 실제 데이터베이스 테스트', () => {
 
       // tags 필터만
       const tagsParams = {
-        school_no: testSchoolNo,
+        schoolNo: testSchoolNo,
         page: 1,
         pageSize: 10,
         filters: { tags: 'test' },
@@ -447,7 +447,7 @@ describe('RnDevicesRel Model - 실제 데이터베이스 테스트', () => {
 
     it('filters.tags가 null인 경우를 테스트해야 함 (75번째 줄 분기)', async () => {
       const params = {
-        school_no: testSchoolNo,
+        schoolNo: testSchoolNo,
         page: 1,
         pageSize: 10,
         filters: {
@@ -487,7 +487,7 @@ describe('RnDevicesRel Model - 실제 데이터베이스 테스트', () => {
         {
           mac: testMac,
           oldMac: testMac, // 같은 MAC 주소
-          school_no: testSchoolNo,
+          schoolNo: testSchoolNo,
           name: 'MAC 변경 없는 업데이트',
           summary: 'MAC 변경 없는 설명',
           kind: 3,
@@ -503,7 +503,7 @@ describe('RnDevicesRel Model - 실제 데이터베이스 테스트', () => {
       // 업데이트된 데이터 확인
       const updatedDevice = await findRnDeviceRelBySchoolNoAndMac({
         mac: testMac,
-        school_no: testSchoolNo,
+        schoolNo: testSchoolNo,
       });
       expect(updatedDevice).not.toBeNull();
       if (updatedDevice) {
@@ -537,7 +537,7 @@ describe('RnDevicesRel Model - 실제 데이터베이스 테스트', () => {
         {
           mac: newMac,
           oldMac: oldMac, // 다른 MAC 주소
-          school_no: testSchoolNo,
+          schoolNo: testSchoolNo,
           name: 'MAC 변경 있는 업데이트',
           summary: 'MAC 변경 있는 설명',
           kind: 4,
@@ -553,7 +553,7 @@ describe('RnDevicesRel Model - 실제 데이터베이스 테스트', () => {
       // 새로운 MAC 주소로 조회
       const updatedDevice = await findRnDeviceRelBySchoolNoAndMac({
         mac: newMac,
-        school_no: testSchoolNo,
+        schoolNo: testSchoolNo,
       });
       expect(updatedDevice).not.toBeNull();
       if (updatedDevice) {
@@ -565,7 +565,7 @@ describe('RnDevicesRel Model - 실제 데이터베이스 테스트', () => {
       // 기존 MAC 주소로는 조회되지 않아야 함
       const oldDevice = await findRnDeviceRelBySchoolNoAndMac({
         mac: oldMac,
-        school_no: testSchoolNo,
+        schoolNo: testSchoolNo,
       });
       expect(oldDevice).toBeNull();
     });
@@ -597,7 +597,7 @@ describe('RnDevicesRel Model - 실제 데이터베이스 테스트', () => {
       // 변경된 데이터 확인 (rnDevicesRel)
       const updatedRelDevice = await findRnDeviceRelBySchoolNoAndMac({
         mac: newMac,
-        school_no: testSchoolNo,
+        schoolNo: testSchoolNo,
       });
       expect(updatedRelDevice).not.toBeNull();
       if (updatedRelDevice) {
@@ -608,7 +608,7 @@ describe('RnDevicesRel Model - 실제 데이터베이스 테스트', () => {
       // 기존 MAC 주소로는 조회되지 않아야 함
       const oldRelDevice = await findRnDeviceRelBySchoolNoAndMac({
         mac: oldMac,
-        school_no: testSchoolNo,
+        schoolNo: testSchoolNo,
       });
       expect(oldRelDevice).toBeNull();
 
@@ -617,7 +617,7 @@ describe('RnDevicesRel Model - 실제 데이터베이스 테스트', () => {
 
     it('filters.tags가 빈 문자열인 경우를 테스트해야 함 (75번째 줄 분기)', async () => {
       const params = {
-        school_no: testSchoolNo,
+        schoolNo: testSchoolNo,
         page: 1,
         pageSize: 10,
         filters: {
@@ -637,7 +637,7 @@ describe('RnDevicesRel Model - 실제 데이터베이스 테스트', () => {
     it('다양한 페이지와 페이지 크기로 조회해야 함', async () => {
       // 첫 번째 페이지, 작은 페이지 크기
       const page1Result = await findRnDevicesRelBySchoolNo({
-        school_no: testSchoolNo,
+        schoolNo: testSchoolNo,
         page: 1,
         pageSize: 5,
       });
@@ -645,7 +645,7 @@ describe('RnDevicesRel Model - 실제 데이터베이스 테스트', () => {
 
       // 두 번째 페이지, 작은 페이지 크기
       const page2Result = await findRnDevicesRelBySchoolNo({
-        school_no: testSchoolNo,
+        schoolNo: testSchoolNo,
         page: 2,
         pageSize: 5,
       });
@@ -653,7 +653,7 @@ describe('RnDevicesRel Model - 실제 데이터베이스 테스트', () => {
 
       // 큰 페이지 크기
       const largePageResult = await findRnDevicesRelBySchoolNo({
-        school_no: testSchoolNo,
+        schoolNo: testSchoolNo,
         page: 1,
         pageSize: 50,
       });
@@ -661,7 +661,7 @@ describe('RnDevicesRel Model - 실제 데이터베이스 테스트', () => {
 
       // 페이지 크기가 0인 경우
       const zeroPageResult = await findRnDevicesRelBySchoolNo({
-        school_no: testSchoolNo,
+        schoolNo: testSchoolNo,
         page: 1,
         pageSize: 0,
       });
@@ -703,7 +703,7 @@ describe('RnDevicesRel Model - 실제 데이터베이스 테스트', () => {
         // 롤백 후 데이터가 존재하지 않는지 확인
         const device = await findRnDeviceRelBySchoolNoAndMac({
           mac: testMac,
-          school_no: testSchoolNo,
+          schoolNo: testSchoolNo,
         });
         expect(device).toBeNull();
         console.log('✅ 트랜잭션 롤백 후 데이터 삭제 확인 성공');
@@ -719,7 +719,7 @@ describe('RnDevicesRel Model - 실제 데이터베이스 테스트', () => {
       const nonExistentSchoolNo = 999999;
 
       const params = {
-        school_no: nonExistentSchoolNo,
+        schoolNo: nonExistentSchoolNo,
         page: 1,
         pageSize: 10,
       };

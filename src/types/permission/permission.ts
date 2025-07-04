@@ -47,14 +47,14 @@ export const createPermissionDtoSchema = z.object({
  * 권한 수정 스키마
  */
 export const updatePermissionDtoSchema = createPermissionDtoSchema.extend({
-  permission_no: z.number().min(1, '권한 번호는 필수입니다.').max(Number.MAX_SAFE_INTEGER),
+  permissionNo: z.number().min(1, '권한 번호는 필수입니다.').max(Number.MAX_SAFE_INTEGER),
 });
 
 /**
  * 권한 필터 스키마
  */
 export const findPermissionDtoSchema = z.object({
-  permission_no: z.number().min(1, '권한 번호는 필수입니다.').max(Number.MAX_SAFE_INTEGER),
+  permissionNo: z.number().min(1, '권한 번호는 필수입니다.').max(Number.MAX_SAFE_INTEGER),
 });
 
 export const findPermissionsDtoSchema = z.object({

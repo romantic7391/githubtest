@@ -49,12 +49,12 @@ async function createDevicesAndRelationsFn(dtos: DeviceCreate[], conn: PoolConne
     dtos.map((dto) => {
       const logParams = {
         ...meta,
-        school_no: dto.schoolNo,
-        action_type: 'I' as const,
-        target_table: 'rnDevicesRel',
-        target_id: dto.mac,
-        old_values: null,
-        new_values: JSON.stringify(dto),
+        schoolNo: dto.schoolNo,
+        actionType: 'I' as const,
+        targetTable: 'rnDevicesRel',
+        targetId: dto.mac,
+        oldValues: null,
+        newValues: JSON.stringify(dto),
         reason: '센서 등록',
       };
       return logAction(makeLogParams(logParams), conn);

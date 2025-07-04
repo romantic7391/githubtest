@@ -30,16 +30,16 @@ export async function getPermissionsS(
     // 로그 기록
     await logAction(
       makeLogParams({
-        manager_no: meta.manager_no,
-        school_no: meta.school_no,
+        managerNo: meta.managerNo,
+        schoolNo: meta.schoolNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'S',
-        target_table: 'permission',
-        target_id: '',
-        old_values: null,
-        new_values: JSON.stringify(result),
-        reason: `권한 목록 조회`,
+        userAgent: meta.userAgent,
+        actionType: 'S',
+        targetTable: 'permission',
+        targetId: '',
+        oldValues: null,
+        newValues: JSON.stringify(result),
+        reason: '권한 목록 조회',
       }),
     );
 
@@ -74,14 +74,14 @@ export async function createPermissionS(dto: CreatePermissionDto, meta: LogMeta)
     // 로그 기록
     await logAction(
       makeLogParams({
-        manager_no: meta.manager_no,
+        managerNo: meta.managerNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'I',
-        target_table: 'permission',
-        target_id: result.insertId.toString(),
-        old_values: JSON.stringify({}),
-        new_values: JSON.stringify(dto),
+        userAgent: meta.userAgent,
+        actionType: 'I',
+        targetTable: 'permission',
+        targetId: result.insertId.toString(),
+        oldValues: JSON.stringify({}),
+        newValues: JSON.stringify(dto),
         reason: `권한 생성: ${dto.name}`,
       }),
       conn,
@@ -93,7 +93,12 @@ export async function createPermissionS(dto: CreatePermissionDto, meta: LogMeta)
     };
   } catch (error) {
     if (conn) {
-      await rollbackTransaction(conn);
+      try {
+        await rollbackTransaction(conn);
+      } catch (rollbackError) {
+        // 롤백 실패 시에도 원래 에러를 유지
+        console.error('롤백 실패:', rollbackError);
+      }
     }
     if (error instanceof AppError) {
       throw error;
@@ -110,7 +115,7 @@ export async function updatePermissionS(dto: UpdatePermissionDto, meta: LogMeta)
     conn = await beginTransaction();
 
     // 1. 권한 존재 여부 확인
-    const existingPermission = await findPermission({ permission_no: dto.permission_no });
+    const existingPermission = await findPermission({ permissionNo: dto.permissionNo });
     if (!existingPermission) {
       throw new AppError('존재하지 않는 권한입니다.', 404);
     }
@@ -122,21 +127,26 @@ export async function updatePermissionS(dto: UpdatePermissionDto, meta: LogMeta)
     await logAction(
       makeLogParams({
         ...meta,
-        action_type: 'U',
-        target_table: 'permission',
-        target_id: dto.permission_no.toString(),
-        old_values: JSON.stringify(existingPermission),
-        new_values: JSON.stringify(dto),
+        actionType: 'U',
+        targetTable: 'permission',
+        targetId: dto.permissionNo.toString(),
+        oldValues: JSON.stringify(existingPermission),
+        newValues: JSON.stringify(dto),
         reason: `권한 수정: ${dto.name}`,
       }),
       conn,
     );
 
     await commitTransaction(conn);
-    return { permissionNo: dto.permission_no };
+    return { permissionNo: dto.permissionNo };
   } catch (error) {
     if (conn) {
-      await rollbackTransaction(conn);
+      try {
+        await rollbackTransaction(conn);
+      } catch (rollbackError) {
+        // 롤백 실패 시에도 원래 에러를 유지
+        console.error('롤백 실패:', rollbackError);
+      }
     }
     if (error instanceof AppError) {
       throw error;
@@ -153,7 +163,7 @@ export async function deletePermissionS(permissionNo: number, meta: LogMeta) {
     conn = await beginTransaction();
 
     // 1. 권한 존재 여부 확인
-    const existingPermission = await findPermission({ permission_no: permissionNo });
+    const existingPermission = await findPermission({ permissionNo: permissionNo });
     if (!existingPermission) {
       throw new AppError('존재하지 않는 권한입니다.', 404);
     }
@@ -165,11 +175,11 @@ export async function deletePermissionS(permissionNo: number, meta: LogMeta) {
     await logAction(
       makeLogParams({
         ...meta,
-        action_type: 'D',
-        target_table: 'permission',
-        target_id: permissionNo.toString(),
-        old_values: JSON.stringify(existingPermission),
-        new_values: null,
+        actionType: 'D',
+        targetTable: 'permission',
+        targetId: permissionNo.toString(),
+        oldValues: JSON.stringify(existingPermission),
+        newValues: null,
         reason: `권한 삭제: ${existingPermission.name}`,
       }),
       conn,
@@ -178,7 +188,12 @@ export async function deletePermissionS(permissionNo: number, meta: LogMeta) {
     await commitTransaction(conn);
   } catch (error) {
     if (conn) {
-      await rollbackTransaction(conn);
+      try {
+        await rollbackTransaction(conn);
+      } catch (rollbackError) {
+        // 롤백 실패 시에도 원래 에러를 유지
+        console.error('롤백 실패:', rollbackError);
+      }
     }
     if (error instanceof AppError) {
       throw error;
@@ -191,7 +206,7 @@ export async function deletePermissionS(permissionNo: number, meta: LogMeta) {
 // 권한 조회
 export async function getPermissionS(permissionNo: number, meta: LogMeta): Promise<{ permissionNo: number }> {
   try {
-    const permission = await findPermission({ permission_no: permissionNo });
+    const permission = await findPermission({ permissionNo: permissionNo });
     if (!permission) {
       throw new AppError('존재하지 않는 권한입니다.', 404);
     }
@@ -199,14 +214,14 @@ export async function getPermissionS(permissionNo: number, meta: LogMeta): Promi
     // 로그 기록
     await logAction(
       makeLogParams({
-        manager_no: meta.manager_no,
+        managerNo: meta.managerNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'S',
-        target_table: 'permission',
-        target_id: permissionNo.toString(),
-        old_values: null,
-        new_values: JSON.stringify(permission),
+        userAgent: meta.userAgent,
+        actionType: 'S',
+        targetTable: 'permission',
+        targetId: permissionNo.toString(),
+        oldValues: null,
+        newValues: JSON.stringify(permission),
         reason: `권한 조회: ${permission.name}`,
       }),
     );

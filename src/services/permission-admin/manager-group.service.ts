@@ -48,15 +48,15 @@ export async function getManagerGroupsS(
     if (meta) {
       await logAction(
         makeLogParams({
-          manager_no: meta.manager_no,
+          managerNo: meta.managerNo,
           ip: meta.ip,
-          user_agent: meta.user_agent,
-          action_type: 'S',
-          target_table: 'managerGroup',
-          target_id: filters?.groupNo ? `group_no=${filters.groupNo}` : 'all',
-          old_values: '',
-          new_values: JSON.stringify(result),
-          reason: `관리자 그룹 조회: ${filters?.groupNo ? `group_no ${filters.groupNo}` : '전체'}`,
+          userAgent: meta.userAgent,
+          actionType: 'S',
+          targetTable: 'managerGroup',
+          targetId: filters?.groupNo ? `groupNo=${filters.groupNo}` : 'all',
+          oldValues: '',
+          newValues: JSON.stringify(result),
+          reason: `관리자 그룹 조회: ${filters?.groupNo ? `groupNo ${filters.groupNo}` : '전체'}`,
         }),
         conn,
       );
@@ -108,15 +108,15 @@ export async function createManagerGroupS(managerGroup: ManagerGroup, meta: LogM
     // 3. 로그 기록
     await logAction(
       makeLogParams({
-        manager_no: meta.manager_no,
+        managerNo: meta.managerNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'I',
-        target_table: 'managerGroup',
-        target_id: `${managerGroup.no}_${managerGroup.groupNo}`,
-        old_values: JSON.stringify({}),
-        new_values: JSON.stringify(managerGroup),
-        reason: `관리자 그룹 생성: manager_no ${managerGroup.no}, group_no ${managerGroup.groupNo}`,
+        userAgent: meta.userAgent,
+        actionType: 'I',
+        targetTable: 'managerGroup',
+        targetId: `${managerGroup.no}_${managerGroup.groupNo}`,
+        oldValues: JSON.stringify({}),
+        newValues: JSON.stringify(managerGroup),
+        reason: `관리자 그룹 생성: managerNo ${managerGroup.no}, groupNo ${managerGroup.groupNo}`,
       }),
       conn,
     );
@@ -171,15 +171,15 @@ export async function updateManagerGroupS(
     // 4. 로그 기록
     await logAction(
       makeLogParams({
-        manager_no: meta.manager_no,
+        managerNo: meta.managerNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'U',
-        target_table: 'managerGroup',
-        target_id: `${managerGroup.no}_${managerGroup.groupNo}`,
-        old_values: JSON.stringify({ no: originalNo, groupNo: originalGroupNo }),
-        new_values: JSON.stringify(managerGroup),
-        reason: `관리자 그룹 수정: manager_no ${originalNo}->${managerGroup.no}, group_no ${originalGroupNo}->${managerGroup.groupNo}`,
+        userAgent: meta.userAgent,
+        actionType: 'U',
+        targetTable: 'managerGroup',
+        targetId: `${managerGroup.no}_${managerGroup.groupNo}`,
+        oldValues: JSON.stringify({ no: originalNo, groupNo: originalGroupNo }),
+        newValues: JSON.stringify(managerGroup),
+        reason: `관리자 그룹 수정: managerNo ${originalNo}->${managerGroup.no}, groupNo ${originalGroupNo}->${managerGroup.groupNo}`,
       }),
       conn,
     );
@@ -220,15 +220,15 @@ export async function deleteManagerGroupS(no: number, groupNo: number, meta: Log
     // 3. 로그 기록
     await logAction(
       makeLogParams({
-        manager_no: meta.manager_no,
+        managerNo: meta.managerNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'D',
-        target_table: 'managerGroup',
-        target_id: `${no}_${groupNo}`,
-        old_values: JSON.stringify({ no, groupNo }),
-        new_values: JSON.stringify({}),
-        reason: `관리자 그룹 삭제: manager_no ${no}, group_no ${groupNo}`,
+        userAgent: meta.userAgent,
+        actionType: 'D',
+        targetTable: 'managerGroup',
+        targetId: `${no}_${groupNo}`,
+        oldValues: JSON.stringify({ no, groupNo }),
+        newValues: JSON.stringify({}),
+        reason: `관리자 그룹 삭제: managerNo ${no}, groupNo ${groupNo}`,
       }),
       conn,
     );
