@@ -1,6 +1,6 @@
 import { HTTPStatusError } from '@/lib/common.error';
 import { isJsonResponse } from '@/lib/util/common.util';
-import { Pagination, paginationSchema } from '@/types/common';
+import { paginationSchema } from '@/types/common';
 import { GroupsApiResponse } from '@/types/permission';
 import { School } from '@/types/school';
 import { useQuery } from '@tanstack/react-query';
@@ -8,11 +8,9 @@ import { useQuery } from '@tanstack/react-query';
 interface UseFilteredGroupsProps {
   area: School['area'];
   schoolNo: School['schoolNo'];
-  page: Pagination['page'];
-  pageSize: Pagination['pageSize'];
 }
 
-export default function useFilteredGroups({ area = 'all', schoolNo, page, pageSize }: UseFilteredGroupsProps) {
+export default function useFilteredGroups({ area = 'all', schoolNo }: UseFilteredGroupsProps) {
   function getInitialData(): GroupsApiResponse['data'] {
     return {
       groups: [],
@@ -23,13 +21,8 @@ export default function useFilteredGroups({ area = 'all', schoolNo, page, pageSi
   async function fetchData(): Promise<GroupsApiResponse['data']> {
     const requestUrl = new URL(`/api/permission-admin/group`, window.location.origin);
     requestUrl.searchParams.set('schoolNo', schoolNo.toString());
-
-    if (page) {
-      requestUrl.searchParams.set('page', page.toString());
-    }
-    if (pageSize) {
-      requestUrl.searchParams.set('pageSize', pageSize.toString());
-    }
+    requestUrl.searchParams.set('page', '1');
+    requestUrl.searchParams.set('pageSize', Number.MAX_SAFE_INTEGER.toString());
 
     const response = await fetch(requestUrl, { method: 'GET' });
 
@@ -51,7 +44,7 @@ export default function useFilteredGroups({ area = 'all', schoolNo, page, pageSi
   }
 
   return useQuery({
-    queryKey: ['groups', area, schoolNo, page, pageSize],
+    queryKey: ['groups', area, schoolNo],
     retry: false,
     staleTime: 0,
     gcTime: 0,

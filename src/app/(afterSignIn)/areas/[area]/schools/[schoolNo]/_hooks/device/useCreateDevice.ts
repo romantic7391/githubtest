@@ -14,7 +14,6 @@ interface CreateDeviceParams {
 
 export default function useCreateDevice({ area, schoolNo }: UseCreateDeviceProps) {
   async function createData({ device }: CreateDeviceParams) {
-    console.log('createData: ', device);
     const requestUrl = new URL(`/api/areas/${area}/schools/${schoolNo}/devices/create`, window.location.origin);
     const body = JSON.stringify(device);
     const response = await fetch(requestUrl, {

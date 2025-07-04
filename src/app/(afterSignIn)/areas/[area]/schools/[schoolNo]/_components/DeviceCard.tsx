@@ -21,14 +21,14 @@ import { DEVICE_KINDS } from '@/lib/device.constant';
 import { useClickOutside, useDebouncedCallback } from '@mantine/hooks';
 import { useForm } from '@mantine/form';
 import ZodErrorDisplay from '@/app/(afterSignIn)/_components/ZodErrorDisplay';
-import useUpdateDevice from '../_hooks/useUpdateDevice';
+import useUpdateDevice from '../_hooks/device/useUpdateDevice';
 import { useParams } from 'next/navigation';
-import useCreateDevice from '../_hooks/useCreateDevice';
+import useCreateDevice from '../_hooks/device/useCreateDevice';
 import { QueryObserverResult, RefetchOptions } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconAlertCircleFilled, IconCheck, IconDots, IconTrash } from '@tabler/icons-react';
-import useDeleteDevice from '../_hooks/useDeleteDevice';
-import useDeviceLatestSensorData from '../_hooks/useDeviceLatestSensorData';
+import useDeleteDevice from '../_hooks/device/useDeleteDevice';
+import useDeviceLatestSensorData from '../_hooks/device/useDeviceLatestSensorData';
 
 export default function DeviceCard({
   device,

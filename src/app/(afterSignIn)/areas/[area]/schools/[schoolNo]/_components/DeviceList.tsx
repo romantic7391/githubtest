@@ -1,7 +1,7 @@
 'use client';
 
 import { DEFAULT_PAGE_SIZE } from '@/lib/default.constant';
-import useFilteredDevices from '../_hooks/useFilteredDevices';
+import useFilteredDevices from '../_hooks/device/useFilteredDevices';
 import { useEffect, useState } from 'react';
 import { paginationSchema } from '@/types/common';
 import { Device } from '@/types/device';
