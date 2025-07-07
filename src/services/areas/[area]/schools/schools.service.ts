@@ -35,14 +35,14 @@ export async function getRnSchoolsByArea(
     if (meta) {
       await logAction(
         makeLogParams({
-          manager_no: meta.manager_no,
+          managerNo: meta.managerNo,
           ip: meta.ip,
-          user_agent: meta.user_agent,
-          action_type: 'S',
-          target_table: 'rnschool',
-          target_id: area === 'all' ? 'all' : `area=${area}`,
-          old_values: '',
-          new_values: JSON.stringify(result),
+          userAgent: meta.userAgent,
+          actionType: 'S',
+          targetTable: 'rnschool',
+          targetId: area === 'all' ? 'all' : `area=${area}`,
+          oldValues: '',
+          newValues: JSON.stringify(result),
           reason: `학교 목록 조회: ${area === 'all' ? '전체' : `지역 ${area}`}`,
         }),
         conn,

@@ -26,10 +26,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     // 3. 센서 등록
     await createRnDevicesRel([validatedData], {
-      manager_no: 1, // TODO: 실제 사용자의 manager_no로 변경 필요
-      school_no: parseInt(schoolNo, 10),
+      managerNo: 1, // TODO: 실제 사용자의 manager_no로 변경 필요
+      schoolNo: parseInt(schoolNo, 10),
       ip,
-      user_agent: userAgent,
+      userAgent: userAgent,
     });
 
     return NextResponse.json(
@@ -43,8 +43,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       { status: 201 },
     );
   } catch (error) {
-    console.error('Error in POST /api/areas/[area]/schools/[schoolNo]/devices/create:', error);
-
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         {
@@ -54,6 +52,32 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         { status: 400 },
       );
     }
+
+    // 비즈니스 로직 에러 처리
+    if (error instanceof Error) {
+      const errorMessage = error.message;
+      if (errorMessage === '이미 등록된 MAC 주소입니다.') {
+        return NextResponse.json(
+          {
+            success: false,
+            message: errorMessage,
+          } satisfies BaseApiResponse,
+          { status: 409 },
+        );
+      }
+      if (errorMessage === '등록할 센서 정보가 없습니다.') {
+        return NextResponse.json(
+          {
+            success: false,
+            message: errorMessage,
+          } satisfies BaseApiResponse,
+          { status: 400 },
+        );
+      }
+    }
+
+    // 실제 서버 오류만 로깅
+    console.error('Error in POST /api/areas/[area]/schools/[schoolNo]/devices/create:', error);
 
     return NextResponse.json(
       {
