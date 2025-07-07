@@ -228,11 +228,12 @@ export async function updateMac(
       throw new Error('MAC 주소 변경에 실패했습니다.');
     }
 
-    // 3. rnDevices 테이블도 같이 mac 변경
-    const deviceResult = await updateDeviceMac(dto.oldMac, dto.newMac, conn);
-    if (deviceResult.affectedRows === 0) {
-      throw new Error('MAC 주소 변경에 실패했습니다.');
-    }
+    // 3. rnDevices 테이블도 같이 mac 변경 (존재하는 경우에만)
+    await updateDeviceMac(dto.oldMac, dto.newMac, conn);
+    // rnDevices 테이블에 해당 MAC 주소가 없으면 무시 (affectedRows === 0이어도 에러 아님)
+    // if (deviceResult.affectedRows === 0) {
+    //   throw new Error('MAC 주소 변경에 실패했습니다.');
+    // }
 
     // 4. 로그 기록
     try {
