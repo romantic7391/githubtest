@@ -19,10 +19,7 @@ import { logAction, makeLogParams } from '@/services/log-action/log-action.servi
 jest.mock('@/models/rnDevicesRel/rnDevicesRel.model');
 jest.mock('@/models/rnDevices/rnDevices.model');
 jest.mock('@/lib/mariadb/query');
-jest.mock('@/services/log-action/log-action.service', () => ({
-  logAction: jest.requireActual('@/services/log-action/log-action.service').logAction,
-  makeLogParams: jest.requireActual('@/services/log-action/log-action.service').makeLogParams,
-}));
+jest.mock('@/services/log-action/log-action.service');
 jest.mock('@/models/history-action/history-action.model', () => ({
   insertLogAction: jest.fn(),
 }));
@@ -50,6 +47,10 @@ describe('Device Service', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    // logAction과 makeLogParams 모킹 설정
+    (logAction as jest.Mock).mockResolvedValue(undefined);
+    (makeLogParams as jest.Mock).mockReturnValue({});
   });
 
   // getDevice 테스트
@@ -391,7 +392,7 @@ describe('Device Service', () => {
     it('should throw error when device is not found', async () => {
       const mockConn = { release: jest.fn() };
       (beginTransaction as jest.Mock).mockResolvedValue(mockConn);
-      (findDeviceByMac as jest.Mock).mockResolvedValue(null);
+      (findRnDeviceRelBySchoolNoAndMac as jest.Mock).mockResolvedValue(null);
 
       const updateData = {
         mac: '123456789ABC',
@@ -411,7 +412,7 @@ describe('Device Service', () => {
           ip: '127.0.0.1',
           userAgent: 'test',
         }),
-      ).rejects.toThrow('센서 수정 중 오류가 발생했습니다.');
+      ).rejects.toThrow('기존 MAC 주소로 등록된 센서를 찾을 수 없습니다.');
 
       expect(mockConn.release).toHaveBeenCalled();
     });
@@ -419,7 +420,7 @@ describe('Device Service', () => {
     it('should handle database error', async () => {
       const mockConn = { release: jest.fn() };
       (beginTransaction as jest.Mock).mockResolvedValue(mockConn);
-      (findDeviceByMac as jest.Mock).mockRejectedValue(new Error('DB Error'));
+      (findRnDeviceRelBySchoolNoAndMac as jest.Mock).mockRejectedValue(new Error('DB Error'));
 
       const updateData = {
         mac: '123456789ABC',
@@ -810,7 +811,7 @@ describe('Device Service', () => {
     it('updateDevice에서 logAction 실패 시 에러를 로깅하고 계속 진행해야 함', async () => {
       const mockConn = { release: jest.fn() };
       (beginTransaction as jest.Mock).mockResolvedValue(mockConn);
-      (findDeviceByMac as jest.Mock).mockResolvedValue(mockDevice);
+      (findRnDeviceRelBySchoolNoAndMac as jest.Mock).mockResolvedValue(mockDevice);
       (updateRnDevicesRel as jest.Mock).mockResolvedValue(undefined);
       (commitTransaction as jest.Mock).mockResolvedValue(undefined);
 
@@ -843,7 +844,7 @@ describe('Device Service', () => {
     it('updateDevice에서 makeLogParams 실패 시 에러를 로깅하고 계속 진행해야 함', async () => {
       const mockConn = { release: jest.fn() };
       (beginTransaction as jest.Mock).mockResolvedValue(mockConn);
-      (findDeviceByMac as jest.Mock).mockResolvedValue(mockDevice);
+      (findRnDeviceRelBySchoolNoAndMac as jest.Mock).mockResolvedValue(mockDevice);
       (updateRnDevicesRel as jest.Mock).mockResolvedValue(undefined);
       (commitTransaction as jest.Mock).mockResolvedValue(undefined);
 
@@ -878,7 +879,7 @@ describe('Device Service', () => {
     it('updateDevice에서 findDeviceByMac이 null을 반환할 때 에러를 발생시켜야 함', async () => {
       const mockConn = { release: jest.fn() };
       (beginTransaction as jest.Mock).mockResolvedValue(mockConn);
-      (findDeviceByMac as jest.Mock).mockResolvedValue(null);
+      (findRnDeviceRelBySchoolNoAndMac as jest.Mock).mockResolvedValue(null);
 
       const updateData = {
         mac: '123456789ABC',
@@ -898,7 +899,7 @@ describe('Device Service', () => {
           ip: '127.0.0.1',
           userAgent: 'test',
         }),
-      ).rejects.toThrow('센서 수정 중 오류가 발생했습니다.');
+      ).rejects.toThrow('기존 MAC 주소로 등록된 센서를 찾을 수 없습니다.');
 
       expect(mockConn.release).toHaveBeenCalled();
     });
@@ -925,7 +926,7 @@ describe('Device Service', () => {
     it('should not throw error when device is not found', async () => {
       const mockConn = { release: jest.fn() };
       (beginTransaction as jest.Mock).mockResolvedValue(mockConn);
-      (findDeviceByMac as jest.Mock).mockResolvedValue(null);
+      (findRnDeviceRelBySchoolNoAndMac as jest.Mock).mockResolvedValue(null);
       (commitTransaction as jest.Mock).mockResolvedValue(undefined);
 
       await deleteDevice({ mac: '123456789ABC', schoolNo: 1 }, { managerNo: 1, ip: '127.0.0.1', userAgent: 'test' });
@@ -939,7 +940,7 @@ describe('Device Service', () => {
     it('should handle database error', async () => {
       const mockConn = { release: jest.fn() };
       (beginTransaction as jest.Mock).mockResolvedValue(mockConn);
-      (findDeviceByMac as jest.Mock).mockRejectedValue(new Error('DB Error'));
+      (findRnDeviceRelBySchoolNoAndMac as jest.Mock).mockRejectedValue(new Error('DB Error'));
 
       await expect(
         deleteDevice({ mac: '123456789ABC', schoolNo: 1 }, { managerNo: 1, ip: '127.0.0.1', userAgent: 'test' }),
@@ -1066,6 +1067,11 @@ describe('Device Service', () => {
     });
 
     it('존재하지 않는 디바이스 삭제 시 조용히 종료되어야 함', async () => {
+      const mockConn = { release: jest.fn() };
+      (beginTransaction as jest.Mock).mockResolvedValue(mockConn);
+      (findRnDeviceRelBySchoolNoAndMac as jest.Mock).mockResolvedValue(null);
+      (commitTransaction as jest.Mock).mockResolvedValue(undefined);
+
       const params = {
         mac: '00:11:22:33:44:55',
         schoolNo: 1,
@@ -1075,9 +1081,6 @@ describe('Device Service', () => {
         ip: '127.0.0.1',
         userAgent: 'test-agent',
       };
-
-      // findDeviceByMac이 null을 반환하도록 모킹
-      (findDeviceByMac as jest.Mock).mockResolvedValueOnce(null);
 
       await expect(deleteDevice(params, meta)).resolves.not.toThrow();
     });
@@ -1105,7 +1108,7 @@ describe('Device Service', () => {
     it('deleteDevice에서 logAction 실패 시 에러를 로깅하고 계속 진행해야 함', async () => {
       const mockConn = { release: jest.fn() };
       (beginTransaction as jest.Mock).mockResolvedValue(mockConn);
-      (findDeviceByMac as jest.Mock).mockResolvedValue(mockDevice);
+      (findRnDeviceRelBySchoolNoAndMac as jest.Mock).mockResolvedValue(mockDevice);
       (softDeleteRnDevicesRel as jest.Mock).mockResolvedValue(undefined);
       (softDeleteRnDevice as jest.Mock).mockResolvedValue(undefined);
       (commitTransaction as jest.Mock).mockResolvedValue(undefined);
