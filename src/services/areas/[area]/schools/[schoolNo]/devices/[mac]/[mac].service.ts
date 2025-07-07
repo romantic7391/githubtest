@@ -62,6 +62,14 @@ export async function getDevice(
     }
     console.error('[getDeviceService] DB 조회 에러:', error);
     throw new Error('센서 조회 중 오류가 발생했습니다.');
+  } finally {
+    if (conn) {
+      try {
+        await conn.release();
+      } catch (releaseError) {
+        console.error('Connection release error:', releaseError);
+      }
+    }
   }
 }
 
@@ -133,7 +141,7 @@ export async function updateDevice(
 
     await commitTransaction(conn);
     return { mac: dto.mac };
-  } catch (error) {
+  } catch (error: unknown) {
     if (conn) {
       try {
         await rollbackTransaction(conn);
@@ -142,7 +150,18 @@ export async function updateDevice(
       }
     }
     console.error('[updateDeviceService] 센서 수정 중 오류 발생:', error);
+    if (error instanceof Error && error?.message === '기존 MAC 주소로 등록된 센서를 찾을 수 없습니다.') {
+      throw error;
+    }
     throw new Error('센서 수정 중 오류가 발생했습니다.');
+  } finally {
+    if (conn) {
+      try {
+        await conn.release();
+      } catch (releaseError) {
+        console.error('Connection release error:', releaseError);
+      }
+    }
   }
 }
 
@@ -204,6 +223,14 @@ export async function deleteDevice(
     }
     console.error('[deleteDeviceService] 센서 삭제 중 오류 발생:', error);
     throw new Error('센서 삭제 중 오류가 발생했습니다.');
+  } finally {
+    if (conn) {
+      try {
+        await conn.release();
+      } catch (releaseError) {
+        console.error('Connection release error:', releaseError);
+      }
+    }
   }
 }
 
