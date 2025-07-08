@@ -27,7 +27,7 @@ export interface LogActionParams {
 }
 
 export interface RequestMeta {
-  manager_no: number;
-  school_no: number;
+  managerNo: number;
+  schoolNo: number;
   req?: Request;
 }
