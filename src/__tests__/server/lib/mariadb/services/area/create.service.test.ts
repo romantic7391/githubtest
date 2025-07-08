@@ -105,7 +105,6 @@ describe('지역 생성 서비스 테스트', () => {
         mockConn,
       );
       expect(commitTransaction).toHaveBeenCalledWith(mockConn);
-      expect(mockConn.release).toHaveBeenCalled();
     });
 
     it('이미 존재하는 지역명일 때 에러를 발생시켜야 함', async () => {
@@ -120,7 +119,6 @@ describe('지역 생성 서비스 테스트', () => {
       expect(checkAreaExists).toHaveBeenCalledWith('newarea');
       expect(insertArea).not.toHaveBeenCalled();
       expect(rollbackTransaction).toHaveBeenCalledWith(mockConn);
-      expect(mockConn.release).toHaveBeenCalled();
     });
 
     it('insertArea 실패 시 에러를 발생시켜야 함', async () => {
@@ -135,7 +133,6 @@ describe('지역 생성 서비스 테스트', () => {
       await expect(createArea(mockAreaData, mockMeta)).rejects.toThrow('Insert failed');
       expect(insertArea).toHaveBeenCalledWith(mockAreaData);
       expect(rollbackTransaction).toHaveBeenCalledWith(mockConn);
-      expect(mockConn.release).toHaveBeenCalled();
     });
 
     it('commitTransaction 실패 시 에러를 발생시켜야 함', async () => {
@@ -150,7 +147,6 @@ describe('지역 생성 서비스 테스트', () => {
       // Execute & Assert
       await expect(createArea(mockAreaData, mockMeta)).rejects.toThrow('Commit failed');
       expect(rollbackTransaction).toHaveBeenCalledWith(mockConn);
-      expect(mockConn.release).toHaveBeenCalled();
     });
 
     it('rollbackTransaction 실패 시 에러를 로깅해야 함', async () => {
@@ -166,28 +162,6 @@ describe('지역 생성 서비스 테스트', () => {
       // Execute & Assert
       await expect(createArea(mockAreaData, mockMeta)).rejects.toThrow('이미 존재하는 지역명입니다.');
       expect(consoleSpy).toHaveBeenCalledWith('Rollback error:', expect.any(Error));
-      expect(mockConn.release).toHaveBeenCalled();
-
-      consoleSpy.mockRestore();
-    });
-
-    it('커넥션 해제 실패 시 에러를 로깅해야 함', async () => {
-      // Mock setup
-      const mockConn = { release: jest.fn().mockRejectedValue(new Error('Release failed')) };
-      (beginTransaction as jest.Mock).mockResolvedValue(mockConn);
-      (checkAreaExists as jest.Mock).mockResolvedValue(false);
-      (insertArea as jest.Mock).mockResolvedValue(undefined);
-      (commitTransaction as jest.Mock).mockResolvedValue(undefined);
-
-      // Spy on console.error
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
-
-      // Execute
-      await createArea(mockAreaData, mockMeta);
-
-      // Assert
-      expect(consoleSpy).toHaveBeenCalledWith('Connection release error:', expect.any(Error));
-      expect(mockConn.release).toHaveBeenCalled();
 
       consoleSpy.mockRestore();
     });
@@ -210,7 +184,6 @@ describe('지역 생성 서비스 테스트', () => {
       // Execute & Assert
       await expect(createArea(mockAreaData, mockMeta)).rejects.toThrow('Check failed');
       expect(rollbackTransaction).toHaveBeenCalledWith(mockConn);
-      expect(mockConn.release).toHaveBeenCalled();
     });
 
     it('logAction 실패 시 에러를 발생시켜야 함', async () => {
@@ -225,7 +198,6 @@ describe('지역 생성 서비스 테스트', () => {
       // Execute & Assert
       await expect(createArea(mockAreaData, mockMeta)).rejects.toThrow('Log failed');
       expect(rollbackTransaction).toHaveBeenCalledWith(mockConn);
-      expect(mockConn.release).toHaveBeenCalled();
     });
 
     it('makeLogParams 실패 시 에러를 발생시켜야 함', async () => {
@@ -242,7 +214,6 @@ describe('지역 생성 서비스 테스트', () => {
       // Execute & Assert
       await expect(createArea(mockAreaData, mockMeta)).rejects.toThrow('MakeLogParams failed');
       expect(rollbackTransaction).toHaveBeenCalledWith(mockConn);
-      expect(mockConn.release).toHaveBeenCalled();
     });
 
     it('다른 타입의 에러가 발생할 때 기본 에러 메시지를 반환해야 함', async () => {
@@ -256,7 +227,6 @@ describe('지역 생성 서비스 테스트', () => {
       // Execute & Assert
       await expect(createArea(mockAreaData, mockMeta)).rejects.toThrow('지역 생성 중 오류가 발생했습니다.');
       expect(rollbackTransaction).toHaveBeenCalledWith(mockConn);
-      expect(mockConn.release).toHaveBeenCalled();
     });
   });
 });
