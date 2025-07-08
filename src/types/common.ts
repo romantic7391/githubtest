@@ -91,10 +91,10 @@ export interface BaseApiResponse1 {
  * 공통 컨텍스트
  */
 export const commonContextSchema = z.object({
-  manager_no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
-  ip: z.string(),
-  user_agent: z.string(),
-  school_no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER).optional(),
+  managerNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
+  ip: z.string().nullable(),
+  userAgent: z.string().nullable(),
+  schoolNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER).optional(),
 });
 
 export type CommonContext = z.infer<typeof commonContextSchema>;

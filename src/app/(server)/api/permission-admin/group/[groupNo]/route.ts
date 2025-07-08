@@ -62,7 +62,7 @@ export async function PUT(request: NextRequest, context: GroupRouteParams) {
     };
 
     const result = await updateGroupS(groupData, {
-      managerNo: session.manager_no,
+      managerNo: session.managerNo,
       ip: request.headers.get('x-forwarded-for') || '',
       userAgent: request.headers.get('user-agent') || '',
       schoolNo: 0,
@@ -121,7 +121,7 @@ export async function DELETE(request: NextRequest, context: GroupRouteParams) {
     // 1. 그룹 존재 여부 확인
 
     await deleteGroupS(groupNoNum, {
-      managerNo: session.manager_no,
+      managerNo: session.managerNo,
       ip: request.headers.get('x-forwarded-for') || '',
       userAgent: request.headers.get('user-agent') || '',
       schoolNo: 0,

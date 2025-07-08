@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
       pageSize,
       name,
       schoolNo,
-      managerNo: session.manager_no,
+      managerNo: session.managerNo,
     });
 
     // 페이지네이션 검증
@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
     const result = await getGroupsS(
       pagination,
       {
-        managerNo: session.manager_no,
+        managerNo: session.managerNo,
         ip: request.headers.get('x-forwarded-for') || '',
         userAgent: request.headers.get('user-agent') || '',
         schoolNo: 0,
@@ -140,7 +140,7 @@ export async function POST(request: NextRequest) {
 
     console.log('[POST] createGroupS 호출 전');
     const result = await createGroupS(groupData, {
-      managerNo: session.manager_no,
+      managerNo: session.managerNo,
       ip: request.headers.get('x-forwarded-for') || '',
       userAgent: request.headers.get('user-agent') || '',
       schoolNo: 0,

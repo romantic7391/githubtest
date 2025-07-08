@@ -48,8 +48,8 @@ async function getCommonContext(request: NextRequest): Promise<CommonContext> {
 
   return {
     managerNo: session.user.managerNo,
-    ip: ip || '',
-    userAgent: userAgent || '',
+    ip: ip,
+    userAgent: userAgent,
   };
 }
 

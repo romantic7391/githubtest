@@ -54,10 +54,10 @@ export async function GET(request: NextRequest) {
     });
 
     const result = await getGroupPermissionsS(pagination, filters, {
-      manager_no: session.manager_no,
+      managerNo: session.managerNo,
       ip: request.headers.get('x-forwarded-for') || '',
-      user_agent: request.headers.get('user-agent') || '',
-      school_no: 0,
+      userAgent: request.headers.get('user-agent') || '',
+      schoolNo: 0,
     });
 
     return NextResponse.json(
@@ -99,10 +99,10 @@ export async function POST(request: NextRequest) {
     const validatedData = createGroupPermissionSchema.parse(body);
 
     const result = await createGroupPermissionS(validatedData, {
-      manager_no: session.manager_no,
+      managerNo: session.managerNo,
       ip: request.headers.get('x-forwarded-for') || '',
-      user_agent: request.headers.get('user-agent') || '',
-      school_no: 0,
+      userAgent: request.headers.get('user-agent') || '',
+      schoolNo: 0,
     });
 
     return NextResponse.json(
@@ -156,10 +156,10 @@ export async function PUT(request: NextRequest) {
     const validatedData = updateGroupPermissionSchema.parse(body);
 
     await updateGroupPermissionS(validatedData, {
-      manager_no: session.manager_no,
+      managerNo: session.managerNo,
       ip: request.headers.get('x-forwarded-for') || '',
-      user_agent: request.headers.get('user-agent') || '',
-      school_no: 0,
+      userAgent: request.headers.get('user-agent') || '',
+      schoolNo: 0,
     });
 
     return NextResponse.json(
@@ -241,10 +241,10 @@ export async function DELETE(request: NextRequest) {
     }
 
     await deleteGroupPermissionS(validatedData.groupNo, validatedData.permissionNo, {
-      manager_no: session.manager_no,
+      managerNo: session.managerNo,
       ip: request.headers.get('x-forwarded-for') || '',
-      user_agent: request.headers.get('user-agent') || '',
-      school_no: 0,
+      userAgent: request.headers.get('user-agent') || '',
+      schoolNo: 0,
     });
 
     return NextResponse.json(
