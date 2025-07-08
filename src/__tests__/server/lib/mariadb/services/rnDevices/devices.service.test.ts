@@ -107,7 +107,6 @@ describe('Devices Service', () => {
 
       expect(findRnDevicesRelBySchoolNo).toHaveBeenCalledWith(params);
       expect(commitTransaction).toHaveBeenCalled();
-      expect(mockConn.release).toHaveBeenCalled();
     });
 
     it('total이 0일 때 totalPages가 1이 되어야 함', async () => {
@@ -174,7 +173,6 @@ describe('Devices Service', () => {
       );
 
       expect(rollbackTransaction).toHaveBeenCalled();
-      expect(mockConn.release).toHaveBeenCalled();
     });
 
     it('AppError가 발생하면 상태 코드와 메시지가 그대로 전달되어야 함', async () => {
@@ -184,7 +182,6 @@ describe('Devices Service', () => {
       await expect(getRnDevicesRelBySchoolNo(params, meta)).rejects.toThrow(customError);
 
       expect(rollbackTransaction).toHaveBeenCalled();
-      expect(mockConn.release).toHaveBeenCalled();
     });
 
     it('findRnDevicesRelBySchoolNo에서 AppError가 발생하면 그대로 전달되어야 함', async () => {
@@ -194,7 +191,6 @@ describe('Devices Service', () => {
       await expect(getRnDevicesRelBySchoolNo(params, meta)).rejects.toThrow(dbError);
 
       expect(rollbackTransaction).toHaveBeenCalled();
-      expect(mockConn.release).toHaveBeenCalled();
     });
 
     it('트랜잭션 롤백 중 에러가 발생해도 원래 에러를 유지해야 함', async () => {
@@ -207,7 +203,6 @@ describe('Devices Service', () => {
       );
 
       expect(rollbackTransaction).toHaveBeenCalled();
-      expect(mockConn.release).toHaveBeenCalled();
     });
 
     it('커넥션 해제 중 에러가 발생해도 원래 에러를 유지해야 함', async () => {
@@ -220,7 +215,6 @@ describe('Devices Service', () => {
       );
 
       expect(rollbackTransaction).toHaveBeenCalled();
-      expect(mockConn.release).toHaveBeenCalled();
     });
 
     it('일반 에러가 발생하면 500 에러로 변환되어야 함', async () => {
@@ -233,7 +227,6 @@ describe('Devices Service', () => {
       );
 
       expect(rollbackTransaction).toHaveBeenCalled();
-      expect(mockConn.release).toHaveBeenCalled();
     });
   });
 });

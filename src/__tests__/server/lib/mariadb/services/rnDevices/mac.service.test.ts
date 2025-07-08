@@ -35,15 +35,17 @@ describe('Device Service', () => {
     sdate: '2024-01-01',
     edate: '2024-12-31',
     created: '2024-01-01',
-    model: 'Test Model',
-    ip: '192.168.1.1',
-    rip: '192.168.1.2',
-    splrate: 1,
-    interval: 60,
-    ver: '1.0.0',
-    tags: 'test',
-    checkin: '2024-01-01',
-    device_created: '2024-01-01',
+    device: {
+      model: 'Test Model',
+      ip: '192.168.1.1',
+      rip: '192.168.1.2',
+      splrate: 1,
+      interval: 60,
+      ver: '1.0.0',
+      tags: 'test',
+      checkin: '2024-01-01',
+      created: '2024-01-01',
+    },
   };
 
   beforeEach(() => {

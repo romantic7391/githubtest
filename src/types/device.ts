@@ -85,7 +85,7 @@ export const deviceDbSchema = z
     ver: z.string().nullable(),
     tags: z.string().nullable(),
     checkin: datetimeSchema.nullable(),
-    device_created: datetimeSchema.nullable(),
+    deviceCreated: datetimeSchema.nullable(),
   })
   .transform((data) => {
     const device =
@@ -97,7 +97,7 @@ export const deviceDbSchema = z
       data.ver === null &&
       data.tags === null &&
       data.checkin === null &&
-      data.device_created === null
+      data.deviceCreated === null
         ? undefined
         : {
             model: data.model ?? '',
@@ -108,7 +108,7 @@ export const deviceDbSchema = z
             ver: data.ver ?? '',
             tags: data.tags,
             checkin: data.checkin,
-            created: data.device_created,
+            created: data.deviceCreated,
           };
 
     return {

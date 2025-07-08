@@ -93,7 +93,7 @@ export async function findRnDevicesRelBySchoolNo(params: DeviceListParams): Prom
       rd.ver,
       rd.tags,
       rd.checkin,
-      rd.created as device_created
+      rd.created as deviceCreated
     FROM rnDevicesRel AS rdr
     LEFT JOIN rnDevices AS rd ON rdr.mac = rd.mac
     WHERE ${conditions.join(' AND ')}
@@ -133,7 +133,7 @@ export async function findRnDeviceRelBySchoolNoAndMac(params: DeviceBasic): Prom
       rd.ver,
       rd.tags,
       rd.checkin,
-      rd.created as device_created
+      rd.created as deviceCreated
     FROM rnDevicesRel AS rdr
     LEFT JOIN rnDevices AS rd ON rdr.mac = rd.mac
     WHERE rdr.school_no = ? AND rdr.mac = ?

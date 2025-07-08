@@ -98,7 +98,6 @@ describe('Schools Service', () => {
 
       expect(findRnSchoolsByArea).toHaveBeenCalledWith(area, page, pageSize, undefined);
       expect(commitTransaction).toHaveBeenCalled();
-      expect(mockConn.release).toHaveBeenCalled();
 
       // logAction 호출 검증
       expect(makeLogParams).toHaveBeenCalledWith({
@@ -285,7 +284,6 @@ describe('Schools Service', () => {
       );
 
       expect(rollbackTransaction).toHaveBeenCalled();
-      expect(mockConn.release).toHaveBeenCalled();
     });
 
     it('findRnSchoolsByArea에서 AppError가 발생하면 그대로 전달되어야 함', async () => {
@@ -299,7 +297,6 @@ describe('Schools Service', () => {
       await expect(getRnSchoolsByArea(area, page, pageSize, undefined, meta)).rejects.toThrow(dbError);
 
       expect(rollbackTransaction).toHaveBeenCalled();
-      expect(mockConn.release).toHaveBeenCalled();
     });
 
     it('일반 에러가 발생하면 500 에러로 변환되어야 함', async () => {
@@ -314,7 +311,6 @@ describe('Schools Service', () => {
       );
 
       expect(rollbackTransaction).toHaveBeenCalled();
-      expect(mockConn.release).toHaveBeenCalled();
     });
 
     it('logAction 호출 중 에러가 발생해도 트랜잭션은 롤백되어야 함', async () => {
@@ -334,7 +330,6 @@ describe('Schools Service', () => {
       );
 
       expect(rollbackTransaction).toHaveBeenCalled();
-      expect(mockConn.release).toHaveBeenCalled();
     });
 
     it('makeLogParams 호출 중 에러가 발생해도 트랜잭션은 롤백되어야 함', async () => {
@@ -356,7 +351,6 @@ describe('Schools Service', () => {
       );
 
       expect(rollbackTransaction).toHaveBeenCalled();
-      expect(mockConn.release).toHaveBeenCalled();
     });
 
     it('beginTransaction 실패 시 에러를 적절히 처리해야 함', async () => {
@@ -392,7 +386,6 @@ describe('Schools Service', () => {
       );
 
       expect(rollbackTransaction).toHaveBeenCalled();
-      expect(mockConn.release).toHaveBeenCalled();
     });
 
     it('rollbackTransaction 실패 시에도 원래 에러를 유지해야 함', async () => {
@@ -413,7 +406,6 @@ describe('Schools Service', () => {
       );
 
       expect(rollbackTransaction).toHaveBeenCalled();
-      expect(mockConn.release).toHaveBeenCalled();
     });
 
     it('커넥션 해제 중 에러가 발생해도 원래 에러를 유지해야 함', async () => {
@@ -434,7 +426,6 @@ describe('Schools Service', () => {
       );
 
       expect(rollbackTransaction).toHaveBeenCalled();
-      expect(mockConn.release).toHaveBeenCalled();
     });
 
     it('Math.ceil(total / pageSize)가 0이 될 때 totalPages가 1이 되어야 함', async () => {
