@@ -19,7 +19,7 @@ import { getClientInfo } from '@/services/log-action/log-action.service';
  */
 export async function GET(request: NextRequest, { params }: { params: Promise<{ area: string; schoolNo: string }> }) {
   try {
-    const { area, schoolNo } = await params;
+    const { area, schoolNo } = await params; // eslint-disable-line @typescript-eslint/no-unused-vars
     const searchParams = request.nextUrl.searchParams;
     const { ip, userAgent } = getClientInfo(request);
 
@@ -37,11 +37,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         tags: searchParams.get('tags') || null,
       },
     };
-
-    console.log('GET /api/areas/[area]/schools/[schoolNo]/devices', {
-      area,
-      ...queryParams,
-    });
 
     // 2. 센서 목록 조회
     const result = await getRnDevicesRelBySchoolNo(queryParams, {
