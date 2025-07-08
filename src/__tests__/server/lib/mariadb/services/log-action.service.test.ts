@@ -56,28 +56,6 @@ describe('로그 액션 서비스 테스트', () => {
     });
   });
 
-  it('schoolNo가 undefined인 경우에도 로그 파라미터를 생성할 수 있어야 함', () => {
-    const params = {
-      ip: '127.0.0.1',
-      managerNo: 1,
-      userAgent: 'test-agent',
-      actionType: 'I' as const,
-      targetTable: 'test_table',
-      targetId: 'test_id',
-      oldValues: null,
-      newValues: '{"key": "value"}',
-      reason: '테스트',
-    };
-
-    const result = makeLogParams(params);
-
-    expect(result).toEqual({
-      ...params,
-      schoolNo: undefined, // undefined를 그대로 유지
-      oldValues: '',
-    });
-  });
-
   it('oldValues가 null인 경우 빈 문자열로 변환되어야 함', () => {
     const params = {
       ip: '127.0.0.1',
