@@ -51,6 +51,7 @@ export const groupsApiResponseSchema = baseApiResponseSchema.extend({
     pagination: paginationSchema,
   }),
 });
+export type GroupsApiResponse = z.infer<typeof groupsApiResponseSchema>;
 
 export const groupCreateOrUpdateApiResponseSchema = baseApiResponseSchema.extend({
   data: z.object({
