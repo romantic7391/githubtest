@@ -1,6 +1,6 @@
 'use client';
 
-import { Code, Grid, Stack } from '@mantine/core';
+import { Code, Grid, Stack, Title } from '@mantine/core';
 import useFilteredGroups from '../_hooks/useFilteredGroups';
 import GroupAddButton from './GroupCreateButton';
 
@@ -14,7 +14,7 @@ export default function GroupList({ area, schoolNo }: { area: string; schoolNo: 
     <Grid>
       <Grid.Col span={{ base: 12, md: 2 }}>
         <Stack>
-          그룹 트리
+          <Title order={4}>그룹 목록</Title>
           <Code block>{JSON.stringify(data, null, 2)}</Code>
           <GroupAddButton />
         </Stack>
