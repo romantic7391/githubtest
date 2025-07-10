@@ -48,6 +48,7 @@ export async function getManagerGroupsS(
     if (meta) {
       await logAction(
         makeLogParams({
+          schoolNo: meta.schoolNo,
           managerNo: meta.managerNo,
           ip: meta.ip,
           userAgent: meta.userAgent,
@@ -108,6 +109,7 @@ export async function createManagerGroupS(managerGroup: ManagerGroup, meta: LogM
     // 3. 로그 기록
     await logAction(
       makeLogParams({
+        schoolNo: meta.schoolNo,
         managerNo: meta.managerNo,
         ip: meta.ip,
         userAgent: meta.userAgent,
@@ -171,6 +173,7 @@ export async function updateManagerGroupS(
     // 4. 로그 기록
     await logAction(
       makeLogParams({
+        schoolNo: meta.schoolNo,
         managerNo: meta.managerNo,
         ip: meta.ip,
         userAgent: meta.userAgent,
@@ -220,6 +223,7 @@ export async function deleteManagerGroupS(no: number, groupNo: number, meta: Log
     // 3. 로그 기록
     await logAction(
       makeLogParams({
+        schoolNo: meta.schoolNo,
         managerNo: meta.managerNo,
         ip: meta.ip,
         userAgent: meta.userAgent,
