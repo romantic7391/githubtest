@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
         managerNo: session.managerNo,
         ip: request.headers.get('x-forwarded-for') || '',
         userAgent: request.headers.get('user-agent') || '',
-        schoolNo: schoolNo ? Number(schoolNo) : 0, // URL 파라미터의 schoolNo 사용
+        schoolNo: 0, // 로그에는 항상 관리자(0)로 기록
       },
       filters,
     );
