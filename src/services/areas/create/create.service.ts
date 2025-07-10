@@ -3,6 +3,7 @@ import { logAction, makeLogParams } from '@/services/log-action/log-action.servi
 import { beginTransaction, commitTransaction, rollbackTransaction } from '@/lib/mariadb/query';
 import type { AreaCreate } from '@/types/area';
 import type { LogMeta } from '@/types/history';
+import { AppError } from '@/utils/error.utils';
 
 /**
  * 지역 학교 추가
@@ -20,7 +21,7 @@ export async function createArea(dto: AreaCreate, meta: LogMeta): Promise<void> 
     // 중복 검증
     const exists = await checkAreaExists(dto.area);
     if (exists) {
-      throw new Error('이미 존재하는 지역명입니다.');
+      throw new AppError('이미 존재하는 지역명입니다.', 409);
     }
 
     await insertArea(dto);
@@ -28,14 +29,14 @@ export async function createArea(dto: AreaCreate, meta: LogMeta): Promise<void> 
     // 로그 기록
     await logAction(
       makeLogParams({
-        manager_no: meta.manager_no,
+        managerNo: meta.managerNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'I',
-        target_table: 'AreaData',
-        target_id: dto.area,
-        old_values: null,
-        new_values: JSON.stringify(dto),
+        userAgent: meta.userAgent,
+        actionType: 'I',
+        targetTable: 'AreaData',
+        targetId: dto.area,
+        oldValues: null,
+        newValues: JSON.stringify(dto),
         reason: '지역 생성',
       }),
       conn,
@@ -50,16 +51,8 @@ export async function createArea(dto: AreaCreate, meta: LogMeta): Promise<void> 
         console.error('Rollback error:', rollbackError);
       }
     }
-    console.error('[createAreaService] 지역 생성 중 오류:', error);
-    throw error instanceof Error ? error : new Error('지역 생성 중 오류가 발생했습니다.');
-  } finally {
-    if (conn) {
-      try {
-        // 트랜잭션이 완전히 종료된 후에만 연결 해제
-        await conn.release();
-      } catch (err) {
-        console.error('Connection release error:', err);
-      }
-    }
+
+    if (error instanceof AppError) throw error;
+    throw new AppError('지역 생성 중 오류가 발생했습니다.', 500);
   }
 }

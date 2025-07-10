@@ -1,7 +1,16 @@
-import { Permission, Group, ManagerGroup, GroupPermission } from '@/types/permission';
+import {
+  Permission,
+  FindPermissionDto,
+  FindPermissionsDto,
+  CreatePermissionDto,
+  UpdatePermissionDto,
+  Group,
+  ManagerGroup,
+  GroupPermission,
+} from '@/types/permission/permission';
 import { getRow, getAll, exec } from '@/lib/mariadb/query';
 import { PoolConnection } from 'mariadb';
-import { Pagination } from '@/types/common';
+// import { Pagination } from '@/types/common';
 
 /**
  * 권한 정보 조회
@@ -9,11 +18,11 @@ import { Pagination } from '@/types/common';
 export async function findPermissionByName(name: string): Promise<Permission | null> {
   const query = `
     SELECT 
-      permission_no,
+      permission_no as permissionNo,
       name,
       description,
-      default_extra_condition,
-      default_extra_limit
+      default_extra_condition as defaultExtraCondition,
+      default_extra_limit as defaultExtraLimit
     FROM permission
     WHERE name = ? AND deleted IS NULL
   `;
@@ -91,64 +100,88 @@ export async function getPermissionStatusReport(permissionName: string) {
 }
 
 // 권한 목록 조회
-export async function findPermissions(
-  pagination: Pagination,
-  filters?: {
-    name?: string;
-  },
-): Promise<{ permissions: Permission[]; total: number }> {
-  const offset = (pagination.page - 1) * pagination.pageSize;
-  const conditions = ['deleted IS NULL'];
-  const params: (string | number)[] = [];
+export async function findPermissions(dto: FindPermissionsDto): Promise<{ permissions: Permission[]; total: number }> {
+  try {
+    console.log('findPermissions Input:', dto);
 
-  if (filters?.name) {
-    conditions.push('name LIKE ?');
-    params.push(`%${filters.name}%`);
+    const { pagination, filters } = dto;
+    const offset = (pagination.page - 1) * pagination.pageSize;
+    const conditions = ['deleted IS NULL'];
+    const params: (string | number)[] = [];
+
+    console.log('Query Parameters:', { offset, pageSize: pagination.pageSize, filters });
+
+    if (filters?.name) {
+      conditions.push('name LIKE ?');
+      params.push(`%${filters.name}%`);
+    }
+
+    console.log('Final Conditions:', conditions);
+    console.log('Query Parameters:', params);
+
+    // 전체 개수 조회
+    const countQuery = `
+      SELECT COUNT(*) as total
+      FROM permission
+      WHERE ${conditions.join(' AND ')}
+    `;
+    const totalResult = await getRow<{ total: number }>(countQuery, params);
+    const total = totalResult?.total || 0;
+
+    console.log('Total Records:', total);
+
+    // 권한 목록 조회
+    const query = `
+      SELECT 
+        permission_no as permissionNo,
+        name,
+        description,
+        default_extra_condition as defaultExtraCondition,
+        default_extra_limit as defaultExtraLimit
+      FROM permission
+      WHERE ${conditions.join(' AND ')}
+      ORDER BY permission_no ASC
+      LIMIT ? OFFSET ?
+    `;
+
+    const permissions = await getAll<Permission>(query, [...params, pagination.pageSize, offset]);
+
+    console.log('Query Result:', permissions);
+
+    return { permissions, total };
+  } catch (error) {
+    console.error('Error in findPermissions:', error);
+    throw error;
   }
-
-  // 전체 개수 조회
-  const countQuery = `
-    SELECT COUNT(*) as total
-    FROM permission
-    WHERE ${conditions.join(' AND ')}
-  `;
-  const totalResult = await getRow<{ total: number }>(countQuery, params);
-  const total = totalResult?.total || 0;
-
-  // 권한 목록 조회
-  const query = `
-    SELECT 
-      permission_no,
-      name,
-      description,
-      default_extra_condition,
-      default_extra_limit
-    FROM permission
-    WHERE ${conditions.join(' AND ')}
-    ORDER BY permission_no ASC
-    LIMIT ? OFFSET ?
-  `;
-
-  const permissions = await getAll<Permission>(query, [...params, pagination.pageSize, offset]);
-
-  return { permissions, total };
 }
 
 // 권한 생성
-export async function insertPermission(dto: Permission, conn?: PoolConnection) {
+export async function insertPermission(dto: CreatePermissionDto, conn?: PoolConnection) {
   const query = `
-    INSERT INTO \`permission\` (name, description, default_extra_condition, default_extra_limit) VALUES (?, ?, ?, ?);
+    INSERT INTO \`permission\` (
+      name, 
+      description, 
+      default_extra_condition, 
+      default_extra_limit
+    ) VALUES (?, ?, ?, ?)
   `;
   const params = [dto.name, dto.description, dto.defaultExtraCondition, dto.defaultExtraLimit];
   return exec(query, params, conn);
 }
 
 // 권한 수정
-export async function updatePermission(dto: Permission, conn?: PoolConnection) {
+export async function updatePermission(dto: UpdatePermissionDto, conn?: PoolConnection) {
   const query = `
-    UPDATE \`permission\` SET name = ?, description = ?, default_extra_condition = ?, default_extra_limit = ? WHERE permission_no = ?
+    UPDATE \`permission\` 
+    SET 
+      name = ?, 
+      description = ?, 
+      default_extra_condition = ?, 
+      default_extra_limit = ? 
+    WHERE permission_no = ? 
+      AND deleted IS NULL
   `;
-  const params = [dto.name, dto.description, dto.defaultExtraCondition, dto.defaultExtraLimit, dto.permission_no];
+  const params = [dto.name, dto.description, dto.defaultExtraCondition, dto.defaultExtraLimit, dto.permissionNo];
   return exec(query, params, conn);
 }
 
@@ -159,14 +192,48 @@ export async function deletePermission(permissionNo: number, conn?: PoolConnecti
 }
 
 // 권한 조회
-export async function findPermission(permissionNo: number) {
+export async function findPermission(dto: FindPermissionDto) {
   const query = `
     SELECT 
-      permission_no,
+      permission_no as permissionNo,
       name,
-      description
+      description,
+      default_extra_condition as defaultExtraCondition,
+      default_extra_limit as defaultExtraLimit
     FROM permission
-    WHERE permission_no = ? AND deleted IS NULL
+    WHERE permission_no = ? 
+      AND deleted IS NULL
   `;
-  return getRow(query, [permissionNo]);
+  return getRow<Permission>(query, [dto.permissionNo]);
+}
+
+// 권한 이름으로 조회 (공백 제거 후 비교)
+export async function findPermissionByNameNormalized(name: string): Promise<{ name: string } | null> {
+  // 입력된 이름을 normalize
+  const normalizedInput = name.trim().replace(/\s+/g, '').toLowerCase();
+
+  // 모든 권한 이름을 가져와서 JavaScript에서 비교
+  const query = `
+    SELECT name
+    FROM permission
+    WHERE deleted IS NULL
+  `;
+
+  const allPermissionNames = await getAll<{ name: string }>(query);
+
+  // JavaScript에서 normalize해서 비교
+  for (const permission of allPermissionNames) {
+    const normalizedDbName = permission.name.trim().replace(/\s+/g, '').toLowerCase();
+    if (normalizedInput === normalizedDbName) {
+      return permission;
+    }
+  }
+
+  return null;
+}
+
+// 권한 등록 중복 체크 (공백 제거 후 비교) - findPermissionByNameNormalized 사용
+export async function checkPermissionDuplicate(name: string) {
+  const existingPermission = await findPermissionByNameNormalized(name);
+  return { count: existingPermission ? 1 : 0 };
 }

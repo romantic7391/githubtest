@@ -9,21 +9,25 @@ import {
   Flex,
   Group,
   Image,
+  Loader,
+  LoadingOverlay,
   Paper,
   PasswordInput,
   Stack,
+  Text,
   TextInput,
   Title,
   useMantineTheme,
 } from '@mantine/core';
-import { Carousel } from '@mantine/carousel';
 import { useMediaQuery } from '@mantine/hooks';
+import { Carousel } from '@mantine/carousel';
 import Autoplay from 'embla-carousel-autoplay';
 import { useForm } from '@mantine/form';
 import useSignin from '../_hooks/useSignIn';
 import { useEffect } from 'react';
 import { IconAlertCircleFilled } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function SignInForm() {
   const theme = useMantineTheme();
@@ -31,6 +35,7 @@ export default function SignInForm() {
   const {
     mutate: signIn,
     data: callbackUrl,
+    isPending: isSignInLoading,
     isSuccess: isSignInSuccess,
     isError: isSignInError,
     error: signInError,
@@ -70,18 +75,35 @@ export default function SignInForm() {
     if (!isSignInSuccess) return;
 
     router.push(callbackUrl ?? '/');
-  }, [isSignInSuccess, callbackUrl]);
+  }, [isSignInSuccess, callbackUrl, router]);
 
   return (
-    <Paper withBorder shadow="md" h="100%">
+    <Paper shadow="md" h="100%">
       <Flex h="100%">
         <Flex h="100%" flex={1} justify="center">
-          <Stack w="100%" h="100%" px="lg" pb={80} maw={450} justify="center">
+          <Stack w="100%" h="100%" px="xl" pb={80} maw={450} justify="center">
             <Group justify="center">
               <Image src="/logo.svg" alt="logo" h={32} w="auto" />
-              <Title order={2}>공기질 관리자 페이지</Title>
+              <Title order={2}>공기질 관리자 로그인</Title>
             </Group>
-            <form onSubmit={form.onSubmit(handleSubmit)}>
+            <form onSubmit={form.onSubmit(handleSubmit)} style={{ position: 'relative' }}>
+              <LoadingOverlay
+                visible={isSignInLoading}
+                zIndex={1000}
+                overlayProps={{
+                  blur: 2,
+                  radius: 'sm',
+                }}
+                loaderProps={{
+                  children: (
+                    <>
+                      <Loader />
+                      <Text>로그인 중...</Text>
+                    </>
+                  ),
+                }}
+              />
+
               {isSignInError && (
                 <Alert color="red" withCloseButton title="로그인 실패" icon={<IconAlertCircleFilled size={18} />}>
                   {signInError.message}
@@ -92,6 +114,7 @@ export default function SignInForm() {
                 mt="md"
                 label="아이디"
                 placeholder="아이디를 입력해주세요."
+                disabled={isSignInLoading}
                 {...form.getInputProps('signInId')}
               />
               <PasswordInput
@@ -99,14 +122,17 @@ export default function SignInForm() {
                 mt="md"
                 label="비밀번호"
                 placeholder="비밀번호를 입력해주세요."
+                disabled={isSignInLoading}
                 {...form.getInputProps('password')}
               />
-              <Button size="md" mt="xl" type="submit" fullWidth>
+              <Button size="md" mt="xl" type="submit" fullWidth disabled={isSignInLoading}>
                 로그인
               </Button>
             </form>
             <Group>
-              <Anchor>회원가입</Anchor>
+              <Anchor component={Link} href="/auth/signup">
+                회원가입
+              </Anchor>
               <Divider orientation="vertical" />
               <Anchor>비밀번호 찾기</Anchor>
             </Group>

@@ -36,20 +36,20 @@ export async function GET(request: NextRequest) {
         school.administrationCode!,
         { ...school },
         {
-          manager_no: 1,
-          school_no: school.schoolNo,
+          managerNo: 1,
+          schoolNo: school.schoolNo,
           ip,
-          user_agent: userAgent,
+          userAgent: userAgent,
         },
       );
     }
 
     for (const device of devices) {
       await createRnDevicesRel([device], {
-        manager_no: 1,
-        school_no: device.schoolNo,
+        managerNo: 1,
+        schoolNo: device.schoolNo,
         ip,
-        user_agent: userAgent,
+        userAgent: userAgent,
       });
     }
 

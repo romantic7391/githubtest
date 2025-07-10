@@ -21,13 +21,13 @@ export interface findRnDevicesRelBySchoolNoVO {
 }
 
 export interface findRnDevicesRelBySchoolNoDto {
-  school_no: number;
+  schoolNo: number;
   limit: number;
   offset: number;
 }
 
 export interface insertRnDevicesRelDto {
-  school_no: number;
+  schoolNo: number;
   mac: string;
   name: string | null;
   summary: string | null;
@@ -53,7 +53,7 @@ export interface softDeleteRnDevicesRelDto {
 
 // mac 변경용 DTO 타입 정의
 export interface UpdateMacDto {
-  school_no: number;
+  schoolNo: number;
   oldMac: string;
   newMac: string;
 }

@@ -3,7 +3,7 @@ import { School } from '@/types/school';
 
 export async function getSchoolsByArea(area: string): Promise<School[]> {
   // findRnSchoolsByAreas 모델이 이미 지역으로 필터링을 하고 있음
-  return findRnSchoolsByAreas(area);
+  return findRnSchoolsByAreas({ area });
 }
 
 export async function getSchoolHierarchy(
@@ -34,7 +34,7 @@ export async function getSchoolHierarchy(
   const targetSchool = schools.find((s) => s.schoolNo === targetSchoolNo);
   if (!targetSchool) {
     console.log('학교를 찾을 수 없음:', { area, targetSchoolNo, schools });
-    throw new Error(`학교를 찾을 수 없습니다. (학교번호: ${targetSchoolNo}, 지역: ${area})`);
+    throw new Error('요청한 학교 정보를 찾을 수 없습니다.');
   }
 
   // 3. 계층 구조는 parentNo로 파악

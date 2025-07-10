@@ -1,9 +1,16 @@
-import type { BaseApiResponse } from '@/types/common';
 import { NextRequest, NextResponse } from 'next/server';
-import { createGroupS, getGroupsS } from '@/services/permission-admin/group.service';
 import { getSession } from '@/lib/auth/session';
-import { handleZodError, handleError } from '@/utils/error.utils';
-import { createGroupSchema, groupCreateOrUpdateApiResponseSchema, groupSchema } from '@/types/permission';
+
+import {
+  CreateGroup,
+  groupFilterSchema,
+  groupCreateOrUpdateApiResponseSchema,
+  createGroupSchema,
+} from '@/types/permission/group';
+
+import { handleError, handleZodError } from '@/utils/error.utils';
+import { getGroupsS, createGroupS } from '@/services/permission-admin/group.service';
+import { AppError } from '@/utils/error.utils';
 import { paginationSchema } from '@/types/common';
 
 /**
@@ -11,11 +18,12 @@ import { paginationSchema } from '@/types/common';
  */
 export async function GET(request: NextRequest) {
   try {
+    // 개발 환경에서 테스트를 위해 헤더 설정
     if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
       request.headers.set('x-manager-no', '1');
     }
-    const session = await getSession(request);
 
+    const session = await getSession(request);
     if (!session) {
       return NextResponse.json(
         {
@@ -30,29 +38,63 @@ export async function GET(request: NextRequest) {
     const page = Number(searchParams.get('page')) || 1;
     const pageSize = Number(searchParams.get('pageSize')) || 10;
     const name = searchParams.get('name') || undefined;
-    const schoolNo = searchParams.get('schoolNo') ? Number(searchParams.get('schoolNo')) : undefined;
+    const schoolNo = searchParams.get('schoolNo');
 
-    const pagination = paginationSchema.parse({
+    console.log('그룹 목록 조회 요청:', {
       page,
       pageSize,
-    });
-
-    const filters = {
       name,
       schoolNo,
-    };
+      managerNo: session.managerNo,
+    });
 
-    const result = await getGroupsS(pagination, filters);
+    // 페이지네이션 검증
+    const pagination = paginationSchema.parse({ page, pageSize });
+
+    // 필터 검증
+    const filters = groupFilterSchema.parse({
+      name,
+      schoolNo: schoolNo === 'null' ? null : schoolNo ? Number(schoolNo) : undefined,
+    });
+
+    const result = await getGroupsS(
+      pagination,
+      {
+        managerNo: session.managerNo,
+        ip: request.headers.get('x-forwarded-for') || '',
+        userAgent: request.headers.get('user-agent') || '',
+        schoolNo: 0,
+      },
+      filters,
+    );
+
+    console.log('그룹 목록 조회 결과:', {
+      total: result.pagination.total,
+      totalPages: result.pagination.totalPages,
+      items: result.groups.length,
+    });
 
     return NextResponse.json(
       {
         success: true,
-        message: '그룹 목록을 조회했습니다.',
         data: result,
-      } satisfies BaseApiResponse,
+        message: '그룹 목록을 조회했습니다.',
+      },
       { status: 200 },
     );
   } catch (error) {
+    if (error instanceof AppError) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: error.message,
+          code: error.code,
+        },
+        { status: error.statusCode },
+      );
+    }
+    const zodError = handleZodError(error);
+    if (zodError) return zodError;
     return handleError(error, '그룹 목록 조회');
   }
 }
@@ -62,19 +104,18 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    console.log('Request body:', body);
+    console.log('[POST] 그룹 생성 시작');
 
-    const validatedData = createGroupSchema.parse(body);
-    console.log('Validated data:', validatedData);
-
+    // 개발 환경에서 테스트를 위해 헤더 설정
     if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
       request.headers.set('x-manager-no', '1');
     }
+
     const session = await getSession(request);
-    console.log('Session:', session);
+    console.log('[POST] session:', session);
 
     if (!session) {
+      console.log('[POST] 세션 없음');
       return NextResponse.json(
         {
           success: false,
@@ -84,34 +125,63 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const groupData = groupSchema.parse({
-      ...validatedData,
-      group_no: 0,
-      created: null,
-    });
-    console.log('Group data:', groupData);
+    const body = await request.json();
+    console.log('[POST] body:', body);
 
+    const validatedData = createGroupSchema.parse(body);
+    console.log('[POST] validatedData:', validatedData);
+
+    const groupData: CreateGroup = {
+      name: validatedData.name,
+      schoolNo: validatedData.schoolNo,
+      parentGroupNo: validatedData.parentGroupNo,
+    };
+    console.log('[POST] groupData:', groupData);
+
+    console.log('[POST] createGroupS 호출 전');
     const result = await createGroupS(groupData, {
-      manager_no: session.manager_no,
+      managerNo: session.managerNo,
       ip: request.headers.get('x-forwarded-for') || '',
-      user_agent: request.headers.get('user-agent') || '',
+      userAgent: request.headers.get('user-agent') || '',
+      schoolNo: 0,
     });
-    console.log('Create result:', result);
+    console.log('[POST] createGroupS 결과:', result);
 
-    return NextResponse.json(
-      groupCreateOrUpdateApiResponseSchema.parse({
-        success: true,
-        data: {
-          group_no: result.insertId,
-        },
-        message: '그룹이 성공적으로 생성되었습니다.',
-      }),
-      { status: 200 },
-    );
+    // 응답 데이터 검증
+    const response = groupCreateOrUpdateApiResponseSchema.parse({
+      success: true,
+      data: result,
+      message: '그룹이 성공적으로 생성되었습니다.',
+    });
+    console.log('[POST] response:', response);
+
+    return NextResponse.json(response, { status: 201 });
   } catch (error) {
-    console.error('Error in POST /api/permission-admin/group:', error);
+    console.error('[POST] 에러 발생:', error);
+
+    // AppError를 먼저 체크
+    if (error instanceof AppError) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: error.message,
+        },
+        { status: error.statusCode },
+      );
+    }
+
+    // 그 다음 ZodError 체크
     const zodError = handleZodError(error);
     if (zodError) return zodError;
-    return handleError(error, '그룹 생성');
+
+    // 예상치 못한 에러
+    console.error('[POST] 예상치 못한 에러 발생:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        message: '그룹 생성 중 오류가 발생했습니다.',
+      },
+      { status: 500 },
+    );
   }
 }

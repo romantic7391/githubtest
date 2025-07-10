@@ -1,43 +1,54 @@
 import type { Device, DeviceBasic } from '@/types/device';
+import type { PoolConnection } from 'mariadb';
 import {
   findRnDeviceRelBySchoolNoAndMac,
   updateRnDevicesRel,
   softDeleteRnDevicesRel,
-  updateMac,
+  updateMacAddress,
 } from '@/models/rnDevicesRel/rnDevicesRel.model';
-import { findDeviceByMac, softDeleteRnDevice } from '@/models/rnDevices/rnDevices.model';
+import { softDeleteRnDevice, updateDeviceMac } from '@/models/rnDevices/rnDevices.model';
 import { logAction, makeLogParams } from '@/services/log-action/log-action.service';
 import { beginTransaction, commitTransaction, rollbackTransaction } from '@/lib/mariadb/query';
+import { UpdateMacDto } from '@/interfaces/rnDevicesRel/rnDevicesRel.d';
+import { AppError } from '@/utils/error.utils';
 
 /**
  * 지역 학교 센서 장치 정보 조회
  */
 export async function getDevice(
   params: DeviceBasic,
-  meta: { manager_no: number; ip: string | null; user_agent: string | null },
+  meta: { managerNo: number; ip: string | null; userAgent: string | null },
 ) {
   let conn;
   try {
     conn = await beginTransaction();
     const device = await findRnDeviceRelBySchoolNoAndMac(params);
-    if (!device) return null;
+    if (!device) {
+      await commitTransaction(conn);
+      throw new AppError('센서를 찾을 수 없습니다.', 404);
+    }
 
     // 로그 기록
-    await logAction(
-      makeLogParams({
-        manager_no: meta.manager_no,
-        school_no: params.school_no,
-        ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'S',
-        target_table: 'rndevicesrel',
-        target_id: params.mac,
-        old_values: null,
-        new_values: JSON.stringify(device),
-        reason: '센서 정보 조회',
-      }),
-      conn,
-    );
+    try {
+      await logAction(
+        makeLogParams({
+          managerNo: meta.managerNo,
+          schoolNo: params.schoolNo,
+          ip: meta.ip,
+          userAgent: meta.userAgent,
+          actionType: 'S',
+          targetTable: 'rndevicesrel',
+          targetId: params.mac,
+          oldValues: null,
+          newValues: JSON.stringify(device),
+          reason: '센서 정보 조회',
+        }),
+        conn,
+      );
+    } catch (logError) {
+      console.error('Log action error:', logError);
+      // 로그 액션 실패는 치명적이지 않음
+    }
 
     await commitTransaction(conn);
     return device;
@@ -50,13 +61,13 @@ export async function getDevice(
       }
     }
     console.error('[getDeviceService] DB 조회 에러:', error);
-    throw new Error('센서 조회 중 오류가 발생했습니다.');
+    throw new AppError('센서 조회 중 오류가 발생했습니다.', 500);
   } finally {
     if (conn) {
       try {
         await conn.release();
-      } catch (err) {
-        console.error('Connection release error:', err);
+      } catch (releaseError) {
+        console.error('Connection release error:', releaseError);
       }
     }
   }
@@ -67,21 +78,21 @@ export async function getDevice(
  */
 export async function updateDevice(
   dto: DeviceBasic & Device,
-  meta: { manager_no: number; ip: string | null; user_agent: string | null },
+  meta: { managerNo: number; ip: string | null; userAgent: string | null },
 ): Promise<{ mac: string }> {
+  // 필수 파라미터 검증
+  if (!dto.oldMac) {
+    throw new AppError('기존 MAC 주소가 필요합니다.', 400);
+  }
+
   let conn;
   try {
     conn = await beginTransaction();
 
-    // oldMac이 없는 경우 에러
-    if (!dto.oldMac) {
-      throw new Error('기존 MAC 주소가 필요합니다.');
-    }
-
     // 센서 존재 여부 확인
-    const oldDevice = await findDeviceByMac(dto.oldMac, dto.school_no);
+    const oldDevice = await findRnDeviceRelBySchoolNoAndMac({ schoolNo: dto.schoolNo, mac: dto.oldMac });
     if (!oldDevice) {
-      throw new Error('센서를 찾을 수 없습니다.');
+      throw new AppError('기존 MAC 주소로 등록된 센서를 찾을 수 없습니다.', 404);
     }
 
     // MAC 주소가 변경된 경우
@@ -89,11 +100,12 @@ export async function updateDevice(
       await updateMac(
         [
           {
-            school_no: dto.school_no,
+            schoolNo: dto.schoolNo,
             oldMac: dto.oldMac,
             newMac: dto.mac,
           },
         ],
+        meta,
         conn,
       );
     }
@@ -106,25 +118,30 @@ export async function updateDevice(
     await updateRnDevicesRel([updateData], conn);
 
     // 로그 기록
-    await logAction(
-      makeLogParams({
-        manager_no: meta.manager_no,
-        school_no: dto.school_no,
-        ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'U',
-        target_table: 'rndevicesrel',
-        target_id: dto.mac,
-        old_values: JSON.stringify(oldDevice),
-        new_values: JSON.stringify(dto),
-        reason: '센서 정보 수정',
-      }),
-      conn,
-    );
+    try {
+      await logAction(
+        makeLogParams({
+          managerNo: meta.managerNo,
+          schoolNo: dto.schoolNo,
+          ip: meta.ip,
+          userAgent: meta.userAgent,
+          actionType: 'U',
+          targetTable: 'rndevicesrel',
+          targetId: dto.mac,
+          oldValues: JSON.stringify(oldDevice),
+          newValues: JSON.stringify(dto),
+          reason: '센서 정보 수정',
+        }),
+        conn,
+      );
+    } catch (logError) {
+      console.error('Log action error:', logError);
+      // 로그 액션 실패는 치명적이지 않음
+    }
 
     await commitTransaction(conn);
     return { mac: dto.mac };
-  } catch (error) {
+  } catch (error: unknown) {
     if (conn) {
       try {
         await rollbackTransaction(conn);
@@ -133,13 +150,16 @@ export async function updateDevice(
       }
     }
     console.error('[updateDeviceService] 센서 수정 중 오류 발생:', error);
-    throw new Error('센서 수정 중 오류가 발생했습니다.');
+    if (error instanceof AppError) {
+      throw error;
+    }
+    throw new AppError('센서 수정 중 오류가 발생했습니다.', 500);
   } finally {
     if (conn) {
       try {
         await conn.release();
-      } catch (err) {
-        console.error('Connection release error:', err);
+      } catch (releaseError) {
+        console.error('Connection release error:', releaseError);
       }
     }
   }
@@ -149,37 +169,48 @@ export async function updateDevice(
  * 지역 학교 센서 장치 삭제
  */
 export async function deleteDevice(
-  params: { mac: string; school_no: number },
-  meta: { manager_no: number; ip: string | null; user_agent: string | null },
+  params: { mac: string; schoolNo: number },
+  meta: { managerNo: number; ip: string | null; userAgent: string | null },
 ) {
   let conn;
   try {
     conn = await beginTransaction();
+
     // 센서 존재 여부 확인
-    const oldDevice = await findDeviceByMac(params.mac, params.school_no);
+    const oldDevice = await findRnDeviceRelBySchoolNoAndMac({ schoolNo: params.schoolNo, mac: params.mac });
+
+    if (!oldDevice) {
+      await commitTransaction(conn);
+      throw new AppError('센서를 찾을 수 없습니다.', 404);
+    }
 
     // rnDevicesRel 테이블에서 삭제
-    await softDeleteRnDevicesRel([{ mac: params.mac, school_no: params.school_no }], conn);
+    await softDeleteRnDevicesRel([{ mac: params.mac, schoolNo: params.schoolNo }], conn);
 
     // rnDevices 테이블에서 삭제
     await softDeleteRnDevice([{ mac: params.mac }], conn);
 
     // 로그 기록
-    await logAction(
-      makeLogParams({
-        manager_no: meta.manager_no,
-        school_no: params.school_no,
-        ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'D',
-        target_table: 'rndevicesrel',
-        target_id: params.mac,
-        old_values: JSON.stringify(oldDevice),
-        new_values: null,
-        reason: '센서 삭제',
-      }),
-      conn,
-    );
+    try {
+      await logAction(
+        makeLogParams({
+          managerNo: meta.managerNo,
+          schoolNo: params.schoolNo,
+          ip: meta.ip,
+          userAgent: meta.userAgent,
+          actionType: 'D',
+          targetTable: 'rndevicesrel',
+          targetId: params.mac,
+          oldValues: JSON.stringify(oldDevice),
+          newValues: null,
+          reason: '센서 삭제',
+        }),
+        conn,
+      );
+    } catch (logError) {
+      console.error('Log action error:', logError);
+      // 로그 액션 실패는 치명적이지 않음
+    }
 
     await commitTransaction(conn);
   } catch (error) {
@@ -191,14 +222,66 @@ export async function deleteDevice(
       }
     }
     console.error('[deleteDeviceService] 센서 삭제 중 오류 발생:', error);
-    throw new Error('센서 삭제 중 오류가 발생했습니다.');
+
+    // AppError는 그대로 전달
+    if (error instanceof AppError) {
+      throw error;
+    }
+
+    throw new AppError('센서 삭제 중 오류가 발생했습니다.', 500);
   } finally {
     if (conn) {
       try {
         await conn.release();
-      } catch (err) {
-        console.error('Connection release error:', err);
+      } catch (releaseError) {
+        console.error('Connection release error:', releaseError);
       }
+    }
+  }
+}
+
+/**
+ * MAC 주소 업데이트 (비즈니스 로직)
+ */
+export async function updateMac(
+  dtos: UpdateMacDto[],
+  meta: { managerNo: number; ip: string | null; userAgent: string | null },
+  conn?: PoolConnection,
+) {
+  for (const dto of dtos) {
+    // 1. UPDATE 실행
+    const result = await updateMacAddress(dto.schoolNo, dto.oldMac, dto.newMac, conn);
+    if (result.affectedRows === 0) {
+      throw new AppError('MAC 주소 변경에 실패했습니다.', 500);
+    }
+
+    // 3. rnDevices 테이블도 같이 mac 변경 (존재하는 경우에만)
+    await updateDeviceMac(dto.oldMac, dto.newMac, conn);
+    // rnDevices 테이블에 해당 MAC 주소가 없으면 무시 (affectedRows === 0이어도 에러 아님)
+    // if (deviceResult.affectedRows === 0) {
+    //   throw new Error('MAC 주소 변경에 실패했습니다.');
+    // }
+
+    // 4. 로그 기록
+    try {
+      await logAction(
+        makeLogParams({
+          managerNo: meta.managerNo,
+          schoolNo: dto.schoolNo,
+          ip: meta.ip,
+          userAgent: meta.userAgent,
+          actionType: 'U',
+          targetTable: 'rndevicesrel',
+          targetId: dto.newMac,
+          oldValues: JSON.stringify({ mac: dto.oldMac }),
+          newValues: JSON.stringify({ mac: dto.newMac }),
+          reason: 'MAC 주소 변경',
+        }),
+        conn,
+      );
+    } catch (logError) {
+      console.error('Log action error:', logError);
+      // 로그 액션 실패는 치명적이지 않음
     }
   }
 }

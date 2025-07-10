@@ -57,12 +57,24 @@ export function mapRow<T = any>(
 }
 
 /**
+ * 커넥션을 해제합니다.
+ *
+ * @param {PoolConnection} conn 해제할 커넥션 객체
+ */
+export async function releaseConn(conn: PoolConnection): Promise<void> {
+  try {
+    conn.release();
+  } catch (error) {
+    console.error('트랜잭션 커넥션 해제 중 오류:', error);
+  }
+}
+
+/**
  * 트랜잭션을 시작하면서 커넥션 객체를 반환합니다.
  *
  * @returns {Promise<PoolConnection>} 트랜잭션 커넥션 객체
  */
 export async function beginTransaction(): Promise<PoolConnection> {
-  console.log('beginTransaction');
   let conn;
 
   try {
@@ -71,7 +83,7 @@ export async function beginTransaction(): Promise<PoolConnection> {
     return conn;
   } catch (error) {
     if (conn) {
-      conn.release();
+      releaseConn(conn);
     }
     throw error;
   }
@@ -83,13 +95,12 @@ export async function beginTransaction(): Promise<PoolConnection> {
  * @param {PoolConnection} conn 트랜잭션 커넥션 객체
  */
 export async function commitTransaction(conn: PoolConnection): Promise<void> {
-  console.log('commitTransaction');
   try {
     await conn.commit();
   } catch (error) {
     throw error;
   } finally {
-    conn.release();
+    releaseConn(conn);
   }
 }
 
@@ -99,13 +110,12 @@ export async function commitTransaction(conn: PoolConnection): Promise<void> {
  * @param {PoolConnection} conn 트랜잭션 커넥션 객체
  */
 export async function rollbackTransaction(conn: PoolConnection): Promise<void> {
-  console.log('rollbackTransaction');
   try {
     await conn.rollback();
   } catch (error) {
     throw error;
   } finally {
-    conn.release();
+    releaseConn(conn);
   }
 }
 
@@ -177,7 +187,7 @@ export async function getAll<T = any>(
     throw error;
   } finally {
     if (conn && !externalConn) {
-      conn.release();
+      releaseConn(conn);
     }
   }
 
@@ -248,7 +258,7 @@ export async function getRow<T = any>(
     throw error;
   } finally {
     if (conn && !externalConn) {
-      conn.release();
+      releaseConn(conn);
     }
   }
 
@@ -302,7 +312,7 @@ export async function getOne<T = any>(
     throw error;
   } finally {
     if (conn && !externalConn) {
-      conn.release();
+      releaseConn(conn);
     }
   }
 
@@ -354,7 +364,7 @@ export async function exec(
     throw error;
   } finally {
     if (conn && !externalConn) {
-      conn.release();
+      releaseConn(conn);
     }
   }
 }

@@ -1,120 +1,202 @@
-import { insertGroup, findGroups } from '@/models/group/group-model';
-import { Group } from '@/types/permission';
+import { Group, CreateGroup } from '@/types/permission/group';
 import { logAction, makeLogParams } from '@/services/log-action/log-action.service';
 import { beginTransaction, commitTransaction, rollbackTransaction } from '@/lib/mariadb/query';
-
 import { LogMeta } from '@/types/history';
 import { Pagination } from '@/types/common';
-import { exec, getRow } from '@/lib/mariadb/query';
-
-interface UpdateGroupDto {
-  name?: string;
-  schoolNo?: number | null;
-  parentGroupNo?: number | null;
-}
-
-async function getGroupById(groupNo: number) {
-  const query = 'SELECT * FROM `group` WHERE group_no = ?';
-  return getRow(query, [groupNo]);
-}
-
-async function updateGroupById(groupNo: number, data: UpdateGroupDto) {
-  const query = `
-    UPDATE \`group\`
-    SET name = COALESCE(?, name),
-        school_no = COALESCE(?, school_no),
-        parent_group_no = COALESCE(?, parent_group_no)
-    WHERE group_no = ?
-  `;
-  const params = [data.name ?? null, data.schoolNo ?? null, data.parentGroupNo ?? null, groupNo];
-  return exec(query, params);
-}
+import { AppError } from '@/utils/error.utils';
+import {
+  findGroups,
+  insertGroup,
+  updateGroup,
+  deleteGroup,
+  checkGroupExists,
+  checkGroupDuplicate,
+  findGroup,
+} from '@/models/group/group-model';
+import {
+  FindGroupsDto,
+  InsertGroupDto,
+  UpdateGroupDto,
+  DeleteGroupDto,
+  CheckGroupExistsDto,
+  CheckGroupDuplicateDto,
+  FindGroupDto,
+} from '@/types/permission/group';
 
 // 그룹 목록 조회
-export async function getGroupsS(pagination: Pagination, filters?: { name?: string; schoolNo?: number }) {
+export async function getGroupsS(
+  pagination: Pagination,
+  meta: LogMeta,
+  filters?: { name?: string; schoolNo?: number | null },
+) {
   try {
-    return await findGroups(pagination, filters);
+    const dto: FindGroupsDto = {
+      pagination,
+      filters,
+    };
+
+    const result = await findGroups(dto);
+
+    if (result.groups.length === 0) {
+      throw new AppError('해당하는 학교에 그룹 목록이 존재하지 않습니다.', 404);
+    }
+
+    // 로그 기록
+    await logAction(
+      makeLogParams({
+        schoolNo: meta.schoolNo,
+        managerNo: meta.managerNo,
+        ip: meta.ip,
+        userAgent: meta.userAgent,
+        actionType: 'S',
+        targetTable: 'group',
+        targetId: '',
+        oldValues: '',
+        newValues: JSON.stringify(result),
+        reason: `그룹 목록 조회`,
+      }),
+    );
+
+    return {
+      groups: result.groups,
+      pagination: {
+        ...pagination,
+        total: result.total,
+        totalPages: Math.ceil(result.total / pagination.pageSize),
+      },
+    };
   } catch (error) {
-    throw error;
+    console.error('그룹 목록 조회 중 오류 발생:', error);
+    if (error instanceof AppError) {
+      throw error;
+    }
+    throw new AppError('그룹 목록 조회 중 오류가 발생했습니다.', 500);
   }
 }
 
 // 그룹 생성
-export async function createGroupS(dto: Group, meta: LogMeta) {
+export async function createGroupS(group: CreateGroup, meta: LogMeta): Promise<{ groupNo: number }> {
   let conn;
   try {
-    console.log('Creating group with data:', dto);
-    console.log('Meta data:', meta);
+    conn = await beginTransaction();
+
+    // 1. 그룹 중복 체크
+    const duplicateDto: CheckGroupDuplicateDto = {
+      name: group.name,
+      schoolNo: group.schoolNo,
+    };
+    const existingGroupDuplicate = await checkGroupDuplicate(duplicateDto);
+    if (existingGroupDuplicate && existingGroupDuplicate.count > 0) {
+      throw new AppError('이미 존재하는 그룹입니다.', 409);
+    }
+
+    const dto: InsertGroupDto = {
+      name: group.name,
+      schoolNo: group.schoolNo,
+      parentGroupNo: group.parentGroupNo,
+    };
 
     // 1. 그룹 생성
-    conn = await beginTransaction();
-    console.log('Transaction started');
-
     const result = await insertGroup(dto, conn);
-    console.log('Group inserted:', result);
 
     // 2. 로그 기록
-    const logParams = makeLogParams({
-      manager_no: meta.manager_no,
-      ip: meta.ip,
-      user_agent: meta.user_agent,
-      action_type: 'I',
-      target_table: 'group',
-      target_id: result.insertId.toString(),
-      new_values: JSON.stringify(dto),
-      reason: `그룹 생성: ${dto.name}`,
-    });
-    console.log('Log params:', logParams);
-
-    await logAction(logParams, conn);
-    console.log('Action logged');
-
-    await commitTransaction(conn);
-    console.log('Transaction committed');
-
-    return result;
-  } catch (error) {
-    console.error('Error in createGroupS:', error);
-    if (conn) {
-      await rollbackTransaction(conn);
-      console.log('Transaction rolled back');
-    }
-    throw error;
-  }
-}
-
-// 그룹 수정
-export async function updateGroupS(groupNo: number, data: UpdateGroupDto, meta: LogMeta) {
-  let conn;
-  try {
-    // 1. 기존 데이터 조회
-    const oldData = await getGroupById(groupNo);
-    if (!oldData) {
-      throw new Error('그룹을 찾을 수 없습니다.');
-    }
-
-    // 2. 그룹 업데이트
-    conn = await beginTransaction();
-    const result = await updateGroupById(groupNo, data);
-
-    // 3. 로그 기록
     await logAction(
       makeLogParams({
-        manager_no: meta.manager_no,
+        schoolNo: meta.schoolNo,
+        managerNo: meta.managerNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'U',
-        target_table: 'group',
-        target_id: groupNo.toString(),
-        old_values: JSON.stringify(oldData),
-        new_values: JSON.stringify({ ...oldData, ...data, updated_at: new Date().toISOString() }),
-        reason: `그룹 수정: group_no ${groupNo}`,
+        userAgent: meta.userAgent,
+        actionType: 'I',
+        targetTable: 'group',
+        targetId: result.insertId.toString(),
+        oldValues: JSON.stringify({}),
+        newValues: JSON.stringify(group),
+        reason: `그룹 생성: ${group.name}`,
       }),
       conn,
     );
 
     await commitTransaction(conn);
-    return result;
+    return {
+      groupNo: result.insertId,
+    };
+  } catch (error) {
+    if (conn) {
+      await rollbackTransaction(conn);
+    }
+    if (error instanceof AppError) {
+      throw error;
+    }
+    throw new AppError('그룹 생성 중 오류가 발생했습니다.', 500);
+  }
+}
+
+// 그룹 수정
+export async function updateGroupS(group: Group, meta: LogMeta): Promise<{ groupNo: number }> {
+  let conn;
+  try {
+    conn = await beginTransaction();
+
+    // 1. 그룹 존재 여부 확인
+    const existsDto: CheckGroupExistsDto = {
+      groupNo: group.groupNo,
+    };
+    const exists = await checkGroupExists(existsDto);
+    if (!exists) {
+      throw new AppError('존재하지 않는 그룹입니다.', 404);
+    }
+
+    // 2. 기존 그룹 정보 조회
+    const findDto: FindGroupDto = {
+      groupNo: group.groupNo,
+    };
+    const existingGroup = await findGroup(findDto);
+    if (!existingGroup) {
+      throw new AppError('존재하지 않는 그룹입니다.', 404);
+    }
+
+    // 3. 다른 그룹과의 중복 체크 (name이나 schoolNo가 변경된 경우에만)
+    if (
+      (group.name && group.name !== existingGroup.name) ||
+      (group.schoolNo !== undefined && group.schoolNo !== existingGroup.schoolNo)
+    ) {
+      const duplicateDto: CheckGroupDuplicateDto = {
+        name: group.name || existingGroup.name,
+        schoolNo: group.schoolNo ?? existingGroup.schoolNo,
+        groupNo: group.groupNo, // 자기 자신 제외
+      };
+      const existingGroupDuplicate = await checkGroupDuplicate(duplicateDto);
+      if (existingGroupDuplicate && existingGroupDuplicate.count > 0) {
+        throw new AppError('이미 존재하는 그룹입니다.', 409);
+      }
+    }
+
+    // 4. 그룹 수정 (변경된 필드만 업데이트)
+    const updateDto: UpdateGroupDto = {
+      ...existingGroup,
+      ...group, // 변경된 필드만 덮어쓰기
+    };
+    await updateGroup(updateDto, conn);
+
+    // 5. 로그 기록
+    await logAction(
+      makeLogParams({
+        schoolNo: meta.schoolNo,
+        managerNo: meta.managerNo,
+        ip: meta.ip,
+        userAgent: meta.userAgent,
+        actionType: 'U',
+        targetTable: 'group',
+        targetId: group.groupNo.toString(),
+        oldValues: JSON.stringify(existingGroup),
+        newValues: JSON.stringify(updateDto),
+        reason: `그룹 수정: ${group.name || existingGroup.name}`,
+      }),
+      conn,
+    );
+
+    await commitTransaction(conn);
+    return { groupNo: group.groupNo };
   } catch (error) {
     if (conn) {
       await rollbackTransaction(conn);
@@ -127,32 +209,48 @@ export async function updateGroupS(groupNo: number, data: UpdateGroupDto, meta: 
 export async function deleteGroupS(groupNo: number, meta: LogMeta) {
   let conn;
   try {
-    // 1. 그룹 삭제
     conn = await beginTransaction();
-    const result = await exec('DELETE FROM `group` WHERE group_no = ?', [groupNo]);
 
-    // 2. 로그 기록
+    // 1. 그룹 존재 여부 확인
+    const existsDto: CheckGroupExistsDto = {
+      groupNo,
+    };
+    const exists = await checkGroupExists(existsDto);
+    if (!exists) {
+      throw new AppError('존재하지 않는 그룹입니다.', 404);
+    }
+
+    // 2. 그룹 삭제
+    const deleteDto: DeleteGroupDto = {
+      groupNo,
+    };
+    await deleteGroup(deleteDto, conn);
+
+    // 3. 로그 기록
     await logAction(
       makeLogParams({
-        manager_no: meta.manager_no,
+        schoolNo: meta.schoolNo,
+        managerNo: meta.managerNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'D',
-        target_table: 'group',
-        target_id: groupNo.toString(),
-        new_values: JSON.stringify({ group_no: groupNo, deleted: new Date().toISOString() }),
-        old_values: '',
-        reason: `그룹 삭제: group_no ${groupNo}`,
+        userAgent: meta.userAgent,
+        actionType: 'D',
+        targetTable: 'group',
+        targetId: groupNo.toString(),
+        oldValues: JSON.stringify({}),
+        newValues: '',
+        reason: `그룹 삭제: ${groupNo}`,
       }),
       conn,
     );
 
     await commitTransaction(conn);
-    return result;
   } catch (error) {
     if (conn) {
       await rollbackTransaction(conn);
     }
-    throw error;
+    if (error instanceof AppError) {
+      throw error;
+    }
+    throw new AppError('그룹 삭제 중 오류가 발생했습니다.', 500);
   }
 }

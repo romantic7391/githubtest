@@ -1,9 +1,38 @@
-import { DEFAULT_ERROR_MESSAGE_500 } from '@/lib/default.constant';
-import { BaseApiResponse } from '@/types/common';
-import { SchoolCreateOrUpdateApiResponse } from '@/types/school';
+import { SchoolCreateOrUpdateApiResponse, schoolCreateSchema } from '@/types/school';
 import { NextRequest, NextResponse } from 'next/server';
 import { createRnSchool } from '@/services/areas/[area]/schools/create/create.service';
 import { getClientInfo } from '@/services/log-action/log-action.service';
+import { handleError, handleZodError } from '@/utils/error.utils';
+import { AppError } from '@/utils/error.utils';
+import { auth } from '@/auth';
+import { Session } from 'next-auth';
+
+/**
+ * 공통 컨텍스트 정보 가져오기
+ */
+async function getCommonContext(request: NextRequest) {
+  let session = await auth();
+  if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
+    session = {
+      ...session,
+      user: {
+        ...session?.user,
+        managerNo: 1,
+      },
+    } as Session;
+  }
+  if (!session?.user.managerNo) {
+    throw new AppError('로그인이 필요합니다.', 401);
+  }
+  const { userAgent, ip } = getClientInfo(request);
+
+  return {
+    managerNo: session.user.managerNo,
+    schoolNo: 0,
+    ip: ip,
+    userAgent: userAgent,
+  };
+}
 
 /**
  * 지역 학교 추가
@@ -12,51 +41,35 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   try {
     const { area } = await params;
     const body = await request.json();
-    console.log('Request body:', body); // 디버깅용 로그
 
-    const { administrationCode, manager_no, school_no, ...userInput } = body;
+    // 요청 데이터 검증
+    const validatedData = schoolCreateSchema.parse(body);
 
-    // 필수 입력값 검증
-    if (!administrationCode) {
+    const context = await getCommonContext(request);
+    const result = await createRnSchool(validatedData.administrationCode || '', { ...validatedData, area }, context);
+
+    return NextResponse.json(
+      {
+        success: true,
+        message: '학교가 성공적으로 등록되었습니다.',
+        data: {
+          schoolNo: result.school.schoolNo,
+        },
+      } satisfies SchoolCreateOrUpdateApiResponse,
+      { status: 201 },
+    );
+  } catch (error) {
+    if (error instanceof AppError) {
       return NextResponse.json(
         {
           success: false,
-          message: '행정표준코드는 필수입니다.',
-        } satisfies BaseApiResponse,
-        { status: 400 },
+          message: error.message,
+        },
+        { status: error.statusCode },
       );
     }
-
-    // 클라이언트 정보 가져오기
-    const { userAgent, ip } = getClientInfo(request);
-
-    // 학교 생성
-    const result = await createRnSchool(
-      administrationCode,
-      { ...userInput, area },
-      {
-        manager_no: manager_no || 1,
-        school_no: school_no || 0,
-        ip,
-        user_agent: userAgent,
-      },
-    );
-
-    return NextResponse.json({
-      success: true,
-      message: '저장이 완료되었습니다.',
-      data: {
-        schoolNo: result.school.school_no,
-      },
-    } satisfies SchoolCreateOrUpdateApiResponse);
-  } catch (error) {
-    console.error('Error in POST /api/areas/[area]/schools/create:', error); // 디버깅용 로그
-    return NextResponse.json(
-      {
-        success: false,
-        message: DEFAULT_ERROR_MESSAGE_500,
-      } satisfies BaseApiResponse,
-      { status: 400 },
-    );
+    const zodError = handleZodError(error);
+    if (zodError) return zodError;
+    return handleError(error, 'POST');
   }
 }

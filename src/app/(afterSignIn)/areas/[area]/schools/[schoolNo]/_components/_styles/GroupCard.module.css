@@ -1,0 +1,12 @@
+.anchor {
+  text-decoration: none;
+  color: inherit;
+}
+
+.card {
+  transition: all 0.2s ease;
+  cursor: pointer;
+  &:hover {
+    background-color: var(--mantine-color-gray-3);
+  }
+}

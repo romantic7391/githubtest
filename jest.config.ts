@@ -33,6 +33,10 @@ const config: Config = {
     '<rootDir>/dist/', // 빌드 결과물 제외
     '<rootDir>/build/', // 빌드 결과물 제외
   ],
+  // 모델 테스트를 위한 환경 변수 설정
+  testEnvironmentOptions: {
+    customExportConditions: ['node', 'node-addons'],
+  },
 };
 
 export default createJestConfig(config);

@@ -52,17 +52,23 @@ describe('MariaDB Connection Pool', () => {
     );
 
     // 이제 공유된 mockCreatePoolImplementation을 직접 검사합니다.
-    expect(mockCreatePoolImplementation).toHaveBeenCalledWith({
-      host: 'localhost',
-      user: 'user',
-      password: 'password',
-      database: 'testdb',
-      port: 3307,
-      dateStrings: true,
-      bigIntAsNumber: true,
-      insertIdAsNumber: true,
-      metaAsArray: true,
-    });
+    expect(mockCreatePoolImplementation).toHaveBeenCalledWith(
+      expect.objectContaining({
+        host: 'localhost',
+        user: 'user',
+        password: 'password',
+        database: 'testdb',
+        port: 3307,
+        connectionLimit: 5,
+        idleTimeout: 1800,
+        acquireTimeout: 10000,
+        connectTimeout: 10000,
+        dateStrings: true,
+        bigIntAsNumber: true,
+        insertIdAsNumber: true,
+        metaAsArray: true,
+      }),
+    );
   });
 
   it('should use default port 3306 when MARIADB_PORT is undefined', () => {
@@ -76,16 +82,22 @@ describe('MariaDB Connection Pool', () => {
       JSON.stringify(mockCreatePoolImplementation.mock.calls, null, 2),
     );
 
-    expect(mockCreatePoolImplementation).toHaveBeenCalledWith({
-      host: 'localhost',
-      user: 'user',
-      password: 'password',
-      database: 'testdb',
-      port: 3306,
-      dateStrings: true,
-      bigIntAsNumber: true,
-      insertIdAsNumber: true,
-      metaAsArray: true,
-    });
+    expect(mockCreatePoolImplementation).toHaveBeenCalledWith(
+      expect.objectContaining({
+        host: 'localhost',
+        user: 'user',
+        password: 'password',
+        database: 'testdb',
+        port: 3306,
+        connectionLimit: 5,
+        idleTimeout: 1800,
+        acquireTimeout: 10000,
+        connectTimeout: 10000,
+        dateStrings: true,
+        bigIntAsNumber: true,
+        insertIdAsNumber: true,
+        metaAsArray: true,
+      }),
+    );
   });
 });

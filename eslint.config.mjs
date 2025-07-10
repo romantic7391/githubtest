@@ -25,9 +25,10 @@ const eslintConfig = [
       'next-env.d.ts',
       // jest 리포트 제외
       'jest-coverage/**',
-
       // 로그 파일 전체 제외
       '**/*.log',
+      // 기타 캐시 파일 전체 제외
+      '_/',
     ],
   },
 

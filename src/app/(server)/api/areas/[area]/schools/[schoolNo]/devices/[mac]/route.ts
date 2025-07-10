@@ -6,9 +6,7 @@ import {
 } from '@/services/areas/[area]/schools/[schoolNo]/devices/[mac]/[mac].service';
 import { deviceRelSchema } from '@/types/device';
 import { getClientInfo } from '@/services/log-action/log-action.service';
-import { z } from 'zod';
-import { DEFAULT_ERROR_MESSAGE_500 } from '@/lib/default.constant';
-import type { BaseApiResponse } from '@/types/common';
+import { handleError, handleZodError } from '@/utils/error.utils';
 
 /**
  * 지역 학교 센서 장치 정보
@@ -23,46 +21,36 @@ export async function GET(
 
     const { userAgent, ip } = getClientInfo(request);
     const device = await getDevice(
-      { mac, school_no: parseInt(schoolNo, 10) },
+      { mac, schoolNo: parseInt(schoolNo, 10) },
       {
-        manager_no: 1, // 임시로 1로 설정
+        managerNo: 1, // 임시로 1로 설정
         ip,
-        user_agent: userAgent,
+        userAgent: userAgent,
       },
     );
     console.log('[GET] 조회된 디바이스:', device);
 
-    if (!device) {
-      return NextResponse.json({ success: false, message: '센서를 찾을 수 없습니다.' }, { status: 404 });
-    }
-
     // Zod로 응답 데이터 검증
     try {
       const validatedDevice = deviceRelSchema.parse(device);
-      return NextResponse.json({ success: true, data: validatedDevice });
+      return NextResponse.json(
+        {
+          success: true,
+          message: '센서가 성공적으로 조회되었습니다.',
+          data: validatedDevice,
+        },
+        { status: 200 },
+      );
     } catch (validationError) {
       console.error('[GET] 데이터 검증 에러:', validationError);
-      if (validationError instanceof z.ZodError) {
-        return NextResponse.json(
-          {
-            success: false,
-            message: '데이터 검증에 실패했습니다.',
-          } satisfies BaseApiResponse,
-          { status: 400 },
-        );
-      }
+      const zodError = handleZodError(validationError);
+      if (zodError) return zodError;
       throw validationError;
     }
   } catch (error) {
-    console.error('[GET] 센서 조회 에러:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: DEFAULT_ERROR_MESSAGE_500,
-        error: error instanceof Error ? error.message : String(error),
-      },
-      { status: 500 },
-    );
+    const zodError = handleZodError(error);
+    if (zodError) return zodError;
+    return handleError(error, '센서 조회');
   }
 }
 
@@ -79,29 +67,26 @@ export async function PUT(
 
     // Zod로 요청 데이터 검증
     const validatedData = deviceRelSchema.parse(body);
-    const dto = { ...validatedData, oldMac, school_no: parseInt(schoolNo, 10) };
+    const dto = { ...validatedData, oldMac, schoolNo: parseInt(schoolNo, 10) };
 
     const { userAgent, ip } = getClientInfo(request);
     const result = await updateDevice(dto, {
-      manager_no: 1, // 임시로 1로 설정
+      managerNo: 1, // 임시로 1로 설정
       ip,
-      user_agent: userAgent,
+      userAgent: userAgent,
     });
-    return NextResponse.json({
-      success: true,
-      message: '센서가 성공적으로 수정되었습니다.',
-      data: result,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        message: '센서가 성공적으로 수정되었습니다.',
+        data: result,
+      },
+      { status: 200 },
+    );
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ success: false, message: '데이터 검증에 실패했습니다.' } satisfies BaseApiResponse, {
-        status: 400,
-      });
-    }
-    console.error('[PUT] 센서 수정 에러:', error);
-    return NextResponse.json({ success: false, message: DEFAULT_ERROR_MESSAGE_500 } satisfies BaseApiResponse, {
-      status: 500,
-    });
+    const zodError = handleZodError(error);
+    if (zodError) return zodError;
+    return handleError(error, '센서 수정');
   }
 }
 
@@ -116,18 +101,17 @@ export async function DELETE(
     const { mac, schoolNo } = await params;
     const { userAgent, ip } = getClientInfo(request);
     await deleteDevice(
-      { mac, school_no: parseInt(schoolNo, 10) },
+      { mac, schoolNo: parseInt(schoolNo, 10) },
       {
-        manager_no: 1, // 임시로 1로 설정
+        managerNo: 1, // 임시로 1로 설정
         ip,
-        user_agent: userAgent,
+        userAgent: userAgent,
       },
     );
-    return NextResponse.json({ success: true, message: '센서가 성공적으로 삭제되었습니다.' });
+    return NextResponse.json({ success: true, message: '센서가 성공적으로 삭제되었습니다.' }, { status: 200 });
   } catch (error) {
-    console.error('[DELETE] 센서 삭제 에러:', error);
-    return NextResponse.json({ success: false, message: DEFAULT_ERROR_MESSAGE_500 } satisfies BaseApiResponse, {
-      status: 500,
-    });
+    const zodError = handleZodError(error);
+    if (zodError) return zodError;
+    return handleError(error, '센서 삭제');
   }
 }

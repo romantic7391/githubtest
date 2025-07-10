@@ -2,24 +2,24 @@ import { z } from 'zod';
 
 // 히스토리 기본 스키마
 export const historySchema = z.object({
-  manager_no: z.number().nullable(),
-  school_no: z.number().nullable(),
+  managerNo: z.number().nullable(),
+  schoolNo: z.number().nullable(),
   ip: z.string().nullable(),
-  user_agent: z.string().nullable(),
-  action_type: z.enum(['S', 'I', 'U', 'D']),
-  target_table: z.string().nullable(),
-  target_id: z.string().nullable(),
-  old_values: z.string().nullable(),
-  new_values: z.string().nullable(),
+  userAgent: z.string().nullable(),
+  actionType: z.enum(['S', 'I', 'U', 'D']),
+  targetTable: z.string().nullable(),
+  targetId: z.string().nullable(),
+  oldValues: z.string().nullable(),
+  newValues: z.string().nullable(),
   reason: z.string().nullable(),
 });
 
 // 히스토리 메타 정보 스키마
 export const logMetaSchema = z.object({
-  manager_no: z.number().nullable(),
   ip: z.string().nullable(),
-  user_agent: z.string().nullable(),
-  school_no: z.number().nullable().optional(),
+  managerNo: z.number(),
+  userAgent: z.string().nullable(),
+  schoolNo: z.number(),
 });
 
 // 히스토리 번호 스키마

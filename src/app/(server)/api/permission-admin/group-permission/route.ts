@@ -13,52 +13,21 @@ import {
   groupPermissionCreateOrUpdateApiResponseSchema,
   groupPermissionsApiResponseSchema,
   groupPermissionFilterSchema,
-} from '@/types/permission';
+} from '@/types/permission/group-permission';
 import { paginationSchema } from '@/types/common';
+import { DEFAULT_PAGE_SIZE } from '@/lib/default.constant';
+import { AppError } from '@/utils/error.utils';
 
 /**
  * 그룹 권한 조회
  */
 export async function GET(request: NextRequest) {
   try {
-    console.log('=== Group Permission GET API Start ===');
-
     if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
       request.headers.set('x-manager-no', '1');
     }
 
-    const { searchParams } = new URL(request.url);
-    const page = searchParams.get('page');
-    const pageSize = searchParams.get('pageSize');
-    const groupNo = searchParams.get('groupNo');
-    const permissionNo = searchParams.get('permissionNo');
-
-    console.log('Request Params:', {
-      page,
-      pageSize,
-      groupNo,
-      permissionNo,
-    });
-
-    // 페이지네이션 파라미터 검증
-    const pagination = paginationSchema.parse({
-      page: page ? Number(page) : 1,
-      pageSize: pageSize ? Number(pageSize) : 10,
-    });
-
-    console.log('Parsed Pagination:', pagination);
-
-    // 필터 파라미터 검증
-    const filters = groupPermissionFilterSchema.parse({
-      groupNo: groupNo ? Number(groupNo) : undefined,
-      permissionNo: permissionNo ? Number(permissionNo) : undefined,
-    });
-
-    console.log('Parsed Filters:', filters);
-
     const session = await getSession(request);
-    console.log('Session:', session ? 'Found' : 'Not Found');
-
     if (!session) {
       return NextResponse.json(
         {
@@ -69,34 +38,38 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    console.log('Calling getGroupPermissionsS with:', {
-      pagination,
-      filters,
-      meta: {
-        manager_no: session.manager_no,
-        ip: request.headers.get('x-forwarded-for') || '',
-        user_agent: request.headers.get('user-agent') || '',
-      },
+    const searchParams = request.nextUrl.searchParams;
+    const schoolNo = Number(searchParams.get('schoolNo'));
+    const page = Number(searchParams.get('page')) || 1;
+    const pageSize = Number(searchParams.get('pageSize')) || DEFAULT_PAGE_SIZE;
+    const groupNo = searchParams.get('groupNo');
+    const permissionNo = searchParams.get('permissionNo');
+
+    // 페이지네이션 검증
+    const pagination = paginationSchema.parse({ page, pageSize });
+
+    // 필터 검증
+    const filters = groupPermissionFilterSchema.parse({
+      groupNo: groupNo ? Number(groupNo) : undefined,
+      permissionNo: permissionNo ? Number(permissionNo) : undefined,
     });
 
-    const result = await getGroupPermissionsS(pagination, filters, {
-      manager_no: session.manager_no,
+    const result = await getGroupPermissionsS(schoolNo, pagination, filters, {
+      managerNo: session.managerNo,
       ip: request.headers.get('x-forwarded-for') || '',
-      user_agent: request.headers.get('user-agent') || '',
+      userAgent: request.headers.get('user-agent') || '',
+      schoolNo: schoolNo,
     });
-
-    console.log('API Result:', result);
 
     return NextResponse.json(
       groupPermissionsApiResponseSchema.parse({
         success: true,
         message: '그룹 권한 조회 성공',
-        status: 200,
         data: result,
       }),
+      { status: 200 },
     );
   } catch (error) {
-    console.error('Error in Group Permission GET API:', error);
     const zodError = handleZodError(error);
     if (zodError) return zodError;
     return handleError(error, '그룹 권한 조회');
@@ -108,19 +81,11 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    console.log('=== Group Permission POST API Start ===');
     if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
       request.headers.set('x-manager-no', '1');
     }
 
-    const body = await request.json();
-    console.log('Request Body:', body);
-
-    const validatedData = createGroupPermissionSchema.parse(body);
-    console.log('Validated Data:', validatedData);
-
     const session = await getSession(request);
-
     if (!session) {
       return NextResponse.json(
         {
@@ -131,10 +96,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const body = await request.json();
+    const validatedData = createGroupPermissionSchema.parse(body);
+
     const result = await createGroupPermissionS(validatedData, {
-      manager_no: session.manager_no,
+      managerNo: session.managerNo,
       ip: request.headers.get('x-forwarded-for') || '',
-      user_agent: request.headers.get('user-agent') || '',
+      userAgent: request.headers.get('user-agent') || '',
+      schoolNo: 0,
     });
 
     return NextResponse.json(
@@ -146,9 +115,18 @@ export async function POST(request: NextRequest) {
         },
         message: '그룹 권한이 성공적으로 생성되었습니다.',
       }),
+      { status: 201 },
     );
   } catch (error) {
-    console.error('Error in Group Permission POST API:', error);
+    if (error instanceof AppError) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: error.message,
+        },
+        { status: error.statusCode },
+      );
+    }
     const zodError = handleZodError(error);
     if (zodError) return zodError;
     return handleError(error, '그룹 권한 생성');
@@ -160,21 +138,11 @@ export async function POST(request: NextRequest) {
  */
 export async function PUT(request: NextRequest) {
   try {
-    console.log('=== Group Permission PUT API Start ===');
-
     if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
       request.headers.set('x-manager-no', '1');
     }
 
-    const body = await request.json();
-    console.log('Request Body:', body);
-
-    const validatedData = updateGroupPermissionSchema.parse(body);
-    console.log('Validated Data:', validatedData);
-
     const session = await getSession(request);
-    console.log('Session:', session ? 'Found' : 'Not Found');
-
     if (!session) {
       return NextResponse.json(
         {
@@ -185,38 +153,37 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const result = await updateGroupPermissionS(
-      {
-        groupNo: validatedData.groupNo,
-        permissionNo: validatedData.permissionNo,
-        isAllowed: validatedData.isAllowed,
-        override: validatedData.override,
-        extraCondition: validatedData.extraCondition,
-        extraLimit: validatedData.extraLimit,
-        originalGroupNo: validatedData.originalGroupNo,
-        originalPermissionNo: validatedData.originalPermissionNo,
-      },
-      {
-        manager_no: session.manager_no,
-        ip: request.headers.get('x-forwarded-for') || '',
-        user_agent: request.headers.get('user-agent') || '',
-      },
-    );
-    console.log('Update Result:', result);
+    const body = await request.json();
+    const validatedData = updateGroupPermissionSchema.parse(body);
+
+    await updateGroupPermissionS(validatedData, {
+      managerNo: session.managerNo,
+      ip: request.headers.get('x-forwarded-for') || '',
+      userAgent: request.headers.get('user-agent') || '',
+      schoolNo: 0,
+    });
 
     return NextResponse.json(
       groupPermissionCreateOrUpdateApiResponseSchema.parse({
         success: true,
-        message: '그룹 권한 수정 성공',
-        status: 200,
+        message: '그룹 권한이 성공적으로 수정되었습니다.',
         data: {
           groupNo: validatedData.groupNo,
           permissionNo: validatedData.permissionNo,
         },
       }),
+      { status: 200 },
     );
   } catch (error) {
-    console.error('Error in Group Permission PUT API:', error);
+    if (error instanceof AppError) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: error.message,
+        },
+        { status: error.statusCode },
+      );
+    }
     const zodError = handleZodError(error);
     if (zodError) return zodError;
     return handleError(error, '그룹 권한 수정');
@@ -228,10 +195,19 @@ export async function PUT(request: NextRequest) {
  */
 export async function DELETE(request: NextRequest) {
   try {
-    console.log('=== Group Permission DELETE API Start ===');
-
     if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
       request.headers.set('x-manager-no', '1');
+    }
+
+    const session = await getSession(request);
+    if (!session) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: '인증되지 않은 요청입니다.',
+        },
+        { status: 401 },
+      );
     }
 
     let groupNo: string | null = null;
@@ -249,9 +225,13 @@ export async function DELETE(request: NextRequest) {
       permissionNo = searchParams.get('permissionNo');
     }
 
-    console.log('Delete Parameters:', { groupNo, permissionNo });
+    // 입력값 검증
+    const validatedData = groupPermissionFilterSchema.parse({
+      groupNo: groupNo ? Number(groupNo) : undefined,
+      permissionNo: permissionNo ? Number(permissionNo) : undefined,
+    });
 
-    if (!groupNo || !permissionNo) {
+    if (!validatedData.groupNo || !validatedData.permissionNo) {
       return NextResponse.json(
         {
           success: false,
@@ -261,38 +241,36 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const session = await getSession(request);
-    console.log('Session:', session ? 'Found' : 'Not Found');
-
-    if (!session) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: '인증되지 않은 요청입니다.',
-        },
-        { status: 401 },
-      );
-    }
-
-    await deleteGroupPermissionS(Number(groupNo), Number(permissionNo), {
-      manager_no: session.manager_no,
+    await deleteGroupPermissionS(validatedData.groupNo, validatedData.permissionNo, {
+      managerNo: session.managerNo,
       ip: request.headers.get('x-forwarded-for') || '',
-      user_agent: request.headers.get('user-agent') || '',
+      userAgent: request.headers.get('user-agent') || '',
+      schoolNo: 0,
     });
 
     return NextResponse.json(
       groupPermissionCreateOrUpdateApiResponseSchema.parse({
         success: true,
-        message: '그룹 권한 삭제 성공',
-        status: 200,
+        message: '그룹 권한이 성공적으로 삭제되었습니다.',
         data: {
-          groupNo: Number(groupNo),
-          permissionNo: Number(permissionNo),
+          groupNo: validatedData.groupNo,
+          permissionNo: validatedData.permissionNo,
         },
       }),
+      { status: 200 },
     );
   } catch (error) {
-    console.error('Error in Group Permission DELETE API:', error);
+    if (error instanceof AppError) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: error.message,
+        },
+        { status: error.statusCode },
+      );
+    }
+    const zodError = handleZodError(error);
+    if (zodError) return zodError;
     return handleError(error, '그룹 권한 삭제');
   }
 }

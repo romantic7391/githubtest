@@ -1,9 +1,9 @@
 import type { AreasApiResponse } from '@/types/area';
-import type { BaseApiResponse } from '@/types/common';
-import { DEFAULT_ERROR_MESSAGE_500 } from '@/lib/default.constant';
+import { areaSchema } from '@/types/area';
 import { NextRequest, NextResponse } from 'next/server';
 import { getAreas } from '@/services/areas/areas.service';
 import { getClientInfo } from '@/services/log-action/log-action.service';
+import { handleError, handleZodError } from '@/utils/error.utils';
 
 /**
  * 지역 목록 조회
@@ -17,12 +17,21 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
     const areas = searchParams.getAll('area');
+
+    // 지역명 검증
+    if (areas.length > 0) {
+      for (const area of areas) {
+        areaSchema.shape.area.parse(area);
+      }
+    }
+
     const { ip, userAgent } = getClientInfo(request);
 
     const { areas: areasData, total } = await getAreas(page, limit, areas.length > 0 ? areas : undefined, {
-      manager_no: 1, // 임시로 1로 설정
+      managerNo: 1, // 임시로 1로 설정
       ip,
-      user_agent: userAgent,
+      userAgent,
+      schoolNo: 0,
     });
 
     return NextResponse.json(
@@ -34,13 +43,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       { status: 200 },
     );
   } catch (error) {
-    console.error('[GET /api/areas] Error:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: DEFAULT_ERROR_MESSAGE_500,
-      } satisfies BaseApiResponse,
-      { status: 500 },
-    );
+    const zodError = handleZodError(error);
+    if (zodError) return zodError;
+    return handleError(error, '지역 목록 조회');
   }
 }

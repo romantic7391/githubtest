@@ -56,14 +56,36 @@ export const deviceDbSchema = z
     edate: datetimeSchema.nullable(),
     created: datetimeSchema.nullable(),
     model: z.string().nullable(),
-    ip: z.string().ip({ version: 'v4' }).nullable(),
-    rip: z.string().ip({ version: 'v4' }).nullable(),
+    ip: z
+      .string()
+      .nullable()
+      .refine(
+        (val) => {
+          if (val === null || val === '') return true;
+          // IP 주소 형식 검증 (null이나 빈 문자열은 허용)
+          const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+          return ipRegex.test(val);
+        },
+        { message: '유효하지 않은 IP 주소 형식입니다.' },
+      ),
+    rip: z
+      .string()
+      .nullable()
+      .refine(
+        (val) => {
+          if (val === null || val === '') return true;
+          // IP 주소 형식 검증 (null이나 빈 문자열은 허용)
+          const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+          return ipRegex.test(val);
+        },
+        { message: '유효하지 않은 IP 주소 형식입니다.' },
+      ),
     splrate: z.number().nullable(),
     interval: z.number().nullable(),
     ver: z.string().nullable(),
     tags: z.string().nullable(),
     checkin: datetimeSchema.nullable(),
-    device_created: datetimeSchema.nullable(),
+    deviceCreated: datetimeSchema.nullable(),
   })
   .transform((data) => {
     const device =
@@ -75,7 +97,7 @@ export const deviceDbSchema = z
       data.ver === null &&
       data.tags === null &&
       data.checkin === null &&
-      data.device_created === null
+      data.deviceCreated === null
         ? undefined
         : {
             model: data.model ?? '',
@@ -86,7 +108,7 @@ export const deviceDbSchema = z
             ver: data.ver ?? '',
             tags: data.tags,
             checkin: data.checkin,
-            created: data.device_created,
+            created: data.deviceCreated,
           };
 
     return {
@@ -167,7 +189,7 @@ export type DeviceCreateOrUpdateApiResponse = z.infer<typeof deviceCreateOrUpdat
  */
 export const deviceBasicSchema = z.object({
   mac: z.string(),
-  school_no: z.number(),
+  schoolNo: z.number(),
   oldMac: z.string().optional(),
 });
 
@@ -199,10 +221,10 @@ export type DeviceFilter = z.infer<typeof deviceFilterSchema>;
  * 센서 장치 목록 조회 파라미터
  */
 export const deviceListParamsSchema = z.object({
-  school_no: z.number(),
-  page: z.number().positive().default(1),
-  pageSize: z.number().positive().default(10),
+  schoolNo: z.number(),
   filters: deviceFilterSchema.optional(),
+  page: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER).default(1),
+  pageSize: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER).default(10),
 });
 
 /**
