@@ -47,13 +47,7 @@ export default function useFilteredDevices({ area = 'all', schoolNo, page, pageS
       return getInitialData();
     }
 
-    return {
-      ...data,
-      pagination: {
-        ...data.pagination,
-        totalPages: Math.max(data.pagination.totalPages, data.pagination.page),
-      },
-    } satisfies DevicesApiResponse['data'];
+    return data satisfies DevicesApiResponse['data'];
   }
 
   return useQuery({

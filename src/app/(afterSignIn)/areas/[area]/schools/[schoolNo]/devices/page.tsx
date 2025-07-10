@@ -1,8 +1,8 @@
 import { Metadata } from 'next';
-import DefaultInfoForm from './_components/DefaultInfoForm';
+import DeviceList from './_components/DeviceList';
 
 export const metadata: Metadata = {
-  title: '학교 정보',
+  title: '센서 장치',
 };
 
 export default async function Page({
@@ -13,7 +13,6 @@ export default async function Page({
     schoolNo: string;
   }>;
 }) {
-  const { schoolNo } = await params;
-
-  return <DefaultInfoForm schoolNo={Number(schoolNo)} />;
+  const { area, schoolNo } = await params;
+  return <DeviceList area={area} schoolNo={Number(schoolNo)} />;
 }

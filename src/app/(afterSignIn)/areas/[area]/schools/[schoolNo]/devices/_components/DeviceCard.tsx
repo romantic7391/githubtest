@@ -21,14 +21,14 @@ import { DEVICE_KINDS } from '@/lib/device.constant';
 import { useClickOutside, useDebouncedCallback } from '@mantine/hooks';
 import { useForm } from '@mantine/form';
 import ZodErrorDisplay from '@/app/(afterSignIn)/_components/ZodErrorDisplay';
-import useUpdateDevice from '../_hooks/device/useUpdateDevice';
 import { useParams } from 'next/navigation';
-import useCreateDevice from '../_hooks/device/useCreateDevice';
 import { QueryObserverResult, RefetchOptions } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconAlertCircleFilled, IconCheck, IconDots, IconTrash } from '@tabler/icons-react';
-import useDeleteDevice from '../_hooks/device/useDeleteDevice';
-import useDeviceLatestSensorData from '../_hooks/device/useDeviceLatestSensorData';
+import useUpdateDevice from '../_hooks/useUpdateDevice';
+import useCreateDevice from '../_hooks/useCreateDevice';
+import useDeleteDevice from '../_hooks/useDeleteDevice';
+import useDeviceLatestSensorData from '../_hooks/useDeviceLatestSensorData';
 
 export default function DeviceCard({
   device,
@@ -122,6 +122,7 @@ export default function DeviceCard({
     error: deleteError,
   } = useDeleteDevice({ area: area?.toString() ?? 'all', schoolNo: Number(schoolNo), mac: device?.mac ?? '' });
   const { data: latestSensorData } = useDeviceLatestSensorData({ mac: device?.mac ?? '' });
+
   // 입력 후 입력값 검증 및 저장 시도. 약간 딜레이 줌.
   const onValuesChange = useDebouncedCallback((values) => {
     if (form.values.name === '' || form.values.mac === '' || form.values.summary === '') return;
@@ -155,7 +156,8 @@ export default function DeviceCard({
     if (!isCreated) return;
     refetch();
     form.reset();
-  }, [isCreated, refetch, form]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isCreated, refetch]); // 무한 루프 방지를 위해 refetch 의존성 배열에서 form 제외
 
   useEffect(() => {
     if (!isCreateError) return;
@@ -184,7 +186,6 @@ export default function DeviceCard({
 
   useEffect(() => {
     if (!device || !isDeleted) return;
-    refetch();
     notifications.show({
       title: `센서 장치 ${device.name}(${device.mac})을 삭제했습니다.`,
       message: '',
@@ -194,7 +195,8 @@ export default function DeviceCard({
       position: 'top-center',
       color: 'green',
     });
-  }, [device, isDeleted, refetch]);
+    refetch();
+  }, [device, isDeleted]);
 
   useEffect(() => {
     if (!isDeleteError) return;
@@ -208,11 +210,6 @@ export default function DeviceCard({
       color: 'red',
     });
   }, [isDeleteError, deleteError]);
-
-  useEffect(() => {
-    if (!latestSensorData) return;
-    console.log(latestSensorData);
-  }, [latestSensorData]);
 
   return (
     <Card withBorder>

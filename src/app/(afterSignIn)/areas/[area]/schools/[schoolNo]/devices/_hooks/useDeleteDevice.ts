@@ -1,6 +1,6 @@
 import { HTTPStatusError } from '@/lib/common.error';
 import { isJsonResponse } from '@/lib/util/common.util';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 interface UseDeleteDeviceParams {
   area: string;
@@ -9,7 +9,11 @@ interface UseDeleteDeviceParams {
 }
 
 export default function useDeleteDevice({ area, schoolNo, mac }: UseDeleteDeviceParams) {
+  const queryClient = useQueryClient();
+
   async function deleteData() {
+    console.log(`${mac} 장치를 삭제합니다.`, { area, schoolNo, mac });
+
     const requestUrl = new URL(`/api/areas/${area}/schools/${schoolNo}/devices/${mac}`, window.location.origin);
     const response = await fetch(requestUrl, {
       method: 'DELETE',
@@ -30,6 +34,9 @@ export default function useDeleteDevice({ area, schoolNo, mac }: UseDeleteDevice
 
   return useMutation({
     mutationFn: deleteData,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['devices', area, schoolNo] });
+    },
     throwOnError: () => {
       return false;
     },
