@@ -1,5 +1,10 @@
 import { Anchor, Breadcrumbs, Stack, Title } from '@mantine/core';
 import SchoolTab from './_components/SchoolTab';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: '학교 정보',
+};
 
 export default async function Layout({
   children,

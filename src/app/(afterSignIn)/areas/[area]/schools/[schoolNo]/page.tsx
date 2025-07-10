@@ -1,9 +1,4 @@
-import { Metadata } from 'next';
 import DefaultInfoForm from './_components/DefaultInfoForm';
-
-export const metadata: Metadata = {
-  title: '학교 정보',
-};
 
 export default async function Page({
   params,
