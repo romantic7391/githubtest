@@ -38,6 +38,7 @@ export async function getGroupPermissionsS(
     if (meta) {
       await logAction(
         makeLogParams({
+          schoolNo: meta.schoolNo,
           managerNo: meta.managerNo,
           ip: meta.ip,
           userAgent: meta.userAgent,
@@ -72,23 +73,32 @@ export async function createGroupPermissionS(
 ): Promise<GroupPermissionCreateOrUpdateResponse> {
   let conn;
   try {
+    console.log('그룹 권한 생성 시작:', { groupPermission, meta });
+
     conn = await beginTransaction();
 
     // 1. 중복 체크
+    console.log('중복 체크 시작...');
     const existingPermission = await findGroupPermission({
       groupNo: groupPermission.groupNo,
       permissionNo: groupPermission.permissionNo,
     });
+    console.log('중복 체크 결과:', existingPermission);
+
     if (existingPermission) {
       throw new AppError('이미 존재하는 그룹 권한입니다.', 400);
     }
 
     // 2. 그룹 권한 생성
-    await insertGroupPermission(groupPermission, conn);
+    console.log('그룹 권한 생성 시작...');
+    const result = await insertGroupPermission(groupPermission, conn);
+    console.log('그룹 권한 생성 결과:', result);
 
     // 3. 로그 기록
+    console.log('로그 기록 시작...');
     await logAction(
       makeLogParams({
+        schoolNo: meta.schoolNo,
         managerNo: meta.managerNo,
         ip: meta.ip,
         userAgent: meta.userAgent,
@@ -103,11 +113,14 @@ export async function createGroupPermissionS(
     );
 
     await commitTransaction(conn);
+    console.log('그룹 권한 생성 완료');
+
     return {
       groupNo: groupPermission.groupNo,
       permissionNo: groupPermission.permissionNo,
     };
   } catch (error) {
+    console.error('그룹 권한 생성 중 오류:', error);
     if (conn) {
       await rollbackTransaction(conn);
     }
@@ -157,6 +170,7 @@ export async function updateGroupPermissionS(
     // 4. 로그 기록
     await logAction(
       makeLogParams({
+        schoolNo: meta.schoolNo,
         managerNo: meta.managerNo,
         ip: meta.ip,
         userAgent: meta.userAgent,
@@ -208,6 +222,7 @@ export async function deleteGroupPermissionS(groupNo: number, permissionNo: numb
     // 3. 로그 기록
     await logAction(
       makeLogParams({
+        schoolNo: meta.schoolNo,
         managerNo: meta.managerNo,
         ip: meta.ip,
         userAgent: meta.userAgent,
