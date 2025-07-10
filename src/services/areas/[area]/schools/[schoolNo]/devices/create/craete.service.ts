@@ -6,6 +6,7 @@ import { DeviceCreate } from '@/types/device';
 import { LogMeta } from '@/types/history';
 import { logAction, makeLogParams } from '@/services/log-action/log-action.service';
 import { DEFAULT_ERROR_MESSAGE_500 } from '@/lib/default.constant';
+import { AppError } from '@/utils/error.utils';
 
 /**
  * 지역 학교 센서 장치 추가
@@ -21,16 +22,13 @@ export async function createRnDevicesRel(dtos: DeviceCreate[], meta: LogMeta) {
     if (conn) await rollbackTransaction(conn);
     console.error('[createRnDevicesRel] 에러:', error);
 
-    // 비즈니스 로직 에러는 그대로 전달
-    if (error instanceof Error) {
-      const errorMessage = error.message;
-      if (errorMessage === '이미 등록된 MAC 주소입니다.' || errorMessage === '등록할 센서 정보가 없습니다.') {
-        throw error;
-      }
-      // 실제 서버 오류만 일반적인 메시지로 변환
-      throw new Error('센서 등록 중 오류가 발생했습니다.');
+    // AppError는 그대로 전달
+    if (error instanceof AppError) {
+      throw error;
     }
-    throw new Error(DEFAULT_ERROR_MESSAGE_500);
+    // 실제 서버 오류만 일반적인 메시지로 변환
+    throw new AppError('센서 등록 중 오류가 발생했습니다.', 500);
+    throw new AppError(DEFAULT_ERROR_MESSAGE_500, 500);
   }
 }
 
@@ -38,14 +36,14 @@ export async function createRnDevicesRel(dtos: DeviceCreate[], meta: LogMeta) {
 async function createDevicesAndRelationsFn(dtos: DeviceCreate[], conn: PoolConnection, meta: LogMeta) {
   // 빈 배열인 경우 에러 발생
   if (dtos.length === 0) {
-    throw new Error('등록할 센서 정보가 없습니다.');
+    throw new AppError('등록할 센서 정보가 없습니다.', 400);
   }
 
   // 1. MAC 주소 중복 체크를 병렬로 처리
   const macChecks = await Promise.all(dtos.map((dto) => checkMacExists(dto.schoolNo, dto.mac, conn)));
 
   if (macChecks.some((exists) => exists)) {
-    throw new Error('이미 등록된 MAC 주소입니다.');
+    throw new AppError('이미 등록된 MAC 주소입니다.', 409);
   }
 
   // 2. rnDevicesRel 테이블에 등록

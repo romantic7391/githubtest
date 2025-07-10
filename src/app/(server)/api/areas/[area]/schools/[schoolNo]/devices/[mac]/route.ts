@@ -6,9 +6,7 @@ import {
 } from '@/services/areas/[area]/schools/[schoolNo]/devices/[mac]/[mac].service';
 import { deviceRelSchema } from '@/types/device';
 import { getClientInfo } from '@/services/log-action/log-action.service';
-import { z } from 'zod';
-import { DEFAULT_ERROR_MESSAGE_500 } from '@/lib/default.constant';
-import type { BaseApiResponse } from '@/types/common';
+import { handleError, handleZodError } from '@/utils/error.utils';
 
 /**
  * 지역 학교 센서 장치 정보
@@ -49,27 +47,14 @@ export async function GET(
       );
     } catch (validationError) {
       console.error('[GET] 데이터 검증 에러:', validationError);
-      if (validationError instanceof z.ZodError) {
-        return NextResponse.json(
-          {
-            success: false,
-            message: '데이터 검증에 실패했습니다.',
-          } satisfies BaseApiResponse,
-          { status: 400 },
-        );
-      }
+      const zodError = handleZodError(validationError);
+      if (zodError) return zodError;
       throw validationError;
     }
   } catch (error) {
-    console.error('[GET] 센서 조회 에러:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: DEFAULT_ERROR_MESSAGE_500,
-        error: error instanceof Error ? error.message : String(error),
-      },
-      { status: 500 },
-    );
+    const zodError = handleZodError(error);
+    if (zodError) return zodError;
+    return handleError(error, '센서 조회');
   }
 }
 
@@ -103,15 +88,9 @@ export async function PUT(
       { status: 200 },
     );
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ success: false, message: '데이터 검증에 실패했습니다.' } satisfies BaseApiResponse, {
-        status: 400,
-      });
-    }
-    console.error('[PUT] 센서 수정 에러:', error);
-    return NextResponse.json({ success: false, message: DEFAULT_ERROR_MESSAGE_500 } satisfies BaseApiResponse, {
-      status: 500,
-    });
+    const zodError = handleZodError(error);
+    if (zodError) return zodError;
+    return handleError(error, '센서 수정');
   }
 }
 
@@ -135,9 +114,8 @@ export async function DELETE(
     );
     return NextResponse.json({ success: true, message: '센서가 성공적으로 삭제되었습니다.' }, { status: 200 });
   } catch (error) {
-    console.error('[DELETE] 센서 삭제 에러:', error);
-    return NextResponse.json({ success: false, message: DEFAULT_ERROR_MESSAGE_500 } satisfies BaseApiResponse, {
-      status: 500,
-    });
+    const zodError = handleZodError(error);
+    if (zodError) return zodError;
+    return handleError(error, '센서 삭제');
   }
 }
