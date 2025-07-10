@@ -1,10 +1,9 @@
-import { DEFAULT_ERROR_MESSAGE_500 } from '@/lib/default.constant';
-import type { BaseApiResponse } from '@/types/common';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import type { DevicesApiResponse, DeviceListParams } from '@/types/device';
 import { NextRequest, NextResponse } from 'next/server';
 import { getRnDevicesRelBySchoolNo } from '@/services/areas/[area]/schools/[schoolNo]/devices/devices.service';
-import { z } from 'zod';
 import { getClientInfo } from '@/services/log-action/log-action.service';
+import { handleError, handleZodError } from '@/utils/error.utils';
 
 /**
  * 지역 학교 센서 장치 목록 조회
@@ -58,25 +57,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       { status: 200 },
     );
   } catch (error) {
-    console.error('Error in GET /api/areas/[area]/schools/[schoolNo]/devices:', error);
-
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: '데이터 검증에 실패했습니다.',
-          errors: error.errors,
-        } satisfies BaseApiResponse,
-        { status: 400 },
-      );
-    }
-
-    return NextResponse.json(
-      {
-        success: false,
-        message: error instanceof Error ? error.message : DEFAULT_ERROR_MESSAGE_500,
-      } satisfies BaseApiResponse,
-      { status: 500 },
-    );
+    const zodError = handleZodError(error);
+    if (zodError) return zodError;
+    return handleError(error, '학교 센서 장치 목록 조회');
   }
 }

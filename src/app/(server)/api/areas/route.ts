@@ -1,9 +1,8 @@
 import type { AreasApiResponse } from '@/types/area';
-import type { BaseApiResponse } from '@/types/common';
-import { DEFAULT_ERROR_MESSAGE_500 } from '@/lib/default.constant';
 import { NextRequest, NextResponse } from 'next/server';
 import { getAreas } from '@/services/areas/areas.service';
 import { getClientInfo } from '@/services/log-action/log-action.service';
+import { handleError, handleZodError } from '@/utils/error.utils';
 
 /**
  * 지역 목록 조회
@@ -35,13 +34,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       { status: 200 },
     );
   } catch (error) {
-    console.error('[GET /api/areas] Error:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: DEFAULT_ERROR_MESSAGE_500,
-      } satisfies BaseApiResponse,
-      { status: 500 },
-    );
+    const zodError = handleZodError(error);
+    if (zodError) return zodError;
+    return handleError(error, '지역 목록 조회');
   }
 }

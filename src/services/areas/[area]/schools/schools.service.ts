@@ -35,6 +35,7 @@ export async function getRnSchoolsByArea(
     if (meta) {
       await logAction(
         makeLogParams({
+          schoolNo: meta.schoolNo,
           managerNo: meta.managerNo,
           ip: meta.ip,
           userAgent: meta.userAgent,

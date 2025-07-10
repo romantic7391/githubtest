@@ -3,6 +3,7 @@ import { beginTransaction, commitTransaction, rollbackTransaction } from '@/lib/
 import { logAction, makeLogParams } from '@/services/log-action/log-action.service';
 import type { Area } from '@/types/area';
 import type { LogMeta } from '@/types/history';
+import { AppError } from '@/utils/error.utils';
 
 // 지역 조회
 export async function getAreaByArea(area: string, meta: LogMeta) {
@@ -38,7 +39,7 @@ export async function getAreaByArea(area: string, meta: LogMeta) {
       }
     }
     console.error('[getAreaByAreaService] DB 조회 에러:', error);
-    throw new Error('지역 목록 조회 중 오류가 발생했습니다.');
+    throw new AppError('지역 목록 조회 중 오류가 발생했습니다.', 500);
   }
 }
 
@@ -48,13 +49,13 @@ export async function updateArea(dto: Area, meta: LogMeta): Promise<void> {
   try {
     conn = await beginTransaction();
     if (!dto.area) {
-      throw new Error('지역명이 필요합니다.');
+      throw new AppError('지역명이 필요합니다.', 400);
     }
 
     // 중복 검증 (자기 자신 제외)
     const exists = await checkAreaExists(dto.area);
     if (exists) {
-      throw new Error('이미 존재하는 지역명입니다.');
+      throw new AppError('이미 존재하는 지역명입니다.', 409);
     }
 
     // 이전 데이터 조회
@@ -89,7 +90,10 @@ export async function updateArea(dto: Area, meta: LogMeta): Promise<void> {
       }
     }
     console.error('[updateAreaService] 지역 수정 중 오류:', error);
-    throw error instanceof Error ? error : new Error('지역 수정 중 오류가 발생했습니다.');
+    if (error instanceof AppError) {
+      throw error;
+    }
+    throw new AppError('지역 수정 중 오류가 발생했습니다.', 500);
   }
 }
 
@@ -130,6 +134,6 @@ export async function deleteArea(area: string, meta: LogMeta): Promise<void> {
       }
     }
     console.error('[deleteAreaService] 지역 삭제 중 오류:', error);
-    throw new Error('지역 삭제 중 오류가 발생했습니다.');
+    throw new AppError('지역 삭제 중 오류가 발생했습니다.', 500);
   }
 }

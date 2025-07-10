@@ -71,16 +71,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<Sc
     const context = await getCommonContext(request);
     const school = await getSchoolBySchoolNo(schoolNoNum, context);
 
-    if (!school) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: '학교를 찾을 수 없습니다.',
-        } satisfies BaseApiResponse,
-        { status: 404 },
-      );
-    }
-
     return NextResponse.json(
       {
         success: true,

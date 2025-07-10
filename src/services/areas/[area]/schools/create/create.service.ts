@@ -14,7 +14,7 @@ export async function createRnSchool(administrationCode: string, userInput: Part
     // 1. DB에서 행정표준코드로 중복 체크
     const exists = await existsRnSchoolByAdministrationCode({ administrationCode });
     if (exists) {
-      throw new AppError('이미 등록된 학교입니다.', 400);
+      throw new AppError('이미 등록된 학교입니다.', 409);
     }
 
     // 2. 프론트에서 받은 값만으로 DB 저장

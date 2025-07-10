@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { AreaCreateOrUpdateApiResponse } from '@/types/area';
-import type { BaseApiResponse } from '@/types/common';
-import { DEFAULT_ERROR_MESSAGE_500 } from '@/lib/default.constant';
 import { createArea } from '@/services/areas/create/create.service';
 import { areaCreateShcema } from '@/types/area';
-import { ZodError } from 'zod';
 import { getClientInfo } from '@/services/log-action/log-action.service';
+import { handleError, handleZodError } from '@/utils/error.utils';
 
 /**
  * 지역 생성
@@ -33,32 +31,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     return NextResponse.json(response satisfies AreaCreateOrUpdateApiResponse, { status: 201 });
   } catch (error) {
-    if (error instanceof ZodError) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: '잘못된 데이터 형식입니다.',
-        } satisfies BaseApiResponse,
-        { status: 400 },
-      );
-    }
-
-    if (error instanceof Error && error.message === '이미 존재하는 지역명입니다.') {
-      return NextResponse.json(
-        {
-          success: false,
-          message: '이미 존재하는 지역명입니다.',
-        } satisfies BaseApiResponse,
-        { status: 400 },
-      );
-    }
-
-    return NextResponse.json(
-      {
-        success: false,
-        message: DEFAULT_ERROR_MESSAGE_500,
-      } satisfies BaseApiResponse,
-      { status: 500 },
-    );
+    const zodError = handleZodError(error);
+    if (zodError) return zodError;
+    return handleError(error, '지역 생성');
   }
 }

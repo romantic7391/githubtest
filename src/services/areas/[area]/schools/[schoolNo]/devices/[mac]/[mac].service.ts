@@ -4,13 +4,13 @@ import {
   findRnDeviceRelBySchoolNoAndMac,
   updateRnDevicesRel,
   softDeleteRnDevicesRel,
-  checkMacExists,
   updateMacAddress,
 } from '@/models/rnDevicesRel/rnDevicesRel.model';
 import { softDeleteRnDevice, updateDeviceMac } from '@/models/rnDevices/rnDevices.model';
 import { logAction, makeLogParams } from '@/services/log-action/log-action.service';
 import { beginTransaction, commitTransaction, rollbackTransaction } from '@/lib/mariadb/query';
 import { UpdateMacDto } from '@/interfaces/rnDevicesRel/rnDevicesRel.d';
+import { AppError } from '@/utils/error.utils';
 
 /**
  * 지역 학교 센서 장치 정보 조회
@@ -25,7 +25,7 @@ export async function getDevice(
     const device = await findRnDeviceRelBySchoolNoAndMac(params);
     if (!device) {
       await commitTransaction(conn);
-      return null;
+      throw new AppError('센서를 찾을 수 없습니다.', 404);
     }
 
     // 로그 기록
@@ -61,7 +61,7 @@ export async function getDevice(
       }
     }
     console.error('[getDeviceService] DB 조회 에러:', error);
-    throw new Error('센서 조회 중 오류가 발생했습니다.');
+    throw new AppError('센서 조회 중 오류가 발생했습니다.', 500);
   } finally {
     if (conn) {
       try {
@@ -82,7 +82,7 @@ export async function updateDevice(
 ): Promise<{ mac: string }> {
   // 필수 파라미터 검증
   if (!dto.oldMac) {
-    throw new Error('기존 MAC 주소가 필요합니다.');
+    throw new AppError('기존 MAC 주소가 필요합니다.', 400);
   }
 
   let conn;
@@ -92,7 +92,7 @@ export async function updateDevice(
     // 센서 존재 여부 확인
     const oldDevice = await findRnDeviceRelBySchoolNoAndMac({ schoolNo: dto.schoolNo, mac: dto.oldMac });
     if (!oldDevice) {
-      throw new Error('기존 MAC 주소로 등록된 센서를 찾을 수 없습니다.');
+      throw new AppError('기존 MAC 주소로 등록된 센서를 찾을 수 없습니다.', 404);
     }
 
     // MAC 주소가 변경된 경우
@@ -150,10 +150,10 @@ export async function updateDevice(
       }
     }
     console.error('[updateDeviceService] 센서 수정 중 오류 발생:', error);
-    if (error instanceof Error && error?.message === '기존 MAC 주소로 등록된 센서를 찾을 수 없습니다.') {
+    if (error instanceof AppError) {
       throw error;
     }
-    throw new Error('센서 수정 중 오류가 발생했습니다.');
+    throw new AppError('센서 수정 중 오류가 발생했습니다.', 500);
   } finally {
     if (conn) {
       try {
@@ -181,7 +181,7 @@ export async function deleteDevice(
 
     if (!oldDevice) {
       await commitTransaction(conn);
-      return; // 디바이스가 없는 경우 조용히 종료
+      throw new AppError('센서를 찾을 수 없습니다.', 404);
     }
 
     // rnDevicesRel 테이블에서 삭제
@@ -222,7 +222,13 @@ export async function deleteDevice(
       }
     }
     console.error('[deleteDeviceService] 센서 삭제 중 오류 발생:', error);
-    throw new Error('센서 삭제 중 오류가 발생했습니다.');
+
+    // AppError는 그대로 전달
+    if (error instanceof AppError) {
+      throw error;
+    }
+
+    throw new AppError('센서 삭제 중 오류가 발생했습니다.', 500);
   } finally {
     if (conn) {
       try {
@@ -243,16 +249,10 @@ export async function updateMac(
   conn?: PoolConnection,
 ) {
   for (const dto of dtos) {
-    // 1. newMac 중복 체크
-    const exists = await checkMacExists(dto.schoolNo, dto.newMac, conn);
-    if (exists) {
-      throw new Error('MAC 주소가 이미 존재합니다.');
-    }
-
-    // 2. UPDATE 실행
+    // 1. UPDATE 실행
     const result = await updateMacAddress(dto.schoolNo, dto.oldMac, dto.newMac, conn);
     if (result.affectedRows === 0) {
-      throw new Error('MAC 주소 변경에 실패했습니다.');
+      throw new AppError('MAC 주소 변경에 실패했습니다.', 500);
     }
 
     // 3. rnDevices 테이블도 같이 mac 변경 (존재하는 경우에만)
