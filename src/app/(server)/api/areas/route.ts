@@ -1,4 +1,5 @@
 import type { AreasApiResponse } from '@/types/area';
+import { areaSchema } from '@/types/area';
 import { NextRequest, NextResponse } from 'next/server';
 import { getAreas } from '@/services/areas/areas.service';
 import { getClientInfo } from '@/services/log-action/log-action.service';
@@ -16,6 +17,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
     const areas = searchParams.getAll('area');
+
+    // 지역명 검증
+    if (areas.length > 0) {
+      for (const area of areas) {
+        areaSchema.shape.area.parse(area);
+      }
+    }
+
     const { ip, userAgent } = getClientInfo(request);
 
     const { areas: areasData, total } = await getAreas(page, limit, areas.length > 0 ? areas : undefined, {
