@@ -43,8 +43,9 @@ export async function getAreaByArea(area: string, meta: LogMeta) {
         console.error('Rollback error:', rollbackError);
       }
     }
-    console.error('[getAreaByAreaService] DB 조회 에러:', error);
-    if (error instanceof AppError) throw error;
+    if (error instanceof AppError) {
+      throw error;
+    }
     throw new AppError('지역 목록 조회 중 오류가 발생했습니다.', 500);
   }
 }
@@ -142,7 +143,9 @@ export async function deleteArea(area: string, meta: LogMeta): Promise<void> {
         console.error('Rollback error:', rollbackError);
       }
     }
-    if (error instanceof AppError) throw error;
+    if (error instanceof AppError) {
+      throw error;
+    }
     throw new AppError('지역 삭제 중 오류가 발생했습니다.', 500);
   }
 }

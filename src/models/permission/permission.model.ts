@@ -207,13 +207,33 @@ export async function findPermission(dto: FindPermissionDto) {
   return getRow<Permission>(query, [dto.permissionNo]);
 }
 
-// 권한 등록 중복 체크
-export async function checkPermissionDuplicate(name: string) {
+// 권한 이름으로 조회 (공백 제거 후 비교)
+export async function findPermissionByNameNormalized(name: string): Promise<{ name: string } | null> {
+  // 입력된 이름을 normalize
+  const normalizedInput = name.trim().replace(/\s+/g, '').toLowerCase();
+
+  // 모든 권한 이름을 가져와서 JavaScript에서 비교
   const query = `
-    SELECT COUNT(1) as count
+    SELECT name
     FROM permission
-    WHERE name = ?
-      AND deleted IS NULL
+    WHERE deleted IS NULL
   `;
-  return getRow<{ count: number }>(query, [name]);
+
+  const allPermissionNames = await getAll<{ name: string }>(query);
+
+  // JavaScript에서 normalize해서 비교
+  for (const permission of allPermissionNames) {
+    const normalizedDbName = permission.name.trim().replace(/\s+/g, '').toLowerCase();
+    if (normalizedInput === normalizedDbName) {
+      return permission;
+    }
+  }
+
+  return null;
+}
+
+// 권한 등록 중복 체크 (공백 제거 후 비교) - findPermissionByNameNormalized 사용
+export async function checkPermissionDuplicate(name: string) {
+  const existingPermission = await findPermissionByNameNormalized(name);
+  return { count: existingPermission ? 1 : 0 };
 }

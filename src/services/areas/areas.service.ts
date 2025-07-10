@@ -14,7 +14,7 @@ export async function getAreas(page: number = 1, limit: number = 10, areas: stri
 
     // 지역 필터가 제공되었는데 결과가 없는 경우에만 에러
     if (areas && areas.length > 0 && !result?.areas?.length) {
-      throw new AppError(`요청하신 지역을 찾을 수 없습니다: ${areas.join(', ')}`, 404);
+      throw new AppError(`요청하신 지역을 찾을 수 없습니다.`, 404);
     }
 
     // 히스토리 로그 기록
@@ -37,8 +37,10 @@ export async function getAreas(page: number = 1, limit: number = 10, areas: stri
     return result;
   } catch (error) {
     if (conn) await rollbackTransaction(conn);
-    console.error('[getAreas] DB 조회 에러:', error);
-    if (error instanceof AppError) throw error;
+
+    if (error instanceof AppError) {
+      throw error;
+    }
     throw new AppError('지역 목록 조회 중 오류가 발생했습니다.', 500);
   }
 }
