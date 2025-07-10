@@ -30,10 +30,6 @@ export async function GET(
     );
     console.log('[GET] 조회된 디바이스:', device);
 
-    if (!device) {
-      return NextResponse.json({ success: false, message: '센서를 찾을 수 없습니다.' }, { status: 404 });
-    }
-
     // Zod로 응답 데이터 검증
     try {
       const validatedDevice = deviceRelSchema.parse(device);

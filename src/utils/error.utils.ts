@@ -40,9 +40,13 @@ export function handleZodError(error: unknown): NextResponse | null {
 export function handleError(error: unknown, action: string): NextResponse {
   // 내부 로그에는 상세 정보 기록 (개발/디버깅용)
   console.error(`[${action}] Error:`, error);
+  console.error(`[${action}] Error type:`, typeof error);
+  console.error(`[${action}] Error constructor:`, error?.constructor?.name);
+  console.error(`[${action}] Is AppError:`, error instanceof AppError);
 
   // AppError인 경우 해당 메시지와 상태 코드 사용
   if (error instanceof AppError) {
+    console.error(`[${action}] AppError detected - statusCode:`, error.statusCode);
     return NextResponse.json(
       {
         success: false,

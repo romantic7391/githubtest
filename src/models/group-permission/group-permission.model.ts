@@ -12,6 +12,7 @@ import { AppError } from '@/utils/error.utils';
 
 // 그룹 권한 조회
 export async function selectGroupPermission(
+  schoolNo: number,
   pagination: Pagination,
   filters?: {
     groupNo?: number;
@@ -30,8 +31,8 @@ export async function selectGroupPermission(
   console.log('Input:', { pagination, filters });
 
   const offset = (pagination.page - 1) * pagination.pageSize;
-  const conditions = ['gp.deleted IS NULL', 'g.deleted IS NULL', 'p.deleted IS NULL'];
-  const params: number[] = [];
+  const conditions = ['g.school_no=?', 'gp.deleted IS NULL', 'g.deleted IS NULL', 'p.deleted IS NULL'];
+  const params: number[] = [schoolNo];
 
   if (filters?.groupNo) {
     conditions.push('gp.group_no = ?');

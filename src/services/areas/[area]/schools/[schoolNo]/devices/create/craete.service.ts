@@ -20,14 +20,12 @@ export async function createRnDevicesRel(dtos: DeviceCreate[], meta: LogMeta) {
     return { success: true };
   } catch (error) {
     if (conn) await rollbackTransaction(conn);
-    console.error('[createRnDevicesRel] 에러:', error);
 
     // AppError는 그대로 전달
     if (error instanceof AppError) {
       throw error;
     }
     // 실제 서버 오류만 일반적인 메시지로 변환
-    throw new AppError('센서 등록 중 오류가 발생했습니다.', 500);
     throw new AppError(DEFAULT_ERROR_MESSAGE_500, 500);
   }
 }

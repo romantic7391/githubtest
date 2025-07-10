@@ -18,12 +18,17 @@ import {
 } from '@/types/permission/group-permission';
 
 // 그룹 권한 조회
-export async function getGroupPermissionsS(pagination: Pagination, filters?: GroupPermissionFilter, meta?: LogMeta) {
+export async function getGroupPermissionsS(
+  schoolNo: number,
+  pagination: Pagination,
+  filters?: GroupPermissionFilter,
+  meta?: LogMeta,
+) {
   let conn;
   try {
     conn = await beginTransaction();
 
-    const result = await selectGroupPermission(pagination, filters);
+    const result = await selectGroupPermission(schoolNo, pagination, filters);
 
     // 데이터가 없는 경우 404 에러
     if (result.groupPermissions.length === 0) {
