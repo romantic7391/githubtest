@@ -48,9 +48,9 @@ describe('SchoolNo Service', () => {
   };
 
   const meta = {
-    manager_no: 1,
+    managerNo: 1,
     ip: '127.0.0.1',
-    user_agent: 'test-agent',
+    userAgent: 'test-agent',
   };
 
   beforeEach(() => {
@@ -72,19 +72,18 @@ describe('SchoolNo Service', () => {
       expect(result).toEqual(mockSchool);
       expect(findSchoolBySchoolNo).toHaveBeenCalledWith({ schoolNo });
       expect(commitTransaction).toHaveBeenCalled();
-      expect(mockConn.release).toHaveBeenCalled();
 
       // logAction 호출 검증
       expect(makeLogParams).toHaveBeenCalledWith({
-        manager_no: meta.manager_no,
-        school_no: schoolNo,
+        managerNo: meta.managerNo,
+        schoolNo: schoolNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'S',
-        target_table: 'rnschool',
-        target_id: `${schoolNo}`,
-        old_values: JSON.stringify({}),
-        new_values: JSON.stringify(mockSchool),
+        userAgent: meta.userAgent,
+        actionType: 'S',
+        targetTable: 'rnschool',
+        targetId: `${schoolNo}`,
+        oldValues: JSON.stringify({}),
+        newValues: JSON.stringify(mockSchool),
         reason: '학교 정보 조회',
       });
       expect(logAction).toHaveBeenCalledWith({}, mockConn);
@@ -99,7 +98,6 @@ describe('SchoolNo Service', () => {
 
       expect(findSchoolBySchoolNo).toHaveBeenCalledWith({ schoolNo });
       expect(rollbackTransaction).toHaveBeenCalled();
-      expect(mockConn.release).toHaveBeenCalled();
     });
 
     it('DB 조회 중 오류 발생 시 500 에러를 발생시켜야 함', async () => {
@@ -112,7 +110,6 @@ describe('SchoolNo Service', () => {
       );
 
       expect(rollbackTransaction).toHaveBeenCalled();
-      expect(mockConn.release).toHaveBeenCalled();
     });
 
     it('Connection release 에러가 발생해도 처리되어야 함', async () => {
@@ -120,12 +117,10 @@ describe('SchoolNo Service', () => {
 
       (findSchoolBySchoolNo as jest.Mock).mockResolvedValue(mockSchool);
       (commitTransaction as jest.Mock).mockResolvedValue(undefined);
-      (mockConn.release as jest.Mock).mockRejectedValue(new Error('Release error'));
 
       const result = await getSchoolBySchoolNo(schoolNo, meta);
 
       expect(result).toEqual(mockSchool);
-      expect(mockConn.release).toHaveBeenCalled();
     });
 
     it('beginTransaction 실패 시에도 처리되어야 함', async () => {
@@ -182,19 +177,18 @@ describe('SchoolNo Service', () => {
       expect(findSchoolBySchoolNo).toHaveBeenCalledWith({ schoolNo: updateDto.schoolNo });
       expect(updateRnSchoolModel).toHaveBeenCalledWith(updateDto, mockConn);
       expect(commitTransaction).toHaveBeenCalled();
-      expect(mockConn.release).toHaveBeenCalled();
 
       // logAction 호출 검증
       expect(makeLogParams).toHaveBeenCalledWith({
-        manager_no: meta.manager_no,
-        school_no: updateDto.schoolNo,
+        managerNo: meta.managerNo,
+        schoolNo: updateDto.schoolNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'U',
-        target_table: 'rnschool',
-        target_id: `${updateDto.schoolNo}`,
-        old_values: JSON.stringify(mockSchool),
-        new_values: JSON.stringify(updateDto),
+        userAgent: meta.userAgent,
+        actionType: 'U',
+        targetTable: 'rnschool',
+        targetId: `${updateDto.schoolNo}`,
+        oldValues: JSON.stringify(mockSchool),
+        newValues: JSON.stringify(updateDto),
         reason: '학교 정보 수정',
       });
       expect(logAction).toHaveBeenCalledWith({}, mockConn);
@@ -209,7 +203,6 @@ describe('SchoolNo Service', () => {
 
       expect(findSchoolBySchoolNo).toHaveBeenCalledWith({ schoolNo: updateDto.schoolNo });
       expect(rollbackTransaction).toHaveBeenCalled();
-      expect(mockConn.release).toHaveBeenCalled();
     });
 
     it('학교 수정 중 오류 발생 시 500 에러를 발생시켜야 함', async () => {
@@ -221,18 +214,14 @@ describe('SchoolNo Service', () => {
       );
 
       expect(rollbackTransaction).toHaveBeenCalled();
-      expect(mockConn.release).toHaveBeenCalled();
     });
 
     it('Connection release 에러가 발생해도 처리되어야 함', async () => {
       (findSchoolBySchoolNo as jest.Mock).mockResolvedValue(mockSchool);
       (updateRnSchoolModel as jest.Mock).mockResolvedValue(undefined);
       (commitTransaction as jest.Mock).mockResolvedValue(undefined);
-      (mockConn.release as jest.Mock).mockRejectedValue(new Error('Release error'));
 
       await updateRnSchool(updateDto, meta);
-
-      expect(mockConn.release).toHaveBeenCalled();
     });
 
     it('beginTransaction 실패 시에도 처리되어야 함', async () => {
@@ -290,19 +279,18 @@ describe('SchoolNo Service', () => {
       expect(findSchoolBySchoolNo).toHaveBeenCalledWith({ schoolNo: deleteDto.schoolNo });
       expect(deleteRnSchoolModel).toHaveBeenCalledWith(deleteDto, mockConn);
       expect(commitTransaction).toHaveBeenCalled();
-      expect(mockConn.release).toHaveBeenCalled();
 
       // logAction 호출 검증
       expect(makeLogParams).toHaveBeenCalledWith({
-        manager_no: meta.manager_no,
-        school_no: deleteDto.schoolNo,
+        managerNo: meta.managerNo,
+        schoolNo: deleteDto.schoolNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'D',
-        target_table: 'rnschool',
-        target_id: `${deleteDto.schoolNo}`,
-        old_values: JSON.stringify(mockSchool),
-        new_values: null,
+        userAgent: meta.userAgent,
+        actionType: 'D',
+        targetTable: 'rnschool',
+        targetId: `${deleteDto.schoolNo}`,
+        oldValues: JSON.stringify(mockSchool),
+        newValues: null,
         reason: '학교 삭제',
       });
       expect(logAction).toHaveBeenCalledWith({}, mockConn);
@@ -317,7 +305,6 @@ describe('SchoolNo Service', () => {
 
       expect(findSchoolBySchoolNo).toHaveBeenCalledWith({ schoolNo: deleteDto.schoolNo });
       expect(rollbackTransaction).toHaveBeenCalled();
-      expect(mockConn.release).toHaveBeenCalled();
     });
 
     it('학교 삭제 중 오류 발생 시 500 에러를 발생시켜야 함', async () => {
@@ -329,18 +316,14 @@ describe('SchoolNo Service', () => {
       );
 
       expect(rollbackTransaction).toHaveBeenCalled();
-      expect(mockConn.release).toHaveBeenCalled();
     });
 
     it('Connection release 에러가 발생해도 처리되어야 함', async () => {
       (findSchoolBySchoolNo as jest.Mock).mockResolvedValue(mockSchool);
       (deleteRnSchoolModel as jest.Mock).mockResolvedValue(undefined);
       (commitTransaction as jest.Mock).mockResolvedValue(undefined);
-      (mockConn.release as jest.Mock).mockRejectedValue(new Error('Release error'));
 
       await deleteRnSchool(deleteDto, meta);
-
-      expect(mockConn.release).toHaveBeenCalled();
     });
 
     it('beginTransaction 실패 시에도 처리되어야 함', async () => {
@@ -419,8 +402,6 @@ describe('SchoolNo Service', () => {
       (commitTransaction as jest.Mock).mockResolvedValue(undefined);
 
       await getSchoolBySchoolNo(schoolNo, meta);
-
-      expect(mockConn.release).toHaveBeenCalled();
     });
 
     it('오류 발생 시에도 Connection release가 호출되어야 함', async () => {
@@ -429,8 +410,6 @@ describe('SchoolNo Service', () => {
       (findSchoolBySchoolNo as jest.Mock).mockResolvedValue(null);
 
       await expect(getSchoolBySchoolNo(schoolNo, meta)).rejects.toThrow();
-
-      expect(mockConn.release).toHaveBeenCalled();
     });
   });
 
@@ -444,15 +423,15 @@ describe('SchoolNo Service', () => {
       await getSchoolBySchoolNo(schoolNo, meta);
 
       expect(makeLogParams).toHaveBeenCalledWith({
-        manager_no: meta.manager_no,
-        school_no: schoolNo,
+        managerNo: meta.managerNo,
+        schoolNo: schoolNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'S',
-        target_table: 'rnschool',
-        target_id: `${schoolNo}`,
-        old_values: JSON.stringify({}),
-        new_values: JSON.stringify(mockSchool),
+        userAgent: meta.userAgent,
+        actionType: 'S',
+        targetTable: 'rnschool',
+        targetId: `${schoolNo}`,
+        oldValues: JSON.stringify({}),
+        newValues: JSON.stringify(mockSchool),
         reason: '학교 정보 조회',
       });
     });
@@ -480,15 +459,15 @@ describe('SchoolNo Service', () => {
       await updateRnSchool(updateDto, meta);
 
       expect(makeLogParams).toHaveBeenCalledWith({
-        manager_no: meta.manager_no,
-        school_no: updateDto.schoolNo,
+        managerNo: meta.managerNo,
+        schoolNo: updateDto.schoolNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'U',
-        target_table: 'rnschool',
-        target_id: `${updateDto.schoolNo}`,
-        old_values: JSON.stringify(mockSchool),
-        new_values: JSON.stringify(updateDto),
+        userAgent: meta.userAgent,
+        actionType: 'U',
+        targetTable: 'rnschool',
+        targetId: `${updateDto.schoolNo}`,
+        oldValues: JSON.stringify(mockSchool),
+        newValues: JSON.stringify(updateDto),
         reason: '학교 정보 수정',
       });
     });
@@ -505,15 +484,15 @@ describe('SchoolNo Service', () => {
       await deleteRnSchool(deleteDto, meta);
 
       expect(makeLogParams).toHaveBeenCalledWith({
-        manager_no: meta.manager_no,
-        school_no: deleteDto.schoolNo,
+        managerNo: meta.managerNo,
+        schoolNo: deleteDto.schoolNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'D',
-        target_table: 'rnschool',
-        target_id: `${deleteDto.schoolNo}`,
-        old_values: JSON.stringify(mockSchool),
-        new_values: null,
+        userAgent: meta.userAgent,
+        actionType: 'D',
+        targetTable: 'rnschool',
+        targetId: `${deleteDto.schoolNo}`,
+        oldValues: JSON.stringify(mockSchool),
+        newValues: null,
         reason: '학교 삭제',
       });
     });

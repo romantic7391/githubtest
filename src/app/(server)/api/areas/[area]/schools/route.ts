@@ -32,10 +32,10 @@ async function getCommonContext(request: NextRequest) {
   const { userAgent, ip } = getClientInfo(request);
 
   return {
-    manager_no: session.user.managerNo,
-    school_no: 0,
-    ip: ip || '',
-    user_agent: userAgent || '',
+    managerNo: session.user.managerNo,
+    schoolNo: 0,
+    ip: ip,
+    userAgent: userAgent,
   };
 }
 

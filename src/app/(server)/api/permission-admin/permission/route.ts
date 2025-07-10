@@ -38,10 +38,10 @@ export async function GET(request: NextRequest) {
     const result = await getPermissionsS(
       pagination,
       {
-        manager_no: session.manager_no,
+        managerNo: session.managerNo,
         ip: request.headers.get('x-forwarded-for') || '',
-        user_agent: request.headers.get('user-agent') || '',
-        school_no: 0,
+        userAgent: request.headers.get('user-agent') || '',
+        schoolNo: 0,
       },
       filters,
     );
@@ -97,10 +97,10 @@ export async function POST(request: NextRequest) {
     };
 
     const result = await createPermissionS(dto, {
-      manager_no: session.manager_no,
+      managerNo: session.managerNo,
       ip: request.headers.get('x-forwarded-for') || '',
-      user_agent: request.headers.get('user-agent') || '',
-      school_no: 0,
+      userAgent: request.headers.get('user-agent') || '',
+      schoolNo: 0,
     });
 
     return NextResponse.json(

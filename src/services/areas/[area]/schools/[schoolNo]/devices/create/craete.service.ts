@@ -1,5 +1,5 @@
 import { PoolConnection } from 'mariadb';
-import { findRelByMac, insertRnDevicesRel } from '@/models/rnDevicesRel/rnDevicesRel.model';
+import { insertRnDevicesRel, checkMacExists } from '@/models/rnDevicesRel/rnDevicesRel.model';
 // import { findDevicesByMacs, insertRnDevices } from '@/models/rnDevices/rnDevices.model';
 import { beginTransaction, commitTransaction, rollbackTransaction } from '@/lib/mariadb/query';
 import { DeviceCreate } from '@/types/device';
@@ -20,7 +20,14 @@ export async function createRnDevicesRel(dtos: DeviceCreate[], meta: LogMeta) {
   } catch (error) {
     if (conn) await rollbackTransaction(conn);
     console.error('[createRnDevicesRel] 에러:', error);
+
+    // 비즈니스 로직 에러는 그대로 전달
     if (error instanceof Error) {
+      const errorMessage = error.message;
+      if (errorMessage === '이미 등록된 MAC 주소입니다.' || errorMessage === '등록할 센서 정보가 없습니다.') {
+        throw error;
+      }
+      // 실제 서버 오류만 일반적인 메시지로 변환
       throw new Error('센서 등록 중 오류가 발생했습니다.');
     }
     throw new Error(DEFAULT_ERROR_MESSAGE_500);
@@ -35,7 +42,7 @@ async function createDevicesAndRelationsFn(dtos: DeviceCreate[], conn: PoolConne
   }
 
   // 1. MAC 주소 중복 체크를 병렬로 처리
-  const macChecks = await Promise.all(dtos.map((dto) => findRelByMac(dto.mac, conn)));
+  const macChecks = await Promise.all(dtos.map((dto) => checkMacExists(dto.schoolNo, dto.mac, conn)));
 
   if (macChecks.some((exists) => exists)) {
     throw new Error('이미 등록된 MAC 주소입니다.');
@@ -49,12 +56,12 @@ async function createDevicesAndRelationsFn(dtos: DeviceCreate[], conn: PoolConne
     dtos.map((dto) => {
       const logParams = {
         ...meta,
-        school_no: dto.schoolNo,
-        action_type: 'I' as const,
-        target_table: 'rnDevicesRel',
-        target_id: dto.mac,
-        old_values: null,
-        new_values: JSON.stringify(dto),
+        schoolNo: dto.schoolNo,
+        actionType: 'I' as const,
+        targetTable: 'rnDevicesRel',
+        targetId: dto.mac,
+        oldValues: null,
+        newValues: JSON.stringify(dto),
         reason: '센서 등록',
       };
       return logAction(makeLogParams(logParams), conn);

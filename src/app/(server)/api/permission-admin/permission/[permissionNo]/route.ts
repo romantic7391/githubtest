@@ -40,7 +40,7 @@ export async function PUT(request: NextRequest, context: PermissionRouteParams) 
     const validatedData = createPermissionDtoSchema.parse(body);
 
     const dto: UpdatePermissionDto = {
-      permission_no: permissionNoNum,
+      permissionNo: permissionNoNum,
       name: validatedData.name,
       description: validatedData.description,
       defaultExtraCondition: validatedData.defaultExtraCondition,
@@ -48,10 +48,10 @@ export async function PUT(request: NextRequest, context: PermissionRouteParams) 
     };
 
     const result = await updatePermissionS(dto, {
-      manager_no: session.manager_no,
+      managerNo: session.managerNo,
       ip: request.headers.get('x-forwarded-for') || '',
-      user_agent: request.headers.get('user-agent') || '',
-      school_no: 0,
+      userAgent: request.headers.get('user-agent') || '',
+      schoolNo: 0,
     });
 
     return NextResponse.json(
@@ -104,10 +104,10 @@ export async function DELETE(request: NextRequest, context: PermissionRouteParam
     }
 
     await deletePermissionS(permissionNoNum, {
-      manager_no: session.manager_no,
+      managerNo: session.managerNo,
       ip: request.headers.get('x-forwarded-for') || '',
-      user_agent: request.headers.get('user-agent') || '',
-      school_no: 0,
+      userAgent: request.headers.get('user-agent') || '',
+      schoolNo: 0,
     });
 
     return NextResponse.json(

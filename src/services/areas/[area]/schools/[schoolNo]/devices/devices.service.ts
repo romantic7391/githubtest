@@ -49,15 +49,15 @@ export async function getRnDevicesRelBySchoolNo(
 
     await logAction(
       makeLogParams({
-        manager_no: meta.manager_no,
-        school_no: params.school_no,
+        managerNo: meta.managerNo,
+        schoolNo: params.schoolNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'S',
-        target_table: 'rnDevicesRel',
-        target_id: `${params.school_no}`,
-        old_values: null,
-        new_values: JSON.stringify({ devices, pagination }),
+        userAgent: meta.userAgent,
+        actionType: 'S',
+        targetTable: 'rnDevicesRel',
+        targetId: `${params.schoolNo}`,
+        oldValues: null,
+        newValues: JSON.stringify({ devices, pagination }),
         reason: '센서 목록 조회',
       }),
       conn,

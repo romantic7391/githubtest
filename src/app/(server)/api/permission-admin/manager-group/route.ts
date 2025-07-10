@@ -58,13 +58,13 @@ export async function GET(request: NextRequest) {
     });
 
     const result = await getManagerGroupsS(
-      session.manager_no,
+      session.managerNo,
       pagination,
       {
-        manager_no: session.manager_no,
+        managerNo: session.managerNo,
         ip: request.headers.get('x-forwarded-for') || '',
-        user_agent: request.headers.get('user-agent') || '',
-        school_no: 0,
+        userAgent: request.headers.get('user-agent') || '',
+        schoolNo: 0,
       },
       filters,
     );
@@ -125,10 +125,10 @@ export async function POST(request: NextRequest) {
 
     const { userAgent, ip } = getClientInfo(request);
     const result = await createManagerGroupS(managerGroupData, {
-      manager_no: session.manager_no,
+      managerNo: session.managerNo,
       ip,
-      user_agent: userAgent,
-      school_no: 0,
+      userAgent: userAgent,
+      schoolNo: 0,
     });
 
     return NextResponse.json(
@@ -192,10 +192,10 @@ export async function PUT(request: NextRequest) {
       validatedData.originalNo,
       validatedData.originalGroupNo,
       {
-        manager_no: session.manager_no,
+        managerNo: session.managerNo,
         ip,
-        user_agent: userAgent,
-        school_no: 0,
+        userAgent: userAgent,
+        schoolNo: 0,
       },
     );
 
@@ -270,10 +270,10 @@ export async function DELETE(request: NextRequest) {
     }
 
     await deleteManagerGroupS(Number(no), Number(groupNo), {
-      manager_no: session.manager_no,
+      managerNo: session.managerNo,
       ip: request.headers.get('x-forwarded-for') || '',
-      user_agent: request.headers.get('user-agent') || '',
-      school_no: 0,
+      userAgent: request.headers.get('user-agent') || '',
+      schoolNo: 0,
     });
 
     return NextResponse.json(

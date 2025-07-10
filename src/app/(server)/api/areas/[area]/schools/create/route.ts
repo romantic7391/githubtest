@@ -27,10 +27,10 @@ async function getCommonContext(request: NextRequest) {
   const { userAgent, ip } = getClientInfo(request);
 
   return {
-    manager_no: session.user.managerNo,
-    school_no: 0,
-    ip: ip || '',
-    user_agent: userAgent || '',
+    managerNo: session.user.managerNo,
+    schoolNo: 0,
+    ip: ip,
+    userAgent: userAgent,
   };
 }
 
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         success: true,
         message: '학교가 성공적으로 등록되었습니다.',
         data: {
-          schoolNo: result.school.school_no,
+          schoolNo: result.school.schoolNo,
         },
       } satisfies SchoolCreateOrUpdateApiResponse,
       { status: 201 },

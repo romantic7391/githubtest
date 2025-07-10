@@ -22,27 +22,27 @@
         </h1>
         <div class="clearfix">
           <div class="fl pad1y space-right2">
-            <span class="strong">45.83% </span>
+            <span class="strong">100% </span>
             <span class="quiet">Statements</span>
-            <span class="fraction">11/24</span>
+            <span class="fraction">25/25</span>
+          </div>
+
+          <div class="fl pad1y space-right2">
+            <span class="strong">80% </span>
+            <span class="quiet">Branches</span>
+            <span class="fraction">4/5</span>
           </div>
 
           <div class="fl pad1y space-right2">
             <span class="strong">100% </span>
-            <span class="quiet">Branches</span>
-            <span class="fraction">0/0</span>
-          </div>
-
-          <div class="fl pad1y space-right2">
-            <span class="strong">0% </span>
             <span class="quiet">Functions</span>
-            <span class="fraction">0/3</span>
+            <span class="fraction">3/3</span>
           </div>
 
           <div class="fl pad1y space-right2">
-            <span class="strong">45.83% </span>
+            <span class="strong">100% </span>
             <span class="quiet">Lines</span>
-            <span class="fraction">11/24</span>
+            <span class="fraction">25/25</span>
           </div>
         </div>
         <p class="quiet">
@@ -56,7 +56,7 @@
           </div>
         </template>
       </div>
-      <div class="status-line low"></div>
+      <div class="status-line high"></div>
       <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -82,54 +82,57 @@
 <a name='L22'></a><a href='#L22'>22</a>
 <a name='L23'></a><a href='#L23'>23</a>
 <a name='L24'></a><a href='#L24'>24</a>
-<a name='L25'></a><a href='#L25'>25</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L25'></a><a href='#L25'>25</a>
+<a name='L26'></a><a href='#L26'>26</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { History, historySchema } from '@/types/history';
 import { insertLogAction } from '@/models/history-action/history-action.model';
 import type { PoolConnection } from 'mariadb';
 &nbsp;
 // 로그 파라미터를 History 타입으로 변환
-export <span class="fstat-no" title="function not covered" >function makeLogParams(params: Partial&lt;History&gt;) {</span>
-<span class="cstat-no" title="statement not covered" >  return historySchema.parse({</span>
-<span class="cstat-no" title="statement not covered" >    ...params,</span>
-<span class="cstat-no" title="statement not covered" >    school_no: params.school_no ?? 0,</span>
-<span class="cstat-no" title="statement not covered" >    old_values: params.old_values ?? '',</span>
-<span class="cstat-no" title="statement not covered" >  });</span>
-<span class="cstat-no" title="statement not covered" >}</span>
+export function makeLogParams(params: Partial&lt;History&gt;) {
+  return historySchema.parse({
+    ...params,
+    schoolNo: params.schoolNo, // null을 그대로 유지
+    oldValues: params.oldValues ?? '',
+    newValues: params.newValues<span class="branch-0 cbranch-no" title="branch not covered" > ?? '',</span>
+  });
+}
 &nbsp;
 // 로그 기록
-export <span class="fstat-no" title="function not covered" >async function logAction(history: History, conn?: PoolConnection) {</span>
-<span class="cstat-no" title="statement not covered" >  await insertLogAction(history, conn);</span>
-<span class="cstat-no" title="statement not covered" >}</span>
+export async function logAction(history: History, conn?: PoolConnection) {
+  await insertLogAction(history, conn);
+}
 &nbsp;
-export <span class="fstat-no" title="function not covered" >function getClientInfo(req: import('next/server').NextRequest) {</span>
-<span class="cstat-no" title="statement not covered" >  return {</span>
-<span class="cstat-no" title="statement not covered" >    userAgent: req.headers.get('user-agent'),</span>
-<span class="cstat-no" title="statement not covered" >    ip: req.headers.get('x-forwarded-for'),</span>
-<span class="cstat-no" title="statement not covered" >  };</span>
-<span class="cstat-no" title="statement not covered" >}</span>
+export function getClientInfo(req: import('next/server').NextRequest) {
+  return {
+    userAgent: req.headers.get('user-agent'),
+    ip: req.headers.get('x-forwarded-for'),
+  };
+}
 &nbsp;</pre></td></tr></table></pre>
 
       <div class="push"></div>
@@ -139,7 +142,7 @@ export <span class="fstat-no" title="function not covered" >function getClientIn
     <div class="footer quiet pad2 space-top1 center small">
       Code coverage generated by
       <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-      at 2025-06-20T02:12:38.244Z
+      at 2025-07-09T07:10:50.566Z
     </div>
     <script src="../../prettify.js"></script>
     <script>

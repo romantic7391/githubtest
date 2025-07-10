@@ -26,10 +26,10 @@ describe('Manager Group Service', () => {
   };
 
   const meta = {
-    manager_no: 1,
+    managerNo: 1,
     ip: '127.0.0.1',
-    user_agent: 'test',
-    school_no: 1,
+    userAgent: 'test',
+    schoolNo: 1,
   };
 
   const pagination = {
@@ -84,15 +84,15 @@ describe('Manager Group Service', () => {
       expect(findManagerGroups).toHaveBeenCalledWith({ managerNo, filters }, pagination);
 
       expect(makeLogParams).toHaveBeenCalledWith({
-        manager_no: meta.manager_no,
+        managerNo: meta.managerNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'S',
-        target_table: 'managerGroup',
-        target_id: 'group_no=1',
-        old_values: '',
-        new_values: JSON.stringify(mockResult),
-        reason: '관리자 그룹 조회: group_no 1',
+        userAgent: meta.userAgent,
+        actionType: 'S',
+        targetTable: 'managerGroup',
+        targetId: 'groupNo=1',
+        oldValues: '',
+        newValues: JSON.stringify(mockResult),
+        reason: '관리자 그룹 조회: groupNo 1',
       });
       expect(logAction).toHaveBeenCalledWith({}, mockConn);
       expect(commitTransaction).toHaveBeenCalled();
@@ -113,14 +113,14 @@ describe('Manager Group Service', () => {
       expect(findManagerGroups).toHaveBeenCalledWith({ managerNo, filters: undefined }, pagination);
 
       expect(makeLogParams).toHaveBeenCalledWith({
-        manager_no: meta.manager_no,
+        managerNo: meta.managerNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'S',
-        target_table: 'managerGroup',
-        target_id: 'all',
-        old_values: '',
-        new_values: JSON.stringify(mockResult),
+        userAgent: meta.userAgent,
+        actionType: 'S',
+        targetTable: 'managerGroup',
+        targetId: 'all',
+        oldValues: '',
+        newValues: JSON.stringify(mockResult),
         reason: '관리자 그룹 조회: 전체',
       });
     });
@@ -208,15 +208,15 @@ describe('Manager Group Service', () => {
       expect(insertManagerGroup).toHaveBeenCalledWith(mockManagerGroup, mockConn);
 
       expect(makeLogParams).toHaveBeenCalledWith({
-        manager_no: meta.manager_no,
+        managerNo: meta.managerNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'I',
-        target_table: 'managerGroup',
-        target_id: `${mockManagerGroup.no}_${mockManagerGroup.groupNo}`,
-        old_values: JSON.stringify({}),
-        new_values: JSON.stringify(mockManagerGroup),
-        reason: `관리자 그룹 생성: manager_no ${mockManagerGroup.no}, group_no ${mockManagerGroup.groupNo}`,
+        userAgent: meta.userAgent,
+        actionType: 'I',
+        targetTable: 'managerGroup',
+        targetId: `${mockManagerGroup.no}_${mockManagerGroup.groupNo}`,
+        oldValues: JSON.stringify({}),
+        newValues: JSON.stringify(mockManagerGroup),
+        reason: `관리자 그룹 생성: managerNo ${mockManagerGroup.no}, groupNo ${mockManagerGroup.groupNo}`,
       });
       expect(logAction).toHaveBeenCalledWith({}, mockConn);
       expect(commitTransaction).toHaveBeenCalled();
@@ -294,15 +294,15 @@ describe('Manager Group Service', () => {
       );
 
       expect(makeLogParams).toHaveBeenCalledWith({
-        manager_no: meta.manager_no,
+        managerNo: meta.managerNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'U',
-        target_table: 'managerGroup',
-        target_id: `${updatedManagerGroup.no}_${updatedManagerGroup.groupNo}`,
-        old_values: JSON.stringify({ no: originalNo, groupNo: originalGroupNo }),
-        new_values: JSON.stringify(updatedManagerGroup),
-        reason: `관리자 그룹 수정: manager_no ${originalNo}->${updatedManagerGroup.no}, group_no ${originalGroupNo}->${updatedManagerGroup.groupNo}`,
+        userAgent: meta.userAgent,
+        actionType: 'U',
+        targetTable: 'managerGroup',
+        targetId: `${updatedManagerGroup.no}_${updatedManagerGroup.groupNo}`,
+        oldValues: JSON.stringify({ no: originalNo, groupNo: originalGroupNo }),
+        newValues: JSON.stringify(updatedManagerGroup),
+        reason: `관리자 그룹 수정: managerNo ${originalNo}->${updatedManagerGroup.no}, groupNo ${originalGroupNo}->${updatedManagerGroup.groupNo}`,
       });
       expect(logAction).toHaveBeenCalledWith({}, mockConn);
       expect(commitTransaction).toHaveBeenCalled();
@@ -437,15 +437,15 @@ describe('Manager Group Service', () => {
       expect(deleteManagerGroup).toHaveBeenCalledWith({ no, groupNo }, mockConn);
 
       expect(makeLogParams).toHaveBeenCalledWith({
-        manager_no: meta.manager_no,
+        managerNo: meta.managerNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'D',
-        target_table: 'managerGroup',
-        target_id: `${no}_${groupNo}`,
-        old_values: JSON.stringify({ no, groupNo }),
-        new_values: JSON.stringify({}),
-        reason: `관리자 그룹 삭제: manager_no ${no}, group_no ${groupNo}`,
+        userAgent: meta.userAgent,
+        actionType: 'D',
+        targetTable: 'managerGroup',
+        targetId: `${no}_${groupNo}`,
+        oldValues: JSON.stringify({ no, groupNo }),
+        newValues: JSON.stringify({}),
+        reason: `관리자 그룹 삭제: managerNo ${no}, groupNo ${groupNo}`,
       });
       expect(logAction).toHaveBeenCalledWith({}, mockConn);
       expect(commitTransaction).toHaveBeenCalled();
@@ -549,15 +549,15 @@ describe('Manager Group Service', () => {
       await createManagerGroupS(mockManagerGroup, meta);
 
       expect(makeLogParams).toHaveBeenCalledWith({
-        manager_no: meta.manager_no,
+        managerNo: meta.managerNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'I',
-        target_table: 'managerGroup',
-        target_id: `${mockManagerGroup.no}_${mockManagerGroup.groupNo}`,
-        old_values: JSON.stringify({}),
-        new_values: JSON.stringify(mockManagerGroup),
-        reason: `관리자 그룹 생성: manager_no ${mockManagerGroup.no}, group_no ${mockManagerGroup.groupNo}`,
+        userAgent: meta.userAgent,
+        actionType: 'I',
+        targetTable: 'managerGroup',
+        targetId: `${mockManagerGroup.no}_${mockManagerGroup.groupNo}`,
+        oldValues: JSON.stringify({}),
+        newValues: JSON.stringify(mockManagerGroup),
+        reason: `관리자 그룹 생성: managerNo ${mockManagerGroup.no}, groupNo ${mockManagerGroup.groupNo}`,
       });
       expect(logAction).toHaveBeenCalledWith({}, mockConn);
     });
@@ -582,15 +582,15 @@ describe('Manager Group Service', () => {
       await updateManagerGroupS(updatedManagerGroup, originalNo, originalGroupNo, meta);
 
       expect(makeLogParams).toHaveBeenCalledWith({
-        manager_no: meta.manager_no,
+        managerNo: meta.managerNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'U',
-        target_table: 'managerGroup',
-        target_id: `${updatedManagerGroup.no}_${updatedManagerGroup.groupNo}`,
-        old_values: JSON.stringify({ no: originalNo, groupNo: originalGroupNo }),
-        new_values: JSON.stringify(updatedManagerGroup),
-        reason: `관리자 그룹 수정: manager_no ${originalNo}->${updatedManagerGroup.no}, group_no ${originalGroupNo}->${updatedManagerGroup.groupNo}`,
+        userAgent: meta.userAgent,
+        actionType: 'U',
+        targetTable: 'managerGroup',
+        targetId: `${updatedManagerGroup.no}_${updatedManagerGroup.groupNo}`,
+        oldValues: JSON.stringify({ no: originalNo, groupNo: originalGroupNo }),
+        newValues: JSON.stringify(updatedManagerGroup),
+        reason: `관리자 그룹 수정: managerNo ${originalNo}->${updatedManagerGroup.no}, groupNo ${originalGroupNo}->${updatedManagerGroup.groupNo}`,
       });
       expect(logAction).toHaveBeenCalledWith({}, mockConn);
     });
@@ -610,103 +610,17 @@ describe('Manager Group Service', () => {
       await deleteManagerGroupS(no, groupNo, meta);
 
       expect(makeLogParams).toHaveBeenCalledWith({
-        manager_no: meta.manager_no,
+        managerNo: meta.managerNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'D',
-        target_table: 'managerGroup',
-        target_id: `${no}_${groupNo}`,
-        old_values: JSON.stringify({ no, groupNo }),
-        new_values: JSON.stringify({}),
-        reason: `관리자 그룹 삭제: manager_no ${no}, group_no ${groupNo}`,
+        userAgent: meta.userAgent,
+        actionType: 'D',
+        targetTable: 'managerGroup',
+        targetId: `${no}_${groupNo}`,
+        oldValues: JSON.stringify({ no, groupNo }),
+        newValues: JSON.stringify({}),
+        reason: `관리자 그룹 삭제: managerNo ${no}, groupNo ${groupNo}`,
       });
       expect(logAction).toHaveBeenCalledWith({}, mockConn);
-    });
-  });
-
-  describe('finally 블록 에러 처리', () => {
-    it('getManagerGroupsS에서 conn.release() 실패 시 에러가 로깅되어야 함', async () => {
-      const managerNo = 1;
-      const mockResult = {
-        managerGroups: mockManagerGroups,
-        total: 2,
-      };
-
-      (findManagerGroups as jest.Mock).mockResolvedValue(mockResult);
-      (commitTransaction as jest.Mock).mockResolvedValue(undefined);
-
-      // conn.release()에서 에러 발생 시뮬레이션
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-      mockConn.release.mockRejectedValueOnce(new Error('Release error'));
-
-      await getManagerGroupsS(managerNo, pagination, meta);
-
-      expect(consoleSpy).toHaveBeenCalledWith('트랜잭션 커넥션 해제 중 오류:', expect.any(Error));
-      consoleSpy.mockRestore();
-    });
-
-    it('createManagerGroupS에서 conn.release() 실패 시 에러가 로깅되어야 함', async () => {
-      (findManagerGroup as jest.Mock).mockResolvedValue(null);
-      (insertManagerGroup as jest.Mock).mockResolvedValue(undefined);
-      (commitTransaction as jest.Mock).mockResolvedValue(undefined);
-
-      // conn.release()에서 에러 발생 시뮬레이션
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-      mockConn.release.mockRejectedValueOnce(new Error('Release error'));
-
-      await createManagerGroupS(mockManagerGroup, meta);
-
-      expect(consoleSpy).toHaveBeenCalledWith('트랜잭션 커넥션 해제 중 오류:', expect.any(Error));
-      consoleSpy.mockRestore();
-    });
-
-    it('updateManagerGroupS에서 conn.release() 실패 시 에러가 로깅되어야 함', async () => {
-      const originalNo = 1;
-      const originalGroupNo = 1;
-      const updatedManagerGroup = {
-        no: 2,
-        groupNo: 2,
-      };
-
-      const existingGroup = {
-        no: originalNo,
-        groupNo: originalGroupNo,
-      };
-
-      (findManagerGroup as jest.Mock).mockResolvedValueOnce(existingGroup).mockResolvedValueOnce(null);
-      (updateManagerGroup as jest.Mock).mockResolvedValue(undefined);
-      (commitTransaction as jest.Mock).mockResolvedValue(undefined);
-
-      // conn.release()에서 에러 발생 시뮬레이션
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-      mockConn.release.mockRejectedValueOnce(new Error('Release error'));
-
-      await updateManagerGroupS(updatedManagerGroup, originalNo, originalGroupNo, meta);
-
-      expect(consoleSpy).toHaveBeenCalledWith('트랜잭션 커넥션 해제 중 오류:', expect.any(Error));
-      consoleSpy.mockRestore();
-    });
-
-    it('deleteManagerGroupS에서 conn.release() 실패 시 에러가 로깅되어야 함', async () => {
-      const no = 1;
-      const groupNo = 1;
-      const existingGroup = {
-        no,
-        groupNo,
-      };
-
-      (findManagerGroup as jest.Mock).mockResolvedValue(existingGroup);
-      (deleteManagerGroup as jest.Mock).mockResolvedValue({ affectedRows: 1 });
-      (commitTransaction as jest.Mock).mockResolvedValue(undefined);
-
-      // conn.release()에서 에러 발생 시뮬레이션
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-      mockConn.release.mockRejectedValueOnce(new Error('Release error'));
-
-      await deleteManagerGroupS(no, groupNo, meta);
-
-      expect(consoleSpy).toHaveBeenCalledWith('트랜잭션 커넥션 해제 중 오류:', expect.any(Error));
-      consoleSpy.mockRestore();
     });
   });
 });

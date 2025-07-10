@@ -33,15 +33,15 @@ export async function getGroupPermissionsS(pagination: Pagination, filters?: Gro
     if (meta) {
       await logAction(
         makeLogParams({
-          manager_no: meta.manager_no,
+          managerNo: meta.managerNo,
           ip: meta.ip,
-          user_agent: meta.user_agent,
-          action_type: 'S',
-          target_table: 'groupPermission',
-          target_id: filters?.groupNo ? `group_no=${filters.groupNo}` : 'all',
-          old_values: '',
-          new_values: JSON.stringify(result),
-          reason: `그룹 권한 조회: ${filters?.groupNo ? `group_no ${filters.groupNo}` : '전체'}`,
+          userAgent: meta.userAgent,
+          actionType: 'S',
+          targetTable: 'groupPermission',
+          targetId: filters?.groupNo ? `groupNo=${filters.groupNo}` : 'all',
+          oldValues: '',
+          newValues: JSON.stringify(result),
+          reason: `그룹 권한 조회: ${filters?.groupNo ? `groupNo ${filters.groupNo}` : '전체'}`,
         }),
         conn,
       );
@@ -53,7 +53,6 @@ export async function getGroupPermissionsS(pagination: Pagination, filters?: Gro
     if (conn) {
       await rollbackTransaction(conn);
     }
-    console.error('그룹 권한 목록 조회 중 오류 발생:', error);
     if (error instanceof AppError) {
       throw error;
     }
@@ -85,15 +84,15 @@ export async function createGroupPermissionS(
     // 3. 로그 기록
     await logAction(
       makeLogParams({
-        manager_no: meta.manager_no,
+        managerNo: meta.managerNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'I',
-        target_table: 'groupPermission',
-        target_id: `${groupPermission.groupNo}|${groupPermission.permissionNo}`,
-        old_values: '',
-        new_values: JSON.stringify(groupPermission),
-        reason: `그룹 권한 생성: group_no ${groupPermission.groupNo}, permission_no ${groupPermission.permissionNo}`,
+        userAgent: meta.userAgent,
+        actionType: 'I',
+        targetTable: 'groupPermission',
+        targetId: `${groupPermission.groupNo}|${groupPermission.permissionNo}`,
+        oldValues: '',
+        newValues: JSON.stringify(groupPermission),
+        reason: `그룹 권한 생성: groupNo ${groupPermission.groupNo}, permissionNo ${groupPermission.permissionNo}`,
       }),
       conn,
     );
@@ -107,7 +106,6 @@ export async function createGroupPermissionS(
     if (conn) {
       await rollbackTransaction(conn);
     }
-    console.error('그룹 권한 생성 중 오류 발생:', error);
     throw error instanceof AppError ? error : new AppError('그룹 권한 생성 중 오류가 발생했습니다.', 500);
   }
 }
@@ -154,15 +152,15 @@ export async function updateGroupPermissionS(
     // 4. 로그 기록
     await logAction(
       makeLogParams({
-        manager_no: meta.manager_no,
+        managerNo: meta.managerNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'U',
-        target_table: 'groupPermission',
-        target_id: `${groupPermission.originalGroupNo}|${groupPermission.originalPermissionNo}`,
-        old_values: JSON.stringify(originalPermission),
-        new_values: JSON.stringify(groupPermission),
-        reason: `그룹 권한 수정: group_no ${groupPermission.groupNo}, permission_no ${groupPermission.permissionNo}`,
+        userAgent: meta.userAgent,
+        actionType: 'U',
+        targetTable: 'groupPermission',
+        targetId: `${groupPermission.originalGroupNo}|${groupPermission.originalPermissionNo}`,
+        oldValues: JSON.stringify(originalPermission),
+        newValues: JSON.stringify(groupPermission),
+        reason: `그룹 권한 수정: groupNo ${groupPermission.groupNo}, permissionNo ${groupPermission.permissionNo}`,
       }),
       conn,
     );
@@ -176,7 +174,6 @@ export async function updateGroupPermissionS(
     if (conn) {
       await rollbackTransaction(conn);
     }
-    console.error('그룹 권한 수정 중 오류 발생:', error);
     throw error instanceof AppError ? error : new AppError('그룹 권한 수정 중 오류가 발생했습니다.', 500);
   }
 }
@@ -206,15 +203,15 @@ export async function deleteGroupPermissionS(groupNo: number, permissionNo: numb
     // 3. 로그 기록
     await logAction(
       makeLogParams({
-        manager_no: meta.manager_no,
+        managerNo: meta.managerNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'D',
-        target_table: 'groupPermission',
-        target_id: `${groupNo}|${permissionNo}`,
-        old_values: JSON.stringify(existingPermission),
-        new_values: null,
-        reason: `그룹 권한 삭제: group_no ${groupNo}, permission_no ${permissionNo}`,
+        userAgent: meta.userAgent,
+        actionType: 'D',
+        targetTable: 'groupPermission',
+        targetId: `${groupNo}|${permissionNo}`,
+        oldValues: JSON.stringify(existingPermission),
+        newValues: null,
+        reason: `그룹 권한 삭제: groupNo ${groupNo}, permissionNo ${permissionNo}`,
       }),
       conn,
     );
@@ -224,7 +221,6 @@ export async function deleteGroupPermissionS(groupNo: number, permissionNo: numb
     if (conn) {
       await rollbackTransaction(conn);
     }
-    console.error('그룹 권한 삭제 중 오류 발생:', error);
     throw error instanceof AppError ? error : new AppError('그룹 권한 삭제 중 오류가 발생했습니다.', 500);
   }
 }

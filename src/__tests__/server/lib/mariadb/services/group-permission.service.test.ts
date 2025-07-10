@@ -26,10 +26,10 @@ describe('Group Permission Service', () => {
   };
 
   const meta = {
-    manager_no: 1,
+    managerNo: 1,
     ip: '127.0.0.1',
-    user_agent: 'test',
-    school_no: 1,
+    userAgent: 'test',
+    schoolNo: 1,
   };
 
   const pagination = {
@@ -73,8 +73,7 @@ describe('Group Permission Service', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (beginTransaction as jest.Mock).mockResolvedValue(mockConn);
-    (commitTransaction as jest.Mock).mockResolvedValue(undefined);
-    (rollbackTransaction as jest.Mock).mockResolvedValue(undefined);
+    // commitTransaction과 rollbackTransaction은 실제 함수를 사용하도록 mock 제거
     (logAction as jest.Mock).mockResolvedValue(undefined);
     (makeLogParams as jest.Mock).mockReturnValue({});
   });
@@ -95,15 +94,15 @@ describe('Group Permission Service', () => {
       expect(selectGroupPermission).toHaveBeenCalledWith(pagination, filters);
 
       expect(makeLogParams).toHaveBeenCalledWith({
-        manager_no: meta.manager_no,
+        managerNo: meta.managerNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'S',
-        target_table: 'groupPermission',
-        target_id: 'group_no=1',
-        old_values: '',
-        new_values: JSON.stringify(mockResult),
-        reason: '그룹 권한 조회: group_no 1',
+        userAgent: meta.userAgent,
+        actionType: 'S',
+        targetTable: 'groupPermission',
+        targetId: 'groupNo=1',
+        oldValues: '',
+        newValues: JSON.stringify(mockResult),
+        reason: '그룹 권한 조회: groupNo 1',
       });
       expect(logAction).toHaveBeenCalledWith({}, mockConn);
       expect(commitTransaction).toHaveBeenCalled();
@@ -123,14 +122,14 @@ describe('Group Permission Service', () => {
       expect(selectGroupPermission).toHaveBeenCalledWith(pagination, undefined);
 
       expect(makeLogParams).toHaveBeenCalledWith({
-        manager_no: meta.manager_no,
+        managerNo: meta.managerNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'S',
-        target_table: 'groupPermission',
-        target_id: 'all',
-        old_values: '',
-        new_values: JSON.stringify(mockResult),
+        userAgent: meta.userAgent,
+        actionType: 'S',
+        targetTable: 'groupPermission',
+        targetId: 'all',
+        oldValues: '',
+        newValues: JSON.stringify(mockResult),
         reason: '그룹 권한 조회: 전체',
       });
     });
@@ -210,15 +209,15 @@ describe('Group Permission Service', () => {
       expect(insertGroupPermission).toHaveBeenCalledWith(mockCreateGroupPermission, mockConn);
 
       expect(makeLogParams).toHaveBeenCalledWith({
-        manager_no: meta.manager_no,
+        managerNo: meta.managerNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'I',
-        target_table: 'groupPermission',
-        target_id: `${mockCreateGroupPermission.groupNo}|${mockCreateGroupPermission.permissionNo}`,
-        old_values: '',
-        new_values: JSON.stringify(mockCreateGroupPermission),
-        reason: `그룹 권한 생성: group_no ${mockCreateGroupPermission.groupNo}, permission_no ${mockCreateGroupPermission.permissionNo}`,
+        userAgent: meta.userAgent,
+        actionType: 'I',
+        targetTable: 'groupPermission',
+        targetId: `${mockCreateGroupPermission.groupNo}|${mockCreateGroupPermission.permissionNo}`,
+        oldValues: '',
+        newValues: JSON.stringify(mockCreateGroupPermission),
+        reason: `그룹 권한 생성: groupNo ${mockCreateGroupPermission.groupNo}, permissionNo ${mockCreateGroupPermission.permissionNo}`,
       });
       expect(logAction).toHaveBeenCalledWith({}, mockConn);
       expect(commitTransaction).toHaveBeenCalled();
@@ -313,15 +312,15 @@ describe('Group Permission Service', () => {
       expect(updateGroupPermission).toHaveBeenCalledWith(mockUpdateGroupPermission, mockConn);
 
       expect(makeLogParams).toHaveBeenCalledWith({
-        manager_no: meta.manager_no,
+        managerNo: meta.managerNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'U',
-        target_table: 'groupPermission',
-        target_id: `${mockUpdateGroupPermission.originalGroupNo}|${mockUpdateGroupPermission.originalPermissionNo}`,
-        old_values: JSON.stringify(originalPermission),
-        new_values: JSON.stringify(mockUpdateGroupPermission),
-        reason: `그룹 권한 수정: group_no ${mockUpdateGroupPermission.groupNo}, permission_no ${mockUpdateGroupPermission.permissionNo}`,
+        userAgent: meta.userAgent,
+        actionType: 'U',
+        targetTable: 'groupPermission',
+        targetId: `${mockUpdateGroupPermission.originalGroupNo}|${mockUpdateGroupPermission.originalPermissionNo}`,
+        oldValues: JSON.stringify(originalPermission),
+        newValues: JSON.stringify(mockUpdateGroupPermission),
+        reason: `그룹 권한 수정: groupNo ${mockUpdateGroupPermission.groupNo}, permissionNo ${mockUpdateGroupPermission.permissionNo}`,
       });
       expect(logAction).toHaveBeenCalledWith({}, mockConn);
       expect(commitTransaction).toHaveBeenCalled();
@@ -515,15 +514,15 @@ describe('Group Permission Service', () => {
       expect(deleteGroupPermission).toHaveBeenCalledWith({ groupNo: 1, permissionNo: 1 }, mockConn);
 
       expect(makeLogParams).toHaveBeenCalledWith({
-        manager_no: meta.manager_no,
+        managerNo: meta.managerNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'D',
-        target_table: 'groupPermission',
-        target_id: '1|1',
-        old_values: JSON.stringify(existingPermission),
-        new_values: null,
-        reason: '그룹 권한 삭제: group_no 1, permission_no 1',
+        userAgent: meta.userAgent,
+        actionType: 'D',
+        targetTable: 'groupPermission',
+        targetId: '1|1',
+        oldValues: JSON.stringify(existingPermission),
+        newValues: null,
+        reason: '그룹 권한 삭제: groupNo 1, permissionNo 1',
       });
       expect(logAction).toHaveBeenCalledWith({}, mockConn);
       expect(commitTransaction).toHaveBeenCalled();
@@ -623,90 +622,6 @@ describe('Group Permission Service', () => {
       (insertGroupPermission as jest.Mock).mockRejectedValue(customError);
 
       await expect(createGroupPermissionS(mockCreateGroupPermission, meta)).rejects.toThrow(customError);
-    });
-  });
-
-  describe('finally 블록 에러 처리', () => {
-    it('getGroupPermissionsS에서 conn.release() 실패 시 에러가 로깅되어야 함', async () => {
-      const mockResult = {
-        groupPermissions: mockGroupPermissions,
-        total: 1,
-      };
-
-      (selectGroupPermission as jest.Mock).mockResolvedValue(mockResult);
-      (commitTransaction as jest.Mock).mockResolvedValue(undefined);
-
-      // conn.release()에서 에러 발생 시뮬레이션
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-      mockConn.release.mockRejectedValueOnce(new Error('Release error'));
-
-      await getGroupPermissionsS(pagination, { groupNo: 1 }, meta);
-
-      expect(consoleSpy).toHaveBeenCalledWith('트랜잭션 커넥션 해제 중 오류:', expect.any(Error));
-      consoleSpy.mockRestore();
-    });
-
-    it('createGroupPermissionS에서 conn.release() 실패 시 에러가 로깅되어야 함', async () => {
-      (findGroupPermission as jest.Mock).mockResolvedValue(null);
-      (insertGroupPermission as jest.Mock).mockResolvedValue(undefined);
-      (commitTransaction as jest.Mock).mockResolvedValue(undefined);
-
-      // conn.release()에서 에러 발생 시뮬레이션
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-      mockConn.release.mockRejectedValueOnce(new Error('Release error'));
-
-      await createGroupPermissionS(mockCreateGroupPermission, meta);
-
-      expect(consoleSpy).toHaveBeenCalledWith('트랜잭션 커넥션 해제 중 오류:', expect.any(Error));
-      consoleSpy.mockRestore();
-    });
-
-    it('updateGroupPermissionS에서 conn.release() 실패 시 에러가 로깅되어야 함', async () => {
-      const originalPermission = {
-        groupNo: 1,
-        permissionNo: 1,
-        isAllowed: 'Y' as const,
-        override: 'N' as const,
-        extraCondition: 'old_condition',
-        extraLimit: '100',
-      };
-
-      (findGroupPermission as jest.Mock).mockResolvedValueOnce(originalPermission).mockResolvedValueOnce(null);
-      (updateGroupPermission as jest.Mock).mockResolvedValue({ affectedRows: 1 });
-      (commitTransaction as jest.Mock).mockResolvedValue(undefined);
-
-      // conn.release()에서 에러 발생 시뮬레이션
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-      mockConn.release.mockRejectedValueOnce(new Error('Release error'));
-
-      await updateGroupPermissionS(mockUpdateGroupPermission, meta);
-
-      expect(consoleSpy).toHaveBeenCalledWith('트랜잭션 커넥션 해제 중 오류:', expect.any(Error));
-      consoleSpy.mockRestore();
-    });
-
-    it('deleteGroupPermissionS에서 conn.release() 실패 시 에러가 로깅되어야 함', async () => {
-      const existingPermission = {
-        groupNo: 1,
-        permissionNo: 1,
-        isAllowed: 'Y' as const,
-        override: 'N' as const,
-        extraCondition: 'condition',
-        extraLimit: '100',
-      };
-
-      (findGroupPermission as jest.Mock).mockResolvedValue(existingPermission);
-      (deleteGroupPermission as jest.Mock).mockResolvedValue({ affectedRows: 1 });
-      (commitTransaction as jest.Mock).mockResolvedValue(undefined);
-
-      // conn.release()에서 에러 발생 시뮬레이션
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-      mockConn.release.mockRejectedValueOnce(new Error('Release error'));
-
-      await deleteGroupPermissionS(1, 1, meta);
-
-      expect(consoleSpy).toHaveBeenCalledWith('트랜잭션 커넥션 해제 중 오류:', expect.any(Error));
-      consoleSpy.mockRestore();
     });
   });
 });

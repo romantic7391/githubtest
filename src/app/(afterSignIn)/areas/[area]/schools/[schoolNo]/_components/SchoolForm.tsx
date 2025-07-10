@@ -102,7 +102,7 @@ export default function SchoolForm({ schoolNo }: { schoolNo: number }) {
       modbusPort: data.modbusPort ?? 502,
     });
     form.setInitialValues(form.values);
-  }, [data]);
+  }, [data, form]);
 
   function handleSubmit(values: typeof form.values) {
     form.validate();
@@ -204,7 +204,7 @@ export default function SchoolForm({ schoolNo }: { schoolNo: number }) {
     });
 
     router.push(`/areas/all/schools`);
-  }, [isDeleted]);
+  }, [isDeleted, router]);
 
   if (fetchStatus === 'fetching') {
     return <>데이터를 불러오고 있습니다.</>;

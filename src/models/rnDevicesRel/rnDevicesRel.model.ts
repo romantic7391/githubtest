@@ -27,12 +27,12 @@ export async function findRnDevicesRelBySchoolNo(params: DeviceListParams): Prom
   devices: Device[];
   total: number;
 }> {
-  const { school_no, page = 1, pageSize = 10, filters } = params;
+  const { schoolNo, page = 1, pageSize = 10, filters } = params;
   const offset = (page - 1) * pageSize;
 
   // WHERE 절 조건 생성
   const conditions = ['rdr.school_no = ?']; // 기본 조건
-  const queryParams: (string | number)[] = [school_no];
+  const queryParams: (string | number)[] = [schoolNo];
 
   if (filters?.model) {
     conditions.push('rd.model LIKE ?');
@@ -93,7 +93,7 @@ export async function findRnDevicesRelBySchoolNo(params: DeviceListParams): Prom
       rd.ver,
       rd.tags,
       rd.checkin,
-      rd.created as device_created
+      rd.created as deviceCreated
     FROM rnDevicesRel AS rdr
     LEFT JOIN rnDevices AS rd ON rdr.mac = rd.mac
     WHERE ${conditions.join(' AND ')}
@@ -113,7 +113,7 @@ export async function findRnDevicesRelBySchoolNo(params: DeviceListParams): Prom
 
 // 학교의 센서 정보 조회
 export async function findRnDeviceRelBySchoolNoAndMac(params: DeviceBasic): Promise<Device | null> {
-  const { mac, school_no } = params;
+  const { mac, schoolNo } = params;
 
   const query = `
     SELECT 
@@ -133,13 +133,13 @@ export async function findRnDeviceRelBySchoolNoAndMac(params: DeviceBasic): Prom
       rd.ver,
       rd.tags,
       rd.checkin,
-      rd.created as device_created
+      rd.created as deviceCreated
     FROM rnDevicesRel AS rdr
     LEFT JOIN rnDevices AS rd ON rdr.mac = rd.mac
     WHERE rdr.school_no = ? AND rdr.mac = ?
   `;
 
-  const device = await getRow<DeviceDb>(query, [school_no, mac]);
+  const device = await getRow<DeviceDb>(query, [schoolNo, mac]);
   if (!device) return null;
 
   return deviceDbSchema.parse(device);
@@ -200,7 +200,7 @@ export async function updateRnDevicesRel(
         dto.sdate,
         dto.edate,
         dto.oldMac,
-        dto.school_no,
+        dto.schoolNo,
       ];
       await exec(query, params, conn);
     } else {
@@ -215,7 +215,7 @@ export async function updateRnDevicesRel(
           edate = ?
         WHERE mac = ? and school_no = ?
       `;
-      const params = [dto.name, dto.summary, dto.kind, dto.extra, dto.sdate, dto.edate, dto.mac, dto.school_no];
+      const params = [dto.name, dto.summary, dto.kind, dto.extra, dto.sdate, dto.edate, dto.mac, dto.schoolNo];
       await exec(query, params, conn);
     }
   }
@@ -227,23 +227,23 @@ export async function softDeleteRnDevicesRel(dtos: DeviceBasic[], conn?: PoolCon
     DELETE FROM rnDevicesRel
     WHERE (mac, school_no) IN (${dtos.map(() => '(?, ?)').join(', ')})
   `;
-  const params = dtos.flatMap((dto) => [dto.mac, dto.school_no]);
+  const params = dtos.flatMap((dto) => [dto.mac, dto.schoolNo]);
   await exec(query, params, conn);
 }
 
 // MAC 주소 중복 체크 (순수 데이터 액세스)
-export async function checkMacExists(school_no: number, mac: string, conn?: PoolConnection) {
+export async function checkMacExists(schoolNo: number, mac: string, conn?: PoolConnection) {
   const query = 'SELECT 1 FROM rnDevicesRel WHERE school_no = ? AND mac = ?';
-  return await getRow(query, [school_no, mac], undefined, conn);
+  return await getRow(query, [schoolNo, mac], undefined, conn);
 }
 
 // MAC 주소 업데이트 (순수 데이터 액세스)
-export async function updateMacAddress(school_no: number, oldMac: string, newMac: string, conn?: PoolConnection) {
+export async function updateMacAddress(schoolNo: number, oldMac: string, newMac: string, conn?: PoolConnection) {
   const query = `
     UPDATE rnDevicesRel
     SET mac = ?
     WHERE school_no = ? AND mac = ?
   `;
-  const params = [newMac, school_no, oldMac];
+  const params = [newMac, schoolNo, oldMac];
   return await exec(query, params, conn);
 }

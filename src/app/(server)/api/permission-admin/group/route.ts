@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth/session';
+
 import {
   CreateGroup,
-  groupListRequestSchema,
-  groupListApiResponseSchema,
-  groupCreateApiResponseSchema,
-  createGroupRequestSchema,
-} from '@/types/permission';
+  groupFilterSchema,
+  groupCreateOrUpdateApiResponseSchema,
+  createGroupSchema,
+} from '@/types/permission/group';
 
 import { handleError, handleZodError } from '@/utils/error.utils';
 import { getGroupsS, createGroupS } from '@/services/permission-admin/group.service';
@@ -45,14 +45,14 @@ export async function GET(request: NextRequest) {
       pageSize,
       name,
       schoolNo,
-      managerNo: session.manager_no,
+      managerNo: session.managerNo,
     });
 
     // 페이지네이션 검증
     const pagination = paginationSchema.parse({ page, pageSize });
 
     // 필터 검증
-    const filters = groupListRequestSchema.parse({
+    const filters = groupFilterSchema.parse({
       name,
       schoolNo: schoolNo === 'null' ? null : schoolNo ? Number(schoolNo) : undefined,
     });
@@ -60,10 +60,10 @@ export async function GET(request: NextRequest) {
     const result = await getGroupsS(
       pagination,
       {
-        manager_no: session.manager_no,
+        managerNo: session.managerNo,
         ip: request.headers.get('x-forwarded-for') || '',
-        user_agent: request.headers.get('user-agent') || '',
-        school_no: 0,
+        userAgent: request.headers.get('user-agent') || '',
+        schoolNo: 0,
       },
       filters,
     );
@@ -75,11 +75,11 @@ export async function GET(request: NextRequest) {
     });
 
     return NextResponse.json(
-      groupListApiResponseSchema.parse({
+      {
         success: true,
         data: result,
         message: '그룹 목록을 조회했습니다.',
-      }),
+      },
       { status: 200 },
     );
   } catch (error) {
@@ -128,7 +128,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     console.log('[POST] body:', body);
 
-    const validatedData = createGroupRequestSchema.parse(body);
+    const validatedData = createGroupSchema.parse(body);
     console.log('[POST] validatedData:', validatedData);
 
     const groupData: CreateGroup = {
@@ -140,15 +140,15 @@ export async function POST(request: NextRequest) {
 
     console.log('[POST] createGroupS 호출 전');
     const result = await createGroupS(groupData, {
-      manager_no: session.manager_no,
+      managerNo: session.managerNo,
       ip: request.headers.get('x-forwarded-for') || '',
-      user_agent: request.headers.get('user-agent') || '',
-      school_no: 0,
+      userAgent: request.headers.get('user-agent') || '',
+      schoolNo: 0,
     });
     console.log('[POST] createGroupS 결과:', result);
 
     // 응답 데이터 검증
-    const response = groupCreateApiResponseSchema.parse({
+    const response = groupCreateOrUpdateApiResponseSchema.parse({
       success: true,
       data: result,
       message: '그룹이 성공적으로 생성되었습니다.',

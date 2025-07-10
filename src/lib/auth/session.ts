@@ -2,8 +2,8 @@ import { NextRequest } from 'next/server';
 import { z } from 'zod';
 
 const SessionSchema = z.object({
-  manager_no: z.number(),
-  login_id: z.string(),
+  managerNo: z.number(),
+  loginId: z.string(),
   name: z.string(),
 });
 
@@ -22,8 +22,8 @@ export async function getSession(req: NextRequest): Promise<Session | null> {
 
     // 테스트를 위해 하드코딩된 값을 반환
     const session = {
-      manager_no: Number(managerNo),
-      login_id: `test${managerNo}`,
+      managerNo: Number(managerNo),
+      loginId: `test${managerNo}`,
       name: `테스트${managerNo}`,
     };
 

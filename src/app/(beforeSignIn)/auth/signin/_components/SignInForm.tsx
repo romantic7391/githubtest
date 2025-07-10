@@ -75,7 +75,7 @@ export default function SignInForm() {
     if (!isSignInSuccess) return;
 
     router.push(callbackUrl ?? '/');
-  }, [isSignInSuccess, callbackUrl]);
+  }, [isSignInSuccess, callbackUrl, router]);
 
   return (
     <Paper shadow="md" h="100%">

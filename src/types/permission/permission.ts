@@ -25,12 +25,12 @@ export const managerGroupSchema = z.object({
 });
 
 export const groupPermissionSchema = z.object({
-  group_no: z.number(),
-  permission_no: z.number(),
-  is_allowed: z.enum(['Y', 'N']).nullable(),
+  groupNo: z.number(),
+  permissionNo: z.number(),
+  isAllowed: z.enum(['Y', 'N']).nullable(),
   override: z.enum(['Y', 'N']).nullable(),
-  extra_condition: z.string().nullable(),
-  extra_limit: z.string().nullable(),
+  extraCondition: z.string().nullable(),
+  extraLimit: z.string().nullable(),
 });
 
 /**
@@ -47,14 +47,14 @@ export const createPermissionDtoSchema = z.object({
  * 권한 수정 스키마
  */
 export const updatePermissionDtoSchema = createPermissionDtoSchema.extend({
-  permission_no: z.number().min(1, '권한 번호는 필수입니다.').max(Number.MAX_SAFE_INTEGER),
+  permissionNo: z.number().min(1, '권한 번호는 필수입니다.').max(Number.MAX_SAFE_INTEGER),
 });
 
 /**
  * 권한 필터 스키마
  */
 export const findPermissionDtoSchema = z.object({
-  permission_no: z.number().min(1, '권한 번호는 필수입니다.').max(Number.MAX_SAFE_INTEGER),
+  permissionNo: z.number().min(1, '권한 번호는 필수입니다.').max(Number.MAX_SAFE_INTEGER),
 });
 
 export const findPermissionsDtoSchema = z.object({

@@ -41,8 +41,8 @@ describe('Area Model - 실제 데이터베이스 테스트', () => {
         const firstArea = result.areas[0];
         expect(firstArea).toHaveProperty('areaNo');
         expect(firstArea).toHaveProperty('area');
-        expect(firstArea).toHaveProperty('X');
-        expect(firstArea).toHaveProperty('Y');
+        expect(firstArea).toHaveProperty('x');
+        expect(firstArea).toHaveProperty('y');
         expect(firstArea).toHaveProperty('areaCode');
 
         console.log('✅ 첫 번째 지역 데이터:', firstArea);

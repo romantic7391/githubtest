@@ -18,10 +18,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const { userAgent, ip } = getClientInfo(request);
 
     const areas = await getAreaByArea(area, {
-      manager_no: 1, // 임시로 1로 설정
+      managerNo: 1, // 임시로 1로 설정
       ip,
-      user_agent: userAgent,
-      school_no: 0,
+      userAgent: userAgent,
+      schoolNo: 0,
     });
 
     if (!areas || areas.length === 0) {
@@ -65,10 +65,10 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const { userAgent, ip } = getClientInfo(request);
 
     await updateArea(validatedData, {
-      manager_no: 1, // 임시로 1로 설정
+      managerNo: 1, // 임시로 1로 설정
       ip,
-      user_agent: userAgent,
-      school_no: 0,
+      userAgent: userAgent,
+      schoolNo: 0,
     });
 
     return NextResponse.json(
@@ -120,10 +120,10 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     const { userAgent, ip } = getClientInfo(request);
 
     await deleteArea(area, {
-      manager_no: 1, // 임시로 1로 설정
+      managerNo: 1, // 임시로 1로 설정
       ip,
-      user_agent: userAgent,
-      school_no: 0,
+      userAgent: userAgent,
+      schoolNo: 0,
     });
 
     return NextResponse.json(

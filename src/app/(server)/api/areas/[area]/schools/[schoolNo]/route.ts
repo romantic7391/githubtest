@@ -1,4 +1,4 @@
-import type { BaseApiResponse } from '@/types/common';
+import type { BaseApiResponse, CommonContext } from '@/types/common';
 import type {
   SchoolApiResponse,
   SchoolCreateOrUpdateApiResponse,
@@ -6,7 +6,7 @@ import type {
   SchoolDto,
   updateRnSchoolDto,
 } from '@/types/school';
-import type { CommonContext } from '@/types/permission';
+
 import { NextRequest, NextResponse } from 'next/server';
 import {
   getSchoolBySchoolNo,
@@ -47,9 +47,9 @@ async function getCommonContext(request: NextRequest): Promise<CommonContext> {
   const { userAgent, ip } = getClientInfo(request);
 
   return {
-    manager_no: session.user.managerNo,
-    ip: ip || '',
-    user_agent: userAgent || '',
+    managerNo: session.user.managerNo,
+    ip: ip,
+    userAgent: userAgent,
   };
 }
 

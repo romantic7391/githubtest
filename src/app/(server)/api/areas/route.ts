@@ -20,10 +20,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const { ip, userAgent } = getClientInfo(request);
 
     const { areas: areasData, total } = await getAreas(page, limit, areas.length > 0 ? areas : undefined, {
-      manager_no: 1, // 임시로 1로 설정
+      managerNo: 1, // 임시로 1로 설정
       ip,
-      user_agent: userAgent,
-      school_no: 0,
+      userAgent,
+      schoolNo: 0,
     });
 
     return NextResponse.json(

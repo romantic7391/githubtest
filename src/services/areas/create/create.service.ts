@@ -28,14 +28,14 @@ export async function createArea(dto: AreaCreate, meta: LogMeta): Promise<void> 
     // 로그 기록
     await logAction(
       makeLogParams({
-        manager_no: meta.manager_no,
+        managerNo: meta.managerNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'I',
-        target_table: 'AreaData',
-        target_id: dto.area,
-        old_values: null,
-        new_values: JSON.stringify(dto),
+        userAgent: meta.userAgent,
+        actionType: 'I',
+        targetTable: 'AreaData',
+        targetId: dto.area,
+        oldValues: null,
+        newValues: JSON.stringify(dto),
         reason: '지역 생성',
       }),
       conn,

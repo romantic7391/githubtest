@@ -53,19 +53,19 @@ export async function PUT(request: NextRequest, context: GroupRouteParams) {
     }
 
     const groupData: Group = {
-      group_no: groupNoNum,
+      groupNo: groupNoNum,
       name: validatedData.name ?? existingGroup.name,
-      school_no: validatedData.schoolNo ?? existingGroup.school_no,
-      parent_group_no: validatedData.parentGroupNo ?? existingGroup.parent_group_no,
-      school_name: existingGroup.school_name,
-      parent_group_name: existingGroup.parent_group_name,
+      schoolNo: validatedData.schoolNo ?? existingGroup.schoolNo,
+      parentGroupNo: validatedData.parentGroupNo ?? existingGroup.parentGroupNo,
+      schoolName: existingGroup.schoolName,
+      parentGroupName: existingGroup.parentGroupName,
     };
 
     const result = await updateGroupS(groupData, {
-      manager_no: session.manager_no,
+      managerNo: session.managerNo,
       ip: request.headers.get('x-forwarded-for') || '',
-      user_agent: request.headers.get('user-agent') || '',
-      school_no: 0,
+      userAgent: request.headers.get('user-agent') || '',
+      schoolNo: 0,
     });
 
     // 응답 데이터 검증
@@ -121,10 +121,10 @@ export async function DELETE(request: NextRequest, context: GroupRouteParams) {
     // 1. 그룹 존재 여부 확인
 
     await deleteGroupS(groupNoNum, {
-      manager_no: session.manager_no,
+      managerNo: session.managerNo,
       ip: request.headers.get('x-forwarded-for') || '',
-      user_agent: request.headers.get('user-agent') || '',
-      school_no: 0,
+      userAgent: request.headers.get('user-agent') || '',
+      schoolNo: 0,
     });
 
     return NextResponse.json(

@@ -21,7 +21,7 @@ export default function DeviceSearchCard({
 
   useEffect(() => {
     handleSearch(value);
-  }, [value]);
+  }, [value, handleSearch]);
 
   return (
     <Card withBorder>

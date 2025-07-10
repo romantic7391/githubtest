@@ -31,21 +31,21 @@ export async function createRnSchool(administrationCode: string, userInput: Part
       parentNo: null,
     };
 
-    // 3. DB에 insert 및 school_no 반환
-    const school_no = await insertRnSchool(dto);
+    // 3. DB에 insert 및 schoolNo 반환
+    const schoolNo = await insertRnSchool(dto);
 
     // 4. 로그 기록
     await logAction(
       makeLogParams({
-        manager_no: meta.manager_no,
-        school_no,
+        managerNo: meta.managerNo,
+        schoolNo,
         ip: meta.ip,
-        user_agent: meta.user_agent,
-        action_type: 'I',
-        target_table: 'rnschool',
-        target_id: `${school_no}`,
-        old_values: null,
-        new_values: JSON.stringify({ ...dto, school_no }),
+        userAgent: meta.userAgent,
+        actionType: 'I',
+        targetTable: 'rnschool',
+        targetId: `${schoolNo}`,
+        oldValues: null,
+        newValues: JSON.stringify({ ...dto, schoolNo }),
         reason: '학교 등록',
       }),
       conn,
@@ -54,7 +54,7 @@ export async function createRnSchool(administrationCode: string, userInput: Part
     await commitTransaction(conn);
     return {
       type: 'insert',
-      school: { ...dto, school_no },
+      school: { ...dto, schoolNo },
     };
   } catch (error) {
     if (conn) {

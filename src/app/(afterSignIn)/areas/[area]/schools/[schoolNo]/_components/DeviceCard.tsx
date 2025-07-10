@@ -155,7 +155,7 @@ export default function DeviceCard({
     if (!isCreated) return;
     refetch();
     form.reset();
-  }, [isCreated]);
+  }, [isCreated, refetch, form]);
 
   useEffect(() => {
     if (!isCreateError) return;
@@ -194,7 +194,7 @@ export default function DeviceCard({
       position: 'top-center',
       color: 'green',
     });
-  }, [device, isDeleted]);
+  }, [device, isDeleted, refetch]);
 
   useEffect(() => {
     if (!isDeleteError) return;

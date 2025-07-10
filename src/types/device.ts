@@ -85,7 +85,7 @@ export const deviceDbSchema = z
     ver: z.string().nullable(),
     tags: z.string().nullable(),
     checkin: datetimeSchema.nullable(),
-    device_created: datetimeSchema.nullable(),
+    deviceCreated: datetimeSchema.nullable(),
   })
   .transform((data) => {
     const device =
@@ -97,7 +97,7 @@ export const deviceDbSchema = z
       data.ver === null &&
       data.tags === null &&
       data.checkin === null &&
-      data.device_created === null
+      data.deviceCreated === null
         ? undefined
         : {
             model: data.model ?? '',
@@ -108,7 +108,7 @@ export const deviceDbSchema = z
             ver: data.ver ?? '',
             tags: data.tags,
             checkin: data.checkin,
-            created: data.device_created,
+            created: data.deviceCreated,
           };
 
     return {
@@ -189,7 +189,7 @@ export type DeviceCreateOrUpdateApiResponse = z.infer<typeof deviceCreateOrUpdat
  */
 export const deviceBasicSchema = z.object({
   mac: z.string(),
-  school_no: z.number(),
+  schoolNo: z.number(),
   oldMac: z.string().optional(),
 });
 
@@ -221,7 +221,7 @@ export type DeviceFilter = z.infer<typeof deviceFilterSchema>;
  * 센서 장치 목록 조회 파라미터
  */
 export const deviceListParamsSchema = z.object({
-  school_no: z.number(),
+  schoolNo: z.number(),
   filters: deviceFilterSchema.optional(),
   page: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER).default(1),
   pageSize: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER).default(10),
