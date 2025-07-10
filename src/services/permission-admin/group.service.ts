@@ -37,9 +37,14 @@ export async function getGroupsS(
 
     const result = await findGroups(dto);
 
+    if (result.groups.length === 0) {
+      throw new AppError('해당하는 학교에 그룹 목록이 존재하지 않습니다.', 404);
+    }
+
     // 로그 기록
     await logAction(
       makeLogParams({
+        schoolNo: meta.schoolNo,
         managerNo: meta.managerNo,
         ip: meta.ip,
         userAgent: meta.userAgent,
@@ -62,6 +67,9 @@ export async function getGroupsS(
     };
   } catch (error) {
     console.error('그룹 목록 조회 중 오류 발생:', error);
+    if (error instanceof AppError) {
+      throw error;
+    }
     throw new AppError('그룹 목록 조회 중 오류가 발생했습니다.', 500);
   }
 }
@@ -79,7 +87,7 @@ export async function createGroupS(group: CreateGroup, meta: LogMeta): Promise<{
     };
     const existingGroupDuplicate = await checkGroupDuplicate(duplicateDto);
     if (existingGroupDuplicate && existingGroupDuplicate.count > 0) {
-      throw new AppError('이미 존재하는 그룹입니다.', 400);
+      throw new AppError('이미 존재하는 그룹입니다.', 409);
     }
 
     const dto: InsertGroupDto = {
@@ -94,6 +102,7 @@ export async function createGroupS(group: CreateGroup, meta: LogMeta): Promise<{
     // 2. 로그 기록
     await logAction(
       makeLogParams({
+        schoolNo: meta.schoolNo,
         managerNo: meta.managerNo,
         ip: meta.ip,
         userAgent: meta.userAgent,
@@ -115,7 +124,10 @@ export async function createGroupS(group: CreateGroup, meta: LogMeta): Promise<{
     if (conn) {
       await rollbackTransaction(conn);
     }
-    throw error;
+    if (error instanceof AppError) {
+      throw error;
+    }
+    throw new AppError('그룹 생성 중 오류가 발생했습니다.', 500);
   }
 }
 
@@ -155,7 +167,7 @@ export async function updateGroupS(group: Group, meta: LogMeta): Promise<{ group
       };
       const existingGroupDuplicate = await checkGroupDuplicate(duplicateDto);
       if (existingGroupDuplicate && existingGroupDuplicate.count > 0) {
-        throw new AppError('이미 존재하는 그룹입니다.', 400);
+        throw new AppError('이미 존재하는 그룹입니다.', 409);
       }
     }
 
@@ -169,7 +181,10 @@ export async function updateGroupS(group: Group, meta: LogMeta): Promise<{ group
     // 5. 로그 기록
     await logAction(
       makeLogParams({
-        ...meta,
+        schoolNo: meta.schoolNo,
+        managerNo: meta.managerNo,
+        ip: meta.ip,
+        userAgent: meta.userAgent,
         actionType: 'U',
         targetTable: 'group',
         targetId: group.groupNo.toString(),
@@ -214,7 +229,10 @@ export async function deleteGroupS(groupNo: number, meta: LogMeta) {
     // 3. 로그 기록
     await logAction(
       makeLogParams({
-        ...meta,
+        schoolNo: meta.schoolNo,
+        managerNo: meta.managerNo,
+        ip: meta.ip,
+        userAgent: meta.userAgent,
         actionType: 'D',
         targetTable: 'group',
         targetId: groupNo.toString(),
@@ -230,6 +248,9 @@ export async function deleteGroupS(groupNo: number, meta: LogMeta) {
     if (conn) {
       await rollbackTransaction(conn);
     }
-    throw error;
+    if (error instanceof AppError) {
+      throw error;
+    }
+    throw new AppError('그룹 삭제 중 오류가 발생했습니다.', 500);
   }
 }

@@ -12,6 +12,11 @@ export async function getAreaByArea(area: string, meta: LogMeta) {
     conn = await beginTransaction();
     const result = await findAreaByArea(area);
 
+    // 지역이 존재하지 않는 경우 404 에러
+    if (!result?.length) {
+      throw new AppError('존재하지 않는 지역입니다.', 404);
+    }
+
     // 로그 기록
     await logAction(
       makeLogParams({
@@ -38,7 +43,9 @@ export async function getAreaByArea(area: string, meta: LogMeta) {
         console.error('Rollback error:', rollbackError);
       }
     }
-    console.error('[getAreaByAreaService] DB 조회 에러:', error);
+    if (error instanceof AppError) {
+      throw error;
+    }
     throw new AppError('지역 목록 조회 중 오류가 발생했습니다.', 500);
   }
 }
@@ -90,9 +97,7 @@ export async function updateArea(dto: Area, meta: LogMeta): Promise<void> {
       }
     }
     console.error('[updateAreaService] 지역 수정 중 오류:', error);
-    if (error instanceof AppError) {
-      throw error;
-    }
+    if (error instanceof AppError) throw error;
     throw new AppError('지역 수정 중 오류가 발생했습니다.', 500);
   }
 }
@@ -104,6 +109,11 @@ export async function deleteArea(area: string, meta: LogMeta): Promise<void> {
     conn = await beginTransaction();
     // 이전 데이터 조회
     const oldData = await findAreaByArea(area);
+
+    // 지역이 존재하지 않는 경우 404 에러
+    if (!oldData?.length) {
+      throw new AppError('삭제할 지역이 존재하지 않습니다.', 404);
+    }
 
     // 데이터 삭제
     await deleteAreaFromDB(area);
@@ -133,7 +143,9 @@ export async function deleteArea(area: string, meta: LogMeta): Promise<void> {
         console.error('Rollback error:', rollbackError);
       }
     }
-    console.error('[deleteAreaService] 지역 삭제 중 오류:', error);
+    if (error instanceof AppError) {
+      throw error;
+    }
     throw new AppError('지역 삭제 중 오류가 발생했습니다.', 500);
   }
 }

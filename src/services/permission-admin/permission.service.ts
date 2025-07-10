@@ -4,7 +4,7 @@ import {
   deletePermission,
   findPermissions,
   findPermission,
-  findPermissionByName,
+  findPermissionByNameNormalized,
 } from '@/models/permission/permission.model';
 import { CreatePermissionDto, UpdatePermissionDto, FindPermissionsDto } from '@/types/permission/permission';
 import { logAction, makeLogParams } from '@/services/log-action/log-action.service';
@@ -26,6 +26,11 @@ export async function getPermissionsS(
     };
 
     const result = await findPermissions(dto);
+
+    // 데이터가 없는 경우 404 에러
+    if (result.permissions.length === 0) {
+      throw new AppError('해당하는 학교에 권한 목록이 존재하지 않습니다.', 404);
+    }
 
     // 로그 기록
     await logAction(
@@ -52,7 +57,9 @@ export async function getPermissionsS(
       },
     };
   } catch (error) {
-    console.error('권한 목록 조회 중 오류 발생:', error);
+    if (error instanceof AppError) {
+      throw error;
+    }
     throw new AppError('권한 목록 조회 중 오류가 발생했습니다.', 500);
   }
 }
@@ -63,10 +70,10 @@ export async function createPermissionS(dto: CreatePermissionDto, meta: LogMeta)
   try {
     conn = await beginTransaction();
 
-    // 1. 이름 중복 체크
-    const existingPermission = await findPermissionByName(dto.name);
+    // 1. 이름 중복 체크 (공백/대소문자 무시)
+    const existingPermission = await findPermissionByNameNormalized(dto.name);
     if (existingPermission) {
-      throw new AppError('이미 존재하는 권한 이름입니다.', 400, 'DUPLICATE_PERMISSION_NAME');
+      throw new AppError(`이미 존재하는 권한 이름입니다: `, 409);
     }
 
     const result = await insertPermission(dto, conn);
@@ -75,6 +82,7 @@ export async function createPermissionS(dto: CreatePermissionDto, meta: LogMeta)
     await logAction(
       makeLogParams({
         managerNo: meta.managerNo,
+        schoolNo: meta.schoolNo,
         ip: meta.ip,
         userAgent: meta.userAgent,
         actionType: 'I',
@@ -103,7 +111,6 @@ export async function createPermissionS(dto: CreatePermissionDto, meta: LogMeta)
     if (error instanceof AppError) {
       throw error;
     }
-    console.error('권한 생성 중 오류 발생:', error);
     throw new AppError('권한 생성 중 오류가 발생했습니다.', 500);
   }
 }
@@ -114,16 +121,18 @@ export async function updatePermissionS(dto: UpdatePermissionDto, meta: LogMeta)
   try {
     conn = await beginTransaction();
 
-    // 1. 권한 존재 여부 확인
+    // 1. 수정 전 데이터 조회 (로그용)
     const existingPermission = await findPermission({ permissionNo: dto.permissionNo });
-    if (!existingPermission) {
-      throw new AppError('존재하지 않는 권한입니다.', 404);
-    }
 
     // 2. 권한 수정
-    await updatePermission(dto, conn);
+    const result = await updatePermission(dto, conn);
 
-    // 3. 로그 기록
+    // 3. 수정 성공 여부 확인
+    if (result.affectedRows === 0) {
+      throw new AppError('권한 수정에 실패했습니다.', 400);
+    }
+
+    // 4. 로그 기록
     await logAction(
       makeLogParams({
         ...meta,
@@ -151,7 +160,6 @@ export async function updatePermissionS(dto: UpdatePermissionDto, meta: LogMeta)
     if (error instanceof AppError) {
       throw error;
     }
-    console.error('권한 수정 중 오류 발생:', error);
     throw new AppError('권한 수정 중 오류가 발생했습니다.', 500);
   }
 }
@@ -215,6 +223,7 @@ export async function getPermissionS(permissionNo: number, meta: LogMeta): Promi
     await logAction(
       makeLogParams({
         managerNo: meta.managerNo,
+        schoolNo: meta.schoolNo,
         ip: meta.ip,
         userAgent: meta.userAgent,
         actionType: 'S',
