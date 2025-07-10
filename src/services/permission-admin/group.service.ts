@@ -51,8 +51,8 @@ export async function getGroupsS(
         actionType: 'S',
         targetTable: 'group',
         targetId: '',
-        oldValues: '',
-        newValues: JSON.stringify(result),
+        oldValues: JSON.stringify(result),
+        newValues: '',
         reason: `그룹 목록 조회`,
       }),
     );
@@ -137,16 +137,7 @@ export async function updateGroupS(group: Group, meta: LogMeta): Promise<{ group
   try {
     conn = await beginTransaction();
 
-    // 1. 그룹 존재 여부 확인
-    const existsDto: CheckGroupExistsDto = {
-      groupNo: group.groupNo,
-    };
-    const exists = await checkGroupExists(existsDto);
-    if (!exists) {
-      throw new AppError('존재하지 않는 그룹입니다.', 404);
-    }
-
-    // 2. 기존 그룹 정보 조회
+    // 1. 기존 그룹 정보 조회
     const findDto: FindGroupDto = {
       groupNo: group.groupNo,
     };
