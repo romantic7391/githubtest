@@ -49,7 +49,7 @@ export default function SchoolTab({ area, schoolNo }: { area: string; schoolNo: 
   }
 
   return (
-    <Tabs value={selectedTab} onChange={(value) => setSelectedTab(value ?? 'info')}>
+    <Tabs variant="pills" value={selectedTab} onChange={(value) => setSelectedTab(value ?? 'info')}>
       <Tabs.List>
         <Tabs.Tab value="info">기본 정보</Tabs.Tab>
         <Tabs.Tab value="groups">그룹</Tabs.Tab>
