@@ -96,7 +96,6 @@ export async function updateArea(dto: Area, meta: LogMeta): Promise<void> {
         console.error('Rollback error:', rollbackError);
       }
     }
-    console.error('[updateAreaService] 지역 수정 중 오류:', error);
     if (error instanceof AppError) throw error;
     throw new AppError('지역 수정 중 오류가 발생했습니다.', 500);
   }

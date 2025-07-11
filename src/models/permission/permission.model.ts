@@ -101,58 +101,41 @@ export async function getPermissionStatusReport(permissionName: string) {
 
 // 권한 목록 조회
 export async function findPermissions(dto: FindPermissionsDto): Promise<{ permissions: Permission[]; total: number }> {
-  try {
-    console.log('findPermissions Input:', dto);
+  const offset = (dto.pagination.page - 1) * dto.pagination.pageSize;
+  const conditions = ['p.deleted IS NULL'];
+  const params: (string | number)[] = [];
 
-    const { pagination, filters } = dto;
-    const offset = (pagination.page - 1) * pagination.pageSize;
-    const conditions = ['deleted IS NULL'];
-    const params: (string | number)[] = [];
-
-    console.log('Query Parameters:', { offset, pageSize: pagination.pageSize, filters });
-
-    if (filters?.name) {
-      conditions.push('name LIKE ?');
-      params.push(`%${filters.name}%`);
-    }
-
-    console.log('Final Conditions:', conditions);
-    console.log('Query Parameters:', params);
-
-    // 전체 개수 조회
-    const countQuery = `
-      SELECT COUNT(*) as total
-      FROM permission
-      WHERE ${conditions.join(' AND ')}
-    `;
-    const totalResult = await getRow<{ total: number }>(countQuery, params);
-    const total = totalResult?.total || 0;
-
-    console.log('Total Records:', total);
-
-    // 권한 목록 조회
-    const query = `
-      SELECT 
-        permission_no as permissionNo,
-        name,
-        description,
-        default_extra_condition as defaultExtraCondition,
-        default_extra_limit as defaultExtraLimit
-      FROM permission
-      WHERE ${conditions.join(' AND ')}
-      ORDER BY permission_no ASC
-      LIMIT ? OFFSET ?
-    `;
-
-    const permissions = await getAll<Permission>(query, [...params, pagination.pageSize, offset]);
-
-    console.log('Query Result:', permissions);
-
-    return { permissions, total };
-  } catch (error) {
-    console.error('Error in findPermissions:', error);
-    throw error;
+  if (dto.filters?.name) {
+    conditions.push('p.name LIKE ?');
+    params.push(`%${dto.filters.name}%`);
   }
+
+  // 전체 개수 조회
+  const countQuery = `
+    SELECT COUNT(*) as total
+    FROM permission p
+    WHERE ${conditions.join(' AND ')}
+  `;
+  const totalResult = await getRow<{ total: number }>(countQuery, params);
+  const total = totalResult?.total || 0;
+
+  // 권한 목록 조회
+  const query = `
+    SELECT 
+      p.permission_no as permissionNo,
+      p.name as name,
+      p.description as description,
+      p.created,
+      p.updated
+    FROM permission p
+    WHERE ${conditions.join(' AND ')}
+    ORDER BY p.permission_no
+    LIMIT ? OFFSET ?
+  `;
+
+  const permissions = await getAll<Permission>(query, [...params, dto.pagination.pageSize, offset]);
+
+  return { permissions, total };
 }
 
 // 권한 생성

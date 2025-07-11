@@ -92,19 +92,14 @@ export async function createManagerGroupS(managerGroup: ManagerGroup, meta: LogM
     conn = await beginTransaction();
 
     // 1. 중복 체크
-    console.log('중복 체크 시작:', { no: managerGroup.no, groupNo: managerGroup.groupNo });
     const existingGroup = await findManagerGroup(managerGroup.no, managerGroup.groupNo);
-    console.log('중복 체크 결과:', existingGroup);
     if (existingGroup) {
-      console.log('중복 발견:', existingGroup);
       throw new AppError('이미 존재하는 관리자 그룹입니다.', 409);
     }
 
     // 2. 관리자 그룹 생성
-    console.log('관리자 그룹 생성 시작:', managerGroup);
     const dto: InsertManagerGroupDto = managerGroup;
     await insertManagerGroup(dto, conn);
-    console.log('관리자 그룹 생성 완료');
 
     // 3. 로그 기록
     await logAction(
@@ -132,7 +127,6 @@ export async function createManagerGroupS(managerGroup: ManagerGroup, meta: LogM
     if (conn) {
       await rollbackTransaction(conn);
     }
-    console.error('관리자 그룹 생성 중 오류 발생:', error);
     throw error instanceof AppError ? error : new AppError('관리자 그룹 생성 중 오류가 발생했습니다.', 500);
   }
 }

@@ -27,9 +27,6 @@ export async function selectGroupPermission(
     totalPages: number;
   };
 }> {
-  console.log('=== selectGroupPermission Start ===');
-  console.log('Input:', { pagination, filters });
-
   const offset = (pagination.page - 1) * pagination.pageSize;
   const conditions = ['gp.deleted IS NULL', 'g.deleted IS NULL', 'p.deleted IS NULL'];
   const params: (number | null)[] = [];
@@ -48,9 +45,6 @@ export async function selectGroupPermission(
     params.push(filters.schoolNo);
   }
 
-  console.log('SQL Conditions:', conditions);
-  console.log('SQL Params:', params);
-
   // 전체 개수 조회
   const countQuery = `
     SELECT COUNT(*) as total
@@ -59,13 +53,10 @@ export async function selectGroupPermission(
     JOIN permission p ON gp.permission_no = p.permission_no
     WHERE ${conditions.join(' AND ')}
   `;
-  console.log('Count Query:', countQuery);
 
   const totalResult = await getRow<{ total: number }>(countQuery, params);
   const total = totalResult?.total || 0;
   const totalPages = Math.ceil(total / pagination.pageSize);
-
-  console.log('Count Result:', { total, totalPages });
 
   // 그룹 권한 목록 조회
   const query = `
@@ -93,13 +84,7 @@ export async function selectGroupPermission(
     LIMIT ? OFFSET ?
   `;
 
-  console.log('Select Query:', query);
-  console.log('Final Params:', [...params, pagination.pageSize, offset]);
-
   const groupPermissions = await getAll<GroupPermissionDetail>(query, [...params, pagination.pageSize, offset]);
-
-  console.log('Query Result:', { groupPermissions });
-  console.log('=== selectGroupPermission End ===');
 
   return {
     groupPermissions,
