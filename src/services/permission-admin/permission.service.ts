@@ -41,7 +41,7 @@ export async function getPermissionsS(
         userAgent: meta.userAgent,
         actionType: 'S',
         targetTable: 'permission',
-        targetId: '',
+        targetId: '', // 목록 조회는 PK가 없음
         oldValues: null,
         newValues: JSON.stringify(result),
         reason: '권한 목록 조회',
@@ -88,7 +88,7 @@ export async function createPermissionS(dto: CreatePermissionDto, meta: LogMeta)
         actionType: 'I',
         targetTable: 'permission',
         targetId: result.insertId.toString(),
-        oldValues: JSON.stringify({}),
+        oldValues: null,
         newValues: JSON.stringify(dto),
         reason: `권한 생성: ${dto.name}`,
       }),
@@ -229,8 +229,8 @@ export async function getPermissionS(permissionNo: number, meta: LogMeta): Promi
         actionType: 'S',
         targetTable: 'permission',
         targetId: permissionNo.toString(),
-        oldValues: null,
-        newValues: JSON.stringify(permission),
+        oldValues: JSON.stringify(permission),
+        newValues: null,
         reason: `권한 조회: ${permission.name}`,
       }),
     );
