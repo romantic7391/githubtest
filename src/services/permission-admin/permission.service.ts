@@ -41,7 +41,7 @@ export async function getPermissionsS(
         userAgent: meta.userAgent,
         actionType: 'S',
         targetTable: 'permission',
-        targetId: '', // 목록 조회는 PK가 없음
+        targetId: null, // 목록 조회는 PK가 없음
         oldValues: null,
         newValues: JSON.stringify(result),
         reason: '권한 목록 조회',

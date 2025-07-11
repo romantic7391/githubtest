@@ -50,7 +50,7 @@ export async function getGroupsS(
         userAgent: meta.userAgent,
         actionType: 'S',
         targetTable: 'group',
-        targetId: '',
+        targetId: null,
         oldValues: JSON.stringify(result),
         newValues: null,
         reason: `그룹 목록 조회`,
