@@ -43,7 +43,7 @@ export async function selectGroupPermission(
     conditions.push('gp.permission_no = ?');
     params.push(filters.permissionNo);
   }
-  if (filters?.schoolNo) {
+  if (filters?.schoolNo !== undefined && filters?.schoolNo !== null) {
     conditions.push('g.school_no = ?');
     params.push(filters.schoolNo);
   }
