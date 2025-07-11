@@ -43,6 +43,7 @@ export async function GET(request: NextRequest) {
     const pageSize = Number(searchParams.get('pageSize')) || DEFAULT_PAGE_SIZE;
     const groupNo = searchParams.get('groupNo');
     const permissionNo = searchParams.get('permissionNo');
+    const schoolNo = searchParams.get('schoolNo');
 
     // 페이지네이션 검증
     const pagination = paginationSchema.parse({ page, pageSize });
@@ -51,6 +52,7 @@ export async function GET(request: NextRequest) {
     const filters = groupPermissionFilterSchema.parse({
       groupNo: groupNo ? Number(groupNo) : undefined,
       permissionNo: permissionNo ? Number(permissionNo) : undefined,
+      schoolNo: schoolNo ? Number(schoolNo) : undefined,
     });
 
     const result = await getGroupPermissionsS(pagination, filters, {

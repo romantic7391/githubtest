@@ -16,6 +16,7 @@ export async function selectGroupPermission(
   filters?: {
     groupNo?: number;
     permissionNo?: number;
+    schoolNo?: number;
   },
 ): Promise<{
   groupPermissions: GroupPermissionDetail[];
@@ -42,6 +43,10 @@ export async function selectGroupPermission(
     conditions.push('gp.permission_no = ?');
     params.push(filters.permissionNo);
   }
+  if (filters?.schoolNo) {
+    conditions.push('g.school_no = ?');
+    params.push(filters.schoolNo);
+  }
 
   console.log('SQL Conditions:', conditions);
   console.log('SQL Params:', params);
@@ -66,6 +71,8 @@ export async function selectGroupPermission(
   const query = `
     SELECT 
       gp.group_no as groupNo,
+      r.school_no as schoolNo,
+      r.sname as schoolName,
       g.name as groupName,
       g.parent_group_no as parentGroupNo,
       pg.name as parentGroupName,
@@ -80,6 +87,7 @@ export async function selectGroupPermission(
     JOIN \`group\` g ON gp.group_no = g.group_no
     LEFT JOIN \`group\` pg ON g.parent_group_no = pg.group_no
     JOIN permission p ON gp.permission_no = p.permission_no
+    LEFT JOIN rnSchool r ON g.school_no = r.school_no
     WHERE ${conditions.join(' AND ')}
     ORDER BY g.parent_group_no, gp.group_no, gp.permission_no
     LIMIT ? OFFSET ?
