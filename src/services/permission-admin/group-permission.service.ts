@@ -18,17 +18,12 @@ import {
 } from '@/types/permission/group-permission';
 
 // 그룹 권한 조회
-export async function getGroupPermissionsS(
-  schoolNo: number,
-  pagination: Pagination,
-  filters?: GroupPermissionFilter,
-  meta?: LogMeta,
-) {
+export async function getGroupPermissionsS(pagination: Pagination, filters?: GroupPermissionFilter, meta?: LogMeta) {
   let conn;
   try {
     conn = await beginTransaction();
 
-    const result = await selectGroupPermission(schoolNo, pagination, filters);
+    const result = await selectGroupPermission(pagination, filters);
 
     // 데이터가 없는 경우 404 에러
     if (result.groupPermissions.length === 0) {
@@ -38,7 +33,7 @@ export async function getGroupPermissionsS(
     if (meta) {
       await logAction(
         makeLogParams({
-          schoolNo: meta.schoolNo,
+          schoolNo: 0,
           managerNo: meta.managerNo,
           ip: meta.ip,
           userAgent: meta.userAgent,
@@ -86,7 +81,7 @@ export async function createGroupPermissionS(
     console.log('중복 체크 결과:', existingPermission);
 
     if (existingPermission) {
-      throw new AppError('이미 존재하는 그룹 권한입니다.', 400);
+      throw new AppError('이미 존재하는 그룹 권한입니다.', 409);
     }
 
     // 2. 그룹 권한 생성
