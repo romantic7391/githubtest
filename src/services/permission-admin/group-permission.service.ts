@@ -68,29 +68,22 @@ export async function createGroupPermissionS(
 ): Promise<GroupPermissionCreateOrUpdateResponse> {
   let conn;
   try {
-    console.log('그룹 권한 생성 시작:', { groupPermission, meta });
-
     conn = await beginTransaction();
 
     // 1. 중복 체크
-    console.log('중복 체크 시작...');
     const existingPermission = await findGroupPermission({
       groupNo: groupPermission.groupNo,
       permissionNo: groupPermission.permissionNo,
     });
-    console.log('중복 체크 결과:', existingPermission);
 
     if (existingPermission) {
       throw new AppError('이미 존재하는 그룹 권한입니다.', 409);
     }
 
     // 2. 그룹 권한 생성
-    console.log('그룹 권한 생성 시작...');
-    const result = await insertGroupPermission(groupPermission, conn);
-    console.log('그룹 권한 생성 결과:', result);
+    await insertGroupPermission(groupPermission, conn);
 
     // 3. 로그 기록
-    console.log('로그 기록 시작...');
     await logAction(
       makeLogParams({
         schoolNo: meta.schoolNo,
@@ -108,7 +101,6 @@ export async function createGroupPermissionS(
     );
 
     await commitTransaction(conn);
-    console.log('그룹 권한 생성 완료');
 
     return {
       groupNo: groupPermission.groupNo,
