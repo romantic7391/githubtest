@@ -73,7 +73,6 @@ export async function getRnDevicesRelBySchoolNo(
         console.error('Rollback error:', rollbackError);
       }
     }
-    console.error('[getRnDevicesRelBySchoolNo] DB 조회 에러:', error);
     if (error instanceof AppError) {
       throw error;
     }

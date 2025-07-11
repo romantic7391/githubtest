@@ -125,6 +125,8 @@ export async function findPermissions(dto: FindPermissionsDto): Promise<{ permis
       p.permission_no as permissionNo,
       p.name as name,
       p.description as description,
+      p.default_extra_condition as defaultExtraCondition,
+      p.default_extra_limit as defaultExtraLimit,
       p.created,
       p.updated
     FROM permission p

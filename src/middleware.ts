@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { match } from 'path-to-regexp';
 import { auth, config as authConfig } from '@/auth';
+import { User } from '@/types/next-auth';
 
 /**
  * 미들웨어 설정입니다.
@@ -49,16 +50,27 @@ function isMatch(pathname: string, matchers: string[]): boolean {
   });
 }
 
+/**
+ * 개발 환경용 테스트 사용자 정보 생성
+ */
+function createDevUser(): User {
+  // 환경변수에서 테스트 사용자 정보 가져오기
+  const managerNo = Number(process.env.DEV_MANAGER_NO) || 1;
+  const schoolNo = Number(process.env.DEV_SCHOOL_NO) || 0;
+  const signInId = process.env.DEV_SIGNIN_ID || `test${managerNo}`;
+  const name = process.env.DEV_NAME || `테스트${managerNo}`;
+
+  return {
+    managerNo,
+    schoolNo,
+    signInId,
+    name,
+  };
+}
+
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   console.log(`[middleware] ${request.method.toUpperCase()} ${pathname}${request.nextUrl.search}`);
-
-  // 백엔드 작업 중이면 모든 API URL은 통과시킵니다.
-  if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
-    if (isMatch(pathname, ['/api{/*path}', '/test/api{/*path}'])) {
-      return NextResponse.next();
-    }
-  }
 
   // Auth.js 용 URL 처리. 그냥 통과시켜야 합니다.
   if (isMatch(pathname, matchersForAuthJsApiEndpoint)) {
@@ -72,6 +84,17 @@ export async function middleware(request: NextRequest) {
 
   // 세션 인증 확인
   const session = await auth();
+
+  // 개발 환경에서 API 요청에 대해 세션 자동 설정
+  if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1' && isMatch(pathname, ['/api{/*path}', '/test/api{/*path}'])) {
+    // 개발 환경에서는 세션이 없어도 통과시키되, 헤더에 테스트 정보 추가
+    const response = NextResponse.next();
+    const devUser = createDevUser();
+    // 한글 문자가 포함된 JSON을 base64로 인코딩하여 헤더에 설정
+    const encodedSession = Buffer.from(JSON.stringify(devUser)).toString('base64');
+    response.headers.set('x-dev-session', encodedSession);
+    return response;
+  }
 
   // 로그인이 필요한 페이지 처리
   if (!isMatch(pathname, [...matchersForSignInAndSignUp])) {
