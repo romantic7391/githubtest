@@ -28,6 +28,7 @@ export async function getManagerGroupsS(
   filters?: {
     groupNo?: number;
     schoolNo?: number;
+    managerNo?: number;
   },
 ) {
   let conn;
@@ -77,7 +78,6 @@ export async function getManagerGroupsS(
     if (conn) {
       await rollbackTransaction(conn);
     }
-    console.error('관리자 그룹 목록 조회 중 오류 발생:', error);
     if (error instanceof AppError) {
       throw error;
     }
@@ -190,8 +190,10 @@ export async function updateManagerGroupS(
     if (conn) {
       await rollbackTransaction(conn);
     }
-    console.error('관리자 그룹 수정 중 오류 발생:', error);
-    throw error instanceof AppError ? error : new AppError('관리자 그룹 수정 중 오류가 발생했습니다.', 500);
+    if (error instanceof AppError) {
+      throw error;
+    }
+    throw new AppError('관리자 그룹 수정 중 오류가 발생했습니다.', 500);
   }
 }
 
@@ -237,7 +239,9 @@ export async function deleteManagerGroupS(no: number, groupNo: number, meta: Log
     if (conn) {
       await rollbackTransaction(conn);
     }
-    console.error('관리자 그룹 삭제 중 오류 발생:', error);
-    throw error instanceof AppError ? error : new AppError('관리자 그룹 삭제 중 오류가 발생했습니다.', 500);
+    if (error instanceof AppError) {
+      throw error;
+    }
+    throw new AppError('관리자 그룹 삭제 중 오류가 발생했습니다.', 500);
   }
 }
