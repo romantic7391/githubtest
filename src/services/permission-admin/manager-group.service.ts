@@ -97,7 +97,7 @@ export async function createManagerGroupS(managerGroup: ManagerGroup, meta: LogM
     console.log('중복 체크 결과:', existingGroup);
     if (existingGroup) {
       console.log('중복 발견:', existingGroup);
-      throw new AppError('이미 존재하는 관리자 그룹입니다.', 400);
+      throw new AppError('이미 존재하는 관리자 그룹입니다.', 409);
     }
 
     // 2. 관리자 그룹 생성
