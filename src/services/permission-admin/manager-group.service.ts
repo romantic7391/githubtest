@@ -230,7 +230,7 @@ export async function deleteManagerGroupS(no: number, groupNo: number, meta: Log
         actionType: 'D',
         targetTable: 'managerGroup',
         targetId: `${no}_${groupNo}`,
-        oldValues: JSON.stringify({ no, groupNo }),
+        oldValues: JSON.stringify(existingGroup), // 실제 삭제되는 데이터
         newValues: null,
         reason: `관리자 그룹 삭제: managerNo ${no}, groupNo ${groupNo}`,
       }),
