@@ -34,9 +34,9 @@ export async function findRnDevicesRelBySchoolNo(params: DeviceListParams): Prom
   const conditions = ['rdr.school_no = ?']; // 기본 조건
   const queryParams: (string | number)[] = [schoolNo];
 
-  if (filters?.model) {
-    conditions.push('rd.model LIKE ?');
-    queryParams.push(`%${filters.model}%`);
+  if (filters?.mac) {
+    conditions.push('rdr.mac LIKE ?');
+    queryParams.push(`%${filters.mac}%`);
   }
 
   if (filters?.ip) {

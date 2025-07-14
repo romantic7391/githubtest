@@ -1,4 +1,4 @@
-import type { BaseApiResponse, CommonContext } from '@/types/common';
+import type { BaseApiResponse } from '@/types/common';
 import type {
   SchoolApiResponse,
   SchoolCreateOrUpdateApiResponse,
@@ -13,11 +13,9 @@ import {
   updateRnSchool,
   deleteRnSchool,
 } from '@/services/areas/[area]/schools/[schoolNo]/[schoolNo].service';
-import { getClientInfo } from '@/services/log-action/log-action.service';
 // import { checkPermissionMiddleware } from '@/middleware/permission.middleware';
 import { handleError, handleZodError } from '@/utils/error.utils';
-import { auth } from '@/auth';
-import { Session } from 'next-auth';
+import { getCommonContext } from '@/utils/context.utils';
 import { z } from 'zod';
 
 const updateSchoolSchema = z.object({
@@ -26,32 +24,6 @@ const updateSchoolSchema = z.object({
   area: z.string().min(1, '지역은 필수입니다.'),
   administrationCode: z.string().min(1, '행정코드는 필수입니다.'),
 });
-
-/**
- * 공통 컨텍스트 정보 가져오기
- */
-async function getCommonContext(request: NextRequest): Promise<CommonContext> {
-  let session = await auth();
-  if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
-    session = {
-      ...session,
-      user: {
-        ...session?.user,
-        managerNo: 1,
-      },
-    } as Session;
-  }
-  if (!session?.user.managerNo) {
-    throw new Error('로그인이 필요합니다.');
-  }
-  const { userAgent, ip } = getClientInfo(request);
-
-  return {
-    managerNo: session.user.managerNo,
-    ip: ip,
-    userAgent: userAgent,
-  };
-}
 
 /**
  * 지역 학교 정보

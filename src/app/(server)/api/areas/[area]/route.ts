@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import type { AreaApiResponse, AreaCreateOrUpdateApiResponse } from '@/types/area';
 import { getAreaByArea, updateArea, deleteArea } from '@/services/areas/[area]/[area].service';
 import { areaSchema } from '@/types/area';
-import { getClientInfo } from '@/services/log-action/log-action.service';
 import { handleError, handleZodError } from '@/utils/error.utils';
+import { getCommonContext } from '@/utils/context.utils';
 
 /**
  * 지역 조회
@@ -13,12 +13,12 @@ import { handleError, handleZodError } from '@/utils/error.utils';
 export async function GET(request: NextRequest, { params }: { params: Promise<{ area: string }> }) {
   try {
     const { area } = await params;
-    const { userAgent, ip } = getClientInfo(request);
+    const commonContext = await getCommonContext(request);
 
     const areas = await getAreaByArea(area, {
-      managerNo: 1, // 임시로 1로 설정
-      ip,
-      userAgent: userAgent,
+      managerNo: commonContext.managerNo,
+      ip: commonContext.ip,
+      userAgent: commonContext.userAgent,
       schoolNo: 0,
     });
 
@@ -45,12 +45,12 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     await params; // area는 사용하지 않으므로 구조 분해 할당 제거
     const body = await request.json();
     const validatedData = areaSchema.parse(body);
-    const { userAgent, ip } = getClientInfo(request);
+    const commonContext = await getCommonContext(request);
 
     await updateArea(validatedData, {
-      managerNo: 1, // 임시로 1로 설정
-      ip,
-      userAgent: userAgent,
+      managerNo: commonContext.managerNo,
+      ip: commonContext.ip,
+      userAgent: commonContext.userAgent,
       schoolNo: 0,
     });
 
@@ -75,12 +75,12 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ area: string }> }) {
   try {
     const { area } = await params;
-    const { userAgent, ip } = getClientInfo(request);
+    const commonContext = await getCommonContext(request);
 
     await deleteArea(area, {
-      managerNo: 1, // 임시로 1로 설정
-      ip,
-      userAgent: userAgent,
+      managerNo: commonContext.managerNo,
+      ip: commonContext.ip,
+      userAgent: commonContext.userAgent,
       schoolNo: 0,
     });
 

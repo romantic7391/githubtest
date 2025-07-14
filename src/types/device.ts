@@ -203,6 +203,7 @@ export type DeviceBasic = z.infer<typeof deviceBasicSchema>;
  */
 export const deviceFilterSchema = z
   .object({
+    mac: z.string().max(16).nullable(),
     model: z.string().max(16).nullable(),
     ip: z.string().ip({ version: 'v4' }).nullable(),
     rip: z.string().ip({ version: 'v4' }).nullable(),
