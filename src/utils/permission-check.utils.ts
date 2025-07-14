@@ -2,12 +2,10 @@
 // @ts-nocheck
 import { NextRequest, NextResponse } from 'next/server';
 import { checkPermission, checkPermissions } from '@/services/permission-check/permission.service';
-import { getSession } from '@/lib/auth/session';
 import { permissionMappings } from '@/config/permission-mapping';
 import { HTTPMethod } from '@/types/common';
-import { auth } from '@/auth';
-import { Session } from '@/types/session';
 import { getSchoolBySchoolNo } from '@/services/areas/[area]/schools/[schoolNo]/[schoolNo].service';
+import { getCommonContext } from '@/utils/context.utils';
 
 /**
  * URL 패턴과 실제 URL을 매칭하여 파라미터를 추출
@@ -43,54 +41,17 @@ function matchPath(pattern: string, path: string): Record<string, string> | null
 }
 
 /**
- * 권한 체크 미들웨어
+ * 권한 체크 함수
+ * API 라우트에서 권한 체크를 수행합니다.
  */
-export async function checkPermissionMiddleware(
+export async function checkPermission(
   request: NextRequest,
   { params }: { params: Promise<{ schoolNo?: number | null; area?: string | null; permissionNo?: number }> },
 ): Promise<NextResponse | null> {
   try {
-    // 1. 세션 체크
-    let session = await auth();
-    console.log('초기 세션:', session);
-    console.log('환경변수:', process.env.WORKING_ON_BACKEND_DEVELOPMENT);
-
-    if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
-      session = {
-        ...session,
-        user: {
-          ...session?.user,
-          managerNo: 5,
-          schoolNo: 0,
-        },
-      } as Session;
-      console.log('개발환경 세션 설정 후:', session);
-    }
-
-    console.log('세션 체크:', {
-      sessionExists: !!session,
-      userExists: !!session?.user,
-      managerNo: session?.user?.managerNo,
-      schoolNo: session?.user?.schoolNo,
-      fullUser: session?.user,
-    });
-
-    if (session?.user?.managerNo === undefined || session?.user?.schoolNo === undefined) {
-      console.log('세션 체크 실패 상세:', {
-        managerNoCheck: {
-          exists: session?.user?.managerNo !== undefined,
-          value: session?.user?.managerNo,
-          type: typeof session?.user?.managerNo,
-        },
-        schoolNoCheck: {
-          exists: session?.user?.schoolNo !== undefined,
-          value: session?.user?.schoolNo,
-          type: typeof session?.user?.schoolNo,
-        },
-        fullSession: JSON.stringify(session, null, 2),
-      });
-      return NextResponse.json({ success: false, message: '인증이 필요합니다.' }, { status: 401 });
-    }
+    // 1. 공통 컨텍스트 가져오기 (세션 포함)
+    const commonContext = await getCommonContext(request);
+    console.log('공통 컨텍스트:', commonContext);
 
     const method = request.method as HTTPMethod;
     const path = request.nextUrl.pathname;
@@ -101,12 +62,12 @@ export async function checkPermissionMiddleware(
 
     // 3. 지역 기반 접근 제어 (가장 먼저 체크)
     const resolvedParams = await params;
-    if (resolvedParams.area && session.user.schoolNo !== 0) {
+    if (resolvedParams.area && commonContext.schoolNo !== 0) {
       // 사용자의 학교 정보 조회
-      const userSchool = await getSchoolBySchoolNo(session.user.schoolNo, {
-        manager_no: session.user.managerNo,
-        ip: request.headers.get('x-forwarded-for') || request.ip,
-        user_agent: request.headers.get('user-agent'),
+      const userSchool = await getSchoolBySchoolNo(commonContext.schoolNo, {
+        manager_no: commonContext.managerNo,
+        ip: commonContext.ip,
+        user_agent: commonContext.userAgent,
       });
 
       if (!userSchool) {
@@ -124,8 +85,8 @@ export async function checkPermissionMiddleware(
 
     // 4. 권한 체크
     const { allowed, override } = await checkPermissions(
-      session.user.managerNo,
-      session.user.schoolNo,
+      commonContext.managerNo,
+      commonContext.schoolNo,
       mapping.permissions,
     );
 
@@ -141,7 +102,7 @@ export async function checkPermissionMiddleware(
 
     return null;
   } catch (error) {
-    console.error('[checkPermissionMiddleware] 권한 체크 중 오류 발생:', error);
+    console.error('[checkPermission] 권한 체크 중 오류 발생:', error);
     return NextResponse.json({ success: false, message: '권한 체크 중 오류가 발생했습니다.' }, { status: 500 });
   }
 }

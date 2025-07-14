@@ -13,7 +13,7 @@ import {
   updateRnSchool,
   deleteRnSchool,
 } from '@/services/areas/[area]/schools/[schoolNo]/[schoolNo].service';
-import { checkPermissionMiddleware } from '@/middleware/permission.middleware';
+import { checkPermission } from '@/utils/permission-check.utils';
 import { handleError, handleZodError } from '@/utils/error.utils';
 import { getCommonContext } from '@/utils/context.utils';
 import { z } from 'zod';
@@ -33,7 +33,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<Sc
     const resolvedParams = await params;
     const schoolNoNum = Number(resolvedParams.schoolNo);
 
-    const permissionError = await checkPermissionMiddleware(request, {
+    const permissionError = await checkPermission(request, {
       params: Promise.resolve({ schoolNo: schoolNoNum, area: resolvedParams.area }),
     });
 
@@ -69,7 +69,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<Sc
     // 요청 데이터 검증
     const validatedData = updateSchoolSchema.parse(body);
 
-    const permissionError = await checkPermissionMiddleware(request, {
+    const permissionError = await checkPermission(request, {
       params: Promise.resolve({ schoolNo: schoolNoNum, area: resolvedParams.area }),
     });
 
@@ -118,7 +118,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       schoolNo: schoolNoNum,
     } as School;
 
-    const permissionError = await checkPermissionMiddleware(request, {
+    const permissionError = await checkPermission(request, {
       params: Promise.resolve({ schoolNo: schoolNoNum, area: resolvedParams.area }),
     });
 
