@@ -26,7 +26,9 @@ export async function findPermissionByName(name: string): Promise<Permission | n
     FROM permission
     WHERE name = ? AND deleted IS NULL
   `;
-  return getRow<Permission>(query, [name]);
+  const result = await getRow<Permission>(query, [name]);
+  console.log('[findPermissionByName] 쿼리 결과:', { name, result });
+  return result;
 }
 
 /**
@@ -34,7 +36,7 @@ export async function findPermissionByName(name: string): Promise<Permission | n
  */
 export async function findManagerGroups(managerNo: number, schoolNo: number): Promise<ManagerGroup[]> {
   const query = `
-    SELECT mg.group_no, mg.no
+    SELECT mg.group_no as groupNo, mg.no
     FROM managerGroup mg
     JOIN manager m ON mg.no = m.no
     JOIN \`group\` g ON mg.group_no = g.group_no
@@ -43,7 +45,9 @@ export async function findManagerGroups(managerNo: number, schoolNo: number): Pr
       AND (m.school_no = ? OR m.school_no = 0)
     ORDER BY CASE WHEN g.school_no = 0 THEN 0 ELSE 1 END, g.group_no;
   `;
-  return getAll<ManagerGroup>(query, [managerNo, schoolNo]);
+  const result = await getAll<ManagerGroup>(query, [managerNo, schoolNo]);
+  console.log('[findManagerGroups] 쿼리 결과:', { managerNo, schoolNo, result });
+  return result;
 }
 
 /**
@@ -51,11 +55,21 @@ export async function findManagerGroups(managerNo: number, schoolNo: number): Pr
  */
 export async function findGroupByGroupNo(groupNo: number): Promise<Group | null> {
   const query = `
-    SELECT group_no, parent_group_no, school_no
-    FROM \`group\`
-    WHERE group_no = ? AND deleted IS NULL
+    SELECT 
+      g.group_no as groupNo, 
+      g.name, 
+      g.parent_group_no as parentGroupNo, 
+      g.school_no as schoolNo,
+      s.sname as schoolName,
+      p.sname as parentGroupName
+    FROM \`group\` g
+    LEFT JOIN rnSchool s ON g.school_no = s.school_no
+    LEFT JOIN rnSchool p ON g.parent_group_no = p.school_no
+    WHERE g.group_no = ? AND g.deleted IS NULL
   `;
-  return getRow<Group>(query, [groupNo]);
+  const result = await getRow<Group>(query, [groupNo]);
+  console.log('[findGroupByGroupNo] 쿼리 결과:', { groupNo, result });
+  return result;
 }
 
 /**
@@ -63,11 +77,13 @@ export async function findGroupByGroupNo(groupNo: number): Promise<Group | null>
  */
 export async function findGroupPermission(groupNo: number, permissionNo: number): Promise<GroupPermission | null> {
   const query = `
-    SELECT group_no, permission_no, is_allowed, override, extra_condition, extra_limit
+    SELECT group_no as groupNo, permission_no as permissionNo, is_allowed as isAllowed, override, extra_condition as extraCondition, extra_limit as extraLimit
     FROM groupPermission
     WHERE group_no = ? AND permission_no = ? AND deleted IS NULL
   `;
-  return getRow<GroupPermission>(query, [groupNo, permissionNo]);
+  const result = await getRow<GroupPermission>(query, [groupNo, permissionNo]);
+  console.log('[findGroupPermission] 쿼리 결과:', { groupNo, permissionNo, result });
+  return result;
 }
 
 /**

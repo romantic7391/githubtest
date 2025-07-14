@@ -14,6 +14,8 @@ export async function getSchoolBySchoolNo(
   schoolNo: number,
   meta: { managerNo: number; ip: string | null; userAgent: string | null },
 ) {
+  console.log('getSchoolBySchoolNo 함수 내부 - 받은 파라미터:', { schoolNo, meta });
+
   let conn;
   try {
     conn = await beginTransaction();

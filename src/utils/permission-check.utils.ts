@@ -64,10 +64,19 @@ export async function checkPermission(
     const resolvedParams = await params;
     if (resolvedParams.area && commonContext.schoolNo !== 0) {
       // 사용자의 학교 정보 조회
+      console.log('getSchoolBySchoolNo 호출 전 파라미터:', {
+        schoolNo: commonContext.schoolNo,
+        meta: {
+          managerNo: commonContext.managerNo,
+          ip: commonContext.ip,
+          userAgent: commonContext.userAgent,
+        },
+      });
+
       const userSchool = await getSchoolBySchoolNo(commonContext.schoolNo, {
-        manager_no: commonContext.managerNo,
+        managerNo: commonContext.managerNo,
         ip: commonContext.ip,
-        user_agent: commonContext.userAgent,
+        userAgent: commonContext.userAgent,
       });
 
       if (!userSchool) {
