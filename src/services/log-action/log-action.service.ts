@@ -8,8 +8,8 @@ export function makeLogParams(params: Partial<History>) {
   return historySchema.parse({
     ...params,
     schoolNo: params.schoolNo, // null을 그대로 유지
-    oldValues: params.oldValues ?? '',
-    newValues: params.newValues ?? '',
+    oldValues: params.oldValues ?? null,
+    newValues: params.newValues ?? null,
   });
 }
 
