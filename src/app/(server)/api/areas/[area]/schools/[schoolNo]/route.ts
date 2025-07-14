@@ -13,7 +13,7 @@ import {
   updateRnSchool,
   deleteRnSchool,
 } from '@/services/areas/[area]/schools/[schoolNo]/[schoolNo].service';
-// import { checkPermissionMiddleware } from '@/middleware/permission.middleware';
+import { checkPermissionMiddleware } from '@/middleware/permission.middleware';
 import { handleError, handleZodError } from '@/utils/error.utils';
 import { getCommonContext } from '@/utils/context.utils';
 import { z } from 'zod';
@@ -33,12 +33,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<Sc
     const resolvedParams = await params;
     const schoolNoNum = Number(resolvedParams.schoolNo);
 
-    // 테스트를 위해 권한 체크 주석 처리
-    // const permissionError = await checkPermissionMiddleware(request, {
-    //   params: Promise.resolve({ schoolNo: schoolNoNum, area: resolvedParams.area }),
-    // });
+    const permissionError = await checkPermissionMiddleware(request, {
+      params: Promise.resolve({ schoolNo: schoolNoNum, area: resolvedParams.area }),
+    });
 
-    // if (permissionError) return permissionError;
+    if (permissionError) return permissionError;
 
     const context = await getCommonContext(request);
     const school = await getSchoolBySchoolNo(schoolNoNum, context);
@@ -69,6 +68,12 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<Sc
 
     // 요청 데이터 검증
     const validatedData = updateSchoolSchema.parse(body);
+
+    const permissionError = await checkPermissionMiddleware(request, {
+      params: Promise.resolve({ schoolNo: schoolNoNum, area: resolvedParams.area }),
+    });
+
+    if (permissionError) return permissionError;
 
     const dto: updateRnSchoolDto = {
       ...validatedData,
@@ -112,6 +117,12 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     const dto: School = {
       schoolNo: schoolNoNum,
     } as School;
+
+    const permissionError = await checkPermissionMiddleware(request, {
+      params: Promise.resolve({ schoolNo: schoolNoNum, area: resolvedParams.area }),
+    });
+
+    if (permissionError) return permissionError;
 
     const context = await getCommonContext(request);
     await deleteRnSchool(dto, context);

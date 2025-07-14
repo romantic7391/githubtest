@@ -10,6 +10,47 @@ interface PermissionMapping {
 }
 
 export const permissionMappings: PermissionMapping[] = [
+  // 권한 관리 API
+  {
+    path: '/api/permission-admin/permission',
+    method: 'GET',
+    permissions: ['권한_조회'],
+  },
+  {
+    path: '/api/permission-admin/permission',
+    method: 'POST',
+    permissions: ['권한_생성'],
+  },
+  {
+    path: '/api/permission-admin/group',
+    method: 'GET',
+    permissions: ['그룹_조회'],
+  },
+  {
+    path: '/api/permission-admin/group',
+    method: 'POST',
+    permissions: ['그룹_생성'],
+  },
+  {
+    path: '/api/permission-admin/group-permission',
+    method: 'GET',
+    permissions: ['그룹권한_조회'],
+  },
+  {
+    path: '/api/permission-admin/group-permission',
+    method: 'POST',
+    permissions: ['그룹권한_생성'],
+  },
+  {
+    path: '/api/permission-admin/manager-group',
+    method: 'GET',
+    permissions: ['관리자그룹_조회'],
+  },
+  {
+    path: '/api/permission-admin/manager-group',
+    method: 'POST',
+    permissions: ['관리자그룹_생성'],
+  },
   // 학교 관련 API
   {
     path: '/api/areas/[area]/schools/[schoolNo]',
