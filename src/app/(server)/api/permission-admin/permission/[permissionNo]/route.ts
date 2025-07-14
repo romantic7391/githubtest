@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/auth';
+import { getCommonContext } from '@/utils/context.utils';
 import {
   PermissionRouteParams,
   permissionCreateOrUpdateApiResponseSchema,
@@ -19,23 +19,9 @@ export async function GET(request: NextRequest, context: PermissionRouteParams) 
     const { permissionNo } = await context.params;
     const permissionNoNum = Number(permissionNo);
 
-    const session = await auth();
-    if (!session?.user?.managerNo) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: '인증되지 않은 요청입니다.',
-        },
-        { status: 401 },
-      );
-    }
+    const commonContext = await getCommonContext(request);
 
-    const result = await getPermissionS(permissionNoNum, {
-      managerNo: session.user.managerNo,
-      ip: request.headers.get('x-forwarded-for') || '',
-      userAgent: request.headers.get('user-agent') || '',
-      schoolNo: session.user.schoolNo || 0,
-    });
+    const result = await getPermissionS(permissionNoNum, commonContext);
 
     return NextResponse.json(
       {
@@ -71,16 +57,7 @@ export async function PUT(request: NextRequest, context: PermissionRouteParams) 
     const permissionNoNum = Number(permissionNo);
     const body = await request.json();
 
-    const session = await auth();
-    if (!session?.user?.managerNo) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: '인증되지 않은 요청입니다.',
-        },
-        { status: 401 },
-      );
-    }
+    const commonContext = await getCommonContext(request);
 
     // 요청 데이터 검증
     const validatedData = createPermissionDtoSchema.parse(body);
@@ -93,12 +70,7 @@ export async function PUT(request: NextRequest, context: PermissionRouteParams) 
       defaultExtraLimit: validatedData.defaultExtraLimit,
     };
 
-    const result = await updatePermissionS(dto, {
-      managerNo: session.user.managerNo,
-      ip: request.headers.get('x-forwarded-for') || '',
-      userAgent: request.headers.get('user-agent') || '',
-      schoolNo: session.user.schoolNo || 0,
-    });
+    const result = await updatePermissionS(dto, commonContext);
 
     return NextResponse.json(
       permissionCreateOrUpdateApiResponseSchema.parse({
@@ -133,23 +105,9 @@ export async function DELETE(request: NextRequest, context: PermissionRouteParam
     const { permissionNo } = await context.params;
     const permissionNoNum = Number(permissionNo);
 
-    const session = await auth();
-    if (!session?.user?.managerNo) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: '인증되지 않은 요청입니다.',
-        },
-        { status: 401 },
-      );
-    }
+    const commonContext = await getCommonContext(request);
 
-    await deletePermissionS(permissionNoNum, {
-      managerNo: session.user.managerNo,
-      ip: request.headers.get('x-forwarded-for') || '',
-      userAgent: request.headers.get('user-agent') || '',
-      schoolNo: session.user.schoolNo || 0,
-    });
+    await deletePermissionS(permissionNoNum, commonContext);
 
     return NextResponse.json(
       permissionDeleteResponseSchema.parse({

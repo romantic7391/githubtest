@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSession } from '@/lib/auth/session';
-
+import { getCommonContext } from '@/utils/context.utils';
 import {
   CreateGroup,
   groupFilterSchema,
   groupCreateOrUpdateApiResponseSchema,
   createGroupSchema,
 } from '@/types/permission/group';
-
 import { handleError, handleZodError } from '@/utils/error.utils';
 import { getGroupsS, createGroupS } from '@/services/permission-admin/group.service';
 import { AppError } from '@/utils/error.utils';
@@ -18,21 +16,7 @@ import { paginationSchema } from '@/types/common';
  */
 export async function GET(request: NextRequest) {
   try {
-    // 개발 환경에서 테스트를 위해 헤더 설정
-    if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
-      request.headers.set('x-manager-no', '1');
-    }
-
-    const session = await getSession(request);
-    if (!session) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: '인증되지 않은 요청입니다.',
-        },
-        { status: 401 },
-      );
-    }
+    const context = await getCommonContext(request);
 
     const searchParams = request.nextUrl.searchParams;
     const page = Number(searchParams.get('page')) || 1;
@@ -40,33 +24,16 @@ export async function GET(request: NextRequest) {
     const name = searchParams.get('name') || undefined;
     const schoolNo = searchParams.get('schoolNo');
 
-    console.log('그룹 목록 조회 요청:', {
-      page,
-      pageSize,
-      name,
-      schoolNo,
-      managerNo: session.managerNo,
-    });
-
     // 페이지네이션 검증
     const pagination = paginationSchema.parse({ page, pageSize });
 
     // 필터 검증
     const filters = groupFilterSchema.parse({
       name,
-      schoolNo: schoolNo === 'null' ? null : schoolNo ? Number(schoolNo) : undefined,
+      schoolNo: schoolNo ? Number(schoolNo) : undefined,
     });
 
-    const result = await getGroupsS(
-      pagination,
-      {
-        managerNo: session.managerNo,
-        ip: request.headers.get('x-forwarded-for') || '',
-        userAgent: request.headers.get('user-agent') || '',
-        schoolNo: 0,
-      },
-      filters,
-    );
+    const result = await getGroupsS(pagination, context, filters);
 
     console.log('그룹 목록 조회 결과:', {
       total: result.pagination.total,
@@ -106,46 +73,19 @@ export async function POST(request: NextRequest) {
   try {
     console.log('[POST] 그룹 생성 시작');
 
-    // 개발 환경에서 테스트를 위해 헤더 설정
-    if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
-      request.headers.set('x-manager-no', '1');
-    }
-
-    const session = await getSession(request);
-    console.log('[POST] session:', session);
-
-    if (!session) {
-      console.log('[POST] 세션 없음');
-      return NextResponse.json(
-        {
-          success: false,
-          message: '인증되지 않은 요청입니다.',
-        },
-        { status: 401 },
-      );
-    }
+    const context = await getCommonContext(request);
 
     const body = await request.json();
-    console.log('[POST] body:', body);
 
     const validatedData = createGroupSchema.parse(body);
-    console.log('[POST] validatedData:', validatedData);
 
     const groupData: CreateGroup = {
       name: validatedData.name,
       schoolNo: validatedData.schoolNo,
       parentGroupNo: validatedData.parentGroupNo,
     };
-    console.log('[POST] groupData:', groupData);
 
-    console.log('[POST] createGroupS 호출 전');
-    const result = await createGroupS(groupData, {
-      managerNo: session.managerNo,
-      ip: request.headers.get('x-forwarded-for') || '',
-      userAgent: request.headers.get('user-agent') || '',
-      schoolNo: 0,
-    });
-    console.log('[POST] createGroupS 결과:', result);
+    const result = await createGroupS(groupData, context);
 
     // 응답 데이터 검증
     const response = groupCreateOrUpdateApiResponseSchema.parse({
