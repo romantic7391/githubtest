@@ -5,7 +5,7 @@ import {
   deleteGroupPermissionS,
   getGroupPermissionsS,
 } from '@/services/permission-admin/group-permission.service';
-import { getSession } from '@/lib/auth/session';
+import { getCommonContext } from '@/utils/context.utils';
 import { handleZodError, handleError } from '@/utils/error.utils';
 import {
   createGroupPermissionSchema,
@@ -23,20 +23,7 @@ import { AppError } from '@/utils/error.utils';
  */
 export async function GET(request: NextRequest) {
   try {
-    if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
-      request.headers.set('x-manager-no', '1');
-    }
-
-    const session = await getSession(request);
-    if (!session) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: '인증되지 않은 요청입니다.',
-        },
-        { status: 401 },
-      );
-    }
+    const context = await getCommonContext(request);
 
     const searchParams = request.nextUrl.searchParams;
     const page = Number(searchParams.get('page')) || 1;
@@ -55,12 +42,7 @@ export async function GET(request: NextRequest) {
       schoolNo: schoolNo ? Number(schoolNo) : undefined,
     });
 
-    const result = await getGroupPermissionsS(pagination, filters, {
-      managerNo: session.managerNo,
-      ip: request.headers.get('x-forwarded-for') || '',
-      userAgent: request.headers.get('user-agent') || '',
-      schoolNo: 0,
-    });
+    const result = await getGroupPermissionsS(pagination, filters, context);
 
     return NextResponse.json(
       groupPermissionsApiResponseSchema.parse({
@@ -82,30 +64,12 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
-      request.headers.set('x-manager-no', '1');
-    }
-
-    const session = await getSession(request);
-    if (!session) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: '인증되지 않은 요청입니다.',
-        },
-        { status: 401 },
-      );
-    }
+    const context = await getCommonContext(request);
 
     const body = await request.json();
     const validatedData = createGroupPermissionSchema.parse(body);
 
-    const result = await createGroupPermissionS(validatedData, {
-      managerNo: session.managerNo,
-      ip: request.headers.get('x-forwarded-for') || '',
-      userAgent: request.headers.get('user-agent') || '',
-      schoolNo: 0,
-    });
+    const result = await createGroupPermissionS(validatedData, context);
 
     return NextResponse.json(
       groupPermissionCreateOrUpdateApiResponseSchema.parse({
@@ -139,30 +103,12 @@ export async function POST(request: NextRequest) {
  */
 export async function PUT(request: NextRequest) {
   try {
-    if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
-      request.headers.set('x-manager-no', '1');
-    }
-
-    const session = await getSession(request);
-    if (!session) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: '인증되지 않은 요청입니다.',
-        },
-        { status: 401 },
-      );
-    }
+    const context = await getCommonContext(request);
 
     const body = await request.json();
     const validatedData = updateGroupPermissionSchema.parse(body);
 
-    await updateGroupPermissionS(validatedData, {
-      managerNo: session.managerNo,
-      ip: request.headers.get('x-forwarded-for') || '',
-      userAgent: request.headers.get('user-agent') || '',
-      schoolNo: 0,
-    });
+    await updateGroupPermissionS(validatedData, context);
 
     return NextResponse.json(
       groupPermissionCreateOrUpdateApiResponseSchema.parse({
@@ -196,20 +142,7 @@ export async function PUT(request: NextRequest) {
  */
 export async function DELETE(request: NextRequest) {
   try {
-    if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
-      request.headers.set('x-manager-no', '1');
-    }
-
-    const session = await getSession(request);
-    if (!session) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: '인증되지 않은 요청입니다.',
-        },
-        { status: 401 },
-      );
-    }
+    const context = await getCommonContext(request);
 
     let groupNo: string | null = null;
     let permissionNo: string | null = null;
@@ -242,12 +175,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    await deleteGroupPermissionS(validatedData.groupNo, validatedData.permissionNo, {
-      managerNo: session.managerNo,
-      ip: request.headers.get('x-forwarded-for') || '',
-      userAgent: request.headers.get('user-agent') || '',
-      schoolNo: 0,
-    });
+    await deleteGroupPermissionS(validatedData.groupNo, validatedData.permissionNo, context);
 
     return NextResponse.json(
       groupPermissionCreateOrUpdateApiResponseSchema.parse({

@@ -65,7 +65,6 @@ export async function middleware(request: NextRequest) {
 
   // 세션 인증 확인
   let session = await auth();
-
   // 개발 모드일 때, 테스트 세션 주입.
   if (
     !session &&

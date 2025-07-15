@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { User } from '@/types/next-auth';
+import { auth } from '@/auth';
 
 const SessionSchema = z.object({
   managerNo: z.number(),
@@ -56,4 +57,26 @@ export function getDevSession(req: NextRequest) {
     console.error('[getDevSession] 개발 세션 조회 중 오류 발생:', error);
     return null;
   }
+}
+
+/**
+ * 개발 환경에서 세션을 자동으로 주입하는 함수
+ */
+export async function getSessionWithDevFallback() {
+  let session = await auth();
+
+  // 개발 환경에서 세션이 없으면 테스트 세션 주입
+  if (!session && process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
+    session = {
+      user: {
+        managerNo: Number(process.env.DEV_MANAGER_NO) || 1,
+        schoolNo: Number(process.env.DEV_SCHOOL_NO) || 0,
+        signInId: 'test',
+        name: '테스트',
+      },
+      expires: new Date(Date.now() + 3600 * 1000).toISOString(),
+    };
+  }
+
+  return session;
 }

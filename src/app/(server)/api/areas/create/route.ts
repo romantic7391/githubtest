@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import type { AreaCreateOrUpdateApiResponse } from '@/types/area';
 import { createArea } from '@/services/areas/create/create.service';
 import { areaCreateShcema } from '@/types/area';
-import { getClientInfo } from '@/services/log-action/log-action.service';
 import { handleError, handleZodError } from '@/utils/error.utils';
+import { getCommonContext } from '@/utils/context.utils';
 
 /**
  * 지역 생성
@@ -15,12 +15,12 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     const validatedData = areaCreateShcema.parse(body);
 
-    const { userAgent, ip } = getClientInfo(request);
+    const commonContext = await getCommonContext(request);
     await createArea(validatedData, {
-      managerNo: 1, // 임시로 1로 설정
+      managerNo: commonContext.managerNo,
       schoolNo: 0, // 지역 생성 시에는 0으로 설정
-      ip,
-      userAgent,
+      ip: commonContext.ip,
+      userAgent: commonContext.userAgent,
     });
 
     const response = {

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/auth';
-import { getDevSession } from '@/lib/auth/session';
+import { getCommonContext } from '@/utils/context.utils';
 import { handleError, handleZodError } from '@/utils/error.utils';
 import { AppError } from '@/utils/error.utils';
 import { getPermissionsS, createPermissionS } from '@/services/permission-admin/permission.service';
@@ -14,31 +13,11 @@ import {
 import { paginationSchema } from '@/types/common';
 
 /**
- * 세션 정보 가져오기 (미들웨어와 연동)
- */
-async function getSessionInfo(request: NextRequest) {
-  // 개발 환경에서는 미들웨어에서 설정한 세션 사용
-  if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
-    const devSession = getDevSession(request);
-    if (devSession) {
-      return devSession;
-    }
-  }
-
-  // 프로덕션 환경에서는 NextAuth 세션 사용
-  return await auth();
-}
-
-/**
  * 권한 목록 조회
  */
 export async function GET(request: NextRequest) {
   try {
-    const session = await getSessionInfo(request);
-
-    if (!session?.user?.managerNo) {
-      return NextResponse.json({ success: false, message: '인증되지 않은 요청입니다.' }, { status: 401 });
-    }
+    const context = await getCommonContext(request);
 
     const searchParams = request.nextUrl.searchParams;
     const page = Number(searchParams.get('page')) || 1;
@@ -53,16 +32,7 @@ export async function GET(request: NextRequest) {
       name: name || undefined,
     });
 
-    const result = await getPermissionsS(
-      pagination,
-      {
-        managerNo: session.user.managerNo,
-        ip: request.headers.get('x-forwarded-for') || '',
-        userAgent: request.headers.get('user-agent') || '',
-        schoolNo: session.user.schoolNo || 0,
-      },
-      filters,
-    );
+    const result = await getPermissionsS(pagination, context, filters);
 
     return NextResponse.json(
       permissionListApiResponseSchema.parse({
@@ -94,10 +64,7 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const session = await getSessionInfo(request);
-    if (!session?.user?.managerNo) {
-      return NextResponse.json({ success: false, message: '인증되지 않은 요청입니다.' }, { status: 401 });
-    }
+    const context = await getCommonContext(request);
 
     const body = await request.json();
     const validatedData = createPermissionRequestSchema.parse(body);
@@ -109,12 +76,7 @@ export async function POST(request: NextRequest) {
       defaultExtraLimit: validatedData.defaultExtraLimit,
     };
 
-    const result = await createPermissionS(dto, {
-      managerNo: session.user.managerNo,
-      ip: request.headers.get('x-forwarded-for') || '',
-      userAgent: request.headers.get('user-agent') || '',
-      schoolNo: session.user.schoolNo || 0,
-    });
+    const result = await createPermissionS(dto, context);
 
     return NextResponse.json(
       permissionCreateApiResponseSchema.parse({

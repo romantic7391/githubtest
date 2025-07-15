@@ -5,7 +5,7 @@ import {
   deleteManagerGroupS,
   getManagerGroupsS,
 } from '@/services/permission-admin/manager-group.service';
-import { getSession } from '@/lib/auth/session';
+import { getCommonContext } from '@/utils/context.utils';
 import { handleError, handleZodError } from '@/utils/error.utils';
 import { paginationSchema } from '@/types/common';
 import {
@@ -16,7 +16,6 @@ import {
   managerGroupListRequestSchema,
   managerGroupsApiResponseSchema,
 } from '@/types/permission/manager-group';
-import { getClientInfo } from '@/services/log-action/log-action.service';
 import { AppError } from '@/utils/error.utils';
 import { DEFAULT_PAGE_SIZE } from '@/lib/default.constant';
 
@@ -25,22 +24,7 @@ import { DEFAULT_PAGE_SIZE } from '@/lib/default.constant';
  */
 export async function GET(request: NextRequest) {
   try {
-    // 개발 환경에서 테스트를 위해 헤더 설정
-    if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
-      request.headers.set('x-manager-no', '1');
-    }
-
-    const session = await getSession(request);
-
-    if (!session) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: '인증되지 않은 요청입니다.',
-        },
-        { status: 401 },
-      );
-    }
+    const context = await getCommonContext(request);
 
     const searchParams = request.nextUrl.searchParams;
     const page = Number(searchParams.get('page')) || 1;
@@ -59,17 +43,7 @@ export async function GET(request: NextRequest) {
       managerNo: managerNo ? Number(managerNo) : undefined,
     });
 
-    const result = await getManagerGroupsS(
-      session.managerNo,
-      pagination,
-      {
-        managerNo: session.managerNo,
-        ip: request.headers.get('x-forwarded-for') || '',
-        userAgent: request.headers.get('user-agent') || '',
-        schoolNo: 0,
-      },
-      filters,
-    );
+    const result = await getManagerGroupsS(context.managerNo, pagination, context, filters);
 
     return NextResponse.json(
       managerGroupsApiResponseSchema.parse({
@@ -100,21 +74,7 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    // 개발 환경에서 테스트를 위해 헤더 설정
-    if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
-      request.headers.set('x-manager-no', '1');
-    }
-
-    const session = await getSession(request);
-    if (!session) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: '인증되지 않은 요청입니다.',
-        },
-        { status: 401 },
-      );
-    }
+    const context = await getCommonContext(request);
 
     const body = await request.json();
     const validatedData = createManagerGroupSchema.parse(body);
@@ -125,13 +85,7 @@ export async function POST(request: NextRequest) {
       created: null,
     });
 
-    const { userAgent, ip } = getClientInfo(request);
-    const result = await createManagerGroupS(managerGroupData, {
-      managerNo: session.managerNo,
-      ip,
-      userAgent: userAgent,
-      schoolNo: 0,
-    });
+    const result = await createManagerGroupS(managerGroupData, context);
 
     return NextResponse.json(
       managerGroupCreateOrUpdateApiResponseSchema.parse({
@@ -162,21 +116,7 @@ export async function POST(request: NextRequest) {
  */
 export async function PUT(request: NextRequest) {
   try {
-    // 개발 환경에서 테스트를 위해 헤더 설정
-    if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
-      request.headers.set('x-manager-no', '1');
-    }
-
-    const session = await getSession(request);
-    if (!session) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: '인증되지 않은 요청입니다.',
-        },
-        { status: 401 },
-      );
-    }
+    const context = await getCommonContext(request);
 
     const body = await request.json();
     const validatedData = updateManagerGroupSchema.parse(body);
@@ -188,17 +128,11 @@ export async function PUT(request: NextRequest) {
       created: null,
     });
 
-    const { userAgent, ip } = getClientInfo(request);
     const result = await updateManagerGroupS(
       managerGroupData,
       validatedData.originalNo,
       validatedData.originalGroupNo,
-      {
-        managerNo: session.managerNo,
-        ip,
-        userAgent: userAgent,
-        schoolNo: 0,
-      },
+      context,
     );
 
     return NextResponse.json(
@@ -230,21 +164,7 @@ export async function PUT(request: NextRequest) {
  */
 export async function DELETE(request: NextRequest) {
   try {
-    // 개발 환경에서 테스트를 위해 헤더 설정
-    if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
-      request.headers.set('x-manager-no', '1');
-    }
-
-    const session = await getSession(request);
-    if (!session) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: '인증되지 않은 요청입니다.',
-        },
-        { status: 401 },
-      );
-    }
+    const context = await getCommonContext(request);
 
     let no: string | null = null;
     let groupNo: string | null = null;
@@ -271,12 +191,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    await deleteManagerGroupS(Number(no), Number(groupNo), {
-      managerNo: session.managerNo,
-      ip: request.headers.get('x-forwarded-for') || '',
-      userAgent: request.headers.get('user-agent') || '',
-      schoolNo: 0,
-    });
+    await deleteManagerGroupS(Number(no), Number(groupNo), context);
 
     return NextResponse.json(
       managerGroupCreateOrUpdateApiResponseSchema.parse({

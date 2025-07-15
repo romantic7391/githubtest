@@ -10,6 +10,47 @@ interface PermissionMapping {
 }
 
 export const permissionMappings: PermissionMapping[] = [
+  // 권한 관리 API
+  {
+    path: '/api/permission-admin/permission',
+    method: 'GET',
+    permissions: ['권한_조회'],
+  },
+  {
+    path: '/api/permission-admin/permission',
+    method: 'POST',
+    permissions: ['권한_생성'],
+  },
+  {
+    path: '/api/permission-admin/group',
+    method: 'GET',
+    permissions: ['그룹_조회'],
+  },
+  {
+    path: '/api/permission-admin/group',
+    method: 'POST',
+    permissions: ['그룹_생성'],
+  },
+  {
+    path: '/api/permission-admin/group-permission',
+    method: 'GET',
+    permissions: ['그룹권한_조회'],
+  },
+  {
+    path: '/api/permission-admin/group-permission',
+    method: 'POST',
+    permissions: ['그룹권한_생성'],
+  },
+  {
+    path: '/api/permission-admin/manager-group',
+    method: 'GET',
+    permissions: ['관리자그룹_조회'],
+  },
+  {
+    path: '/api/permission-admin/manager-group',
+    method: 'POST',
+    permissions: ['관리자그룹_생성'],
+  },
   // 학교 관련 API
   {
     path: '/api/areas/[area]/schools/[schoolNo]',
@@ -22,7 +63,7 @@ export const permissionMappings: PermissionMapping[] = [
   {
     path: '/api/areas/[area]/schools/[schoolNo]',
     method: 'PUT',
-    permissions: ['학교_조회', '학교_수정'],
+    permissions: ['학교_수정'],
     params: {
       schoolNo: 'schoolNo',
     },
@@ -30,7 +71,7 @@ export const permissionMappings: PermissionMapping[] = [
   {
     path: '/api/areas/[area]/schools/[schoolNo]',
     method: 'DELETE',
-    permissions: ['학교_조회', '학교_삭제'],
+    permissions: ['학교_삭제'],
     params: {
       schoolNo: 'schoolNo',
     },
@@ -40,11 +81,11 @@ export const permissionMappings: PermissionMapping[] = [
     method: 'POST',
     permissions: ['학교_생성'],
   },
-  // 디바이스 관련 API 추가
+  // 센서 관련 API 추가
   {
     path: '/api/areas/[area]/schools/[schoolNo]/devices/[mac]',
     method: 'PUT',
-    permissions: ['디바이스_수정'],
+    permissions: ['센서_수정'],
     params: {
       schoolNo: 'schoolNo',
     },
@@ -52,7 +93,7 @@ export const permissionMappings: PermissionMapping[] = [
   {
     path: '/api/areas/[area]/schools/[schoolNo]/devices/[mac]',
     method: 'DELETE',
-    permissions: ['디바이스_삭제'],
+    permissions: ['센서_삭제'],
     params: {
       schoolNo: 'schoolNo',
     },
@@ -60,7 +101,7 @@ export const permissionMappings: PermissionMapping[] = [
   {
     path: '/api/areas/[area]/schools/[schoolNo]/devices/[mac]',
     method: 'GET',
-    permissions: ['디바이스_조회'],
+    permissions: ['센서_조회'],
     params: {
       schoolNo: 'schoolNo',
     },
@@ -68,7 +109,7 @@ export const permissionMappings: PermissionMapping[] = [
   {
     path: '/api/areas/[area]/schools/[schoolNo]/devices',
     method: 'POST',
-    permissions: ['디바이스_생성'],
+    permissions: ['센서_생성'],
     params: {
       schoolNo: 'schoolNo',
     },

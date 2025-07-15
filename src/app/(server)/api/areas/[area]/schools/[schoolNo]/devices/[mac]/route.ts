@@ -5,8 +5,9 @@ import {
   deleteDevice,
 } from '@/services/areas/[area]/schools/[schoolNo]/devices/[mac]/[mac].service';
 import { deviceRelSchema } from '@/types/device';
-import { getClientInfo } from '@/services/log-action/log-action.service';
 import { handleError, handleZodError } from '@/utils/error.utils';
+import { getCommonContext } from '@/utils/context.utils';
+import { checkPermission } from '@/utils/permission-check.utils';
 
 /**
  * 지역 학교 센서 장치 정보
@@ -17,18 +18,22 @@ export async function GET(
 ) {
   try {
     const { mac, schoolNo, area } = await params;
-    console.log('[GET] 요청 파라미터:', { mac, schoolNo, area });
 
-    const { userAgent, ip } = getClientInfo(request);
+    const permissionError = await checkPermission(request, {
+      params: Promise.resolve({ schoolNo: Number(schoolNo), area: area }),
+    });
+
+    if (permissionError) return permissionError;
+
+    const commonContext = await getCommonContext(request);
     const device = await getDevice(
-      { mac, schoolNo: parseInt(schoolNo, 10) },
+      { mac, schoolNo: Number(schoolNo) },
       {
-        managerNo: 1, // 임시로 1로 설정
-        ip,
-        userAgent: userAgent,
+        managerNo: commonContext.managerNo,
+        ip: commonContext.ip,
+        userAgent: commonContext.userAgent,
       },
     );
-    console.log('[GET] 조회된 디바이스:', device);
 
     // Zod로 응답 데이터 검증
     try {
@@ -69,11 +74,11 @@ export async function PUT(
     const validatedData = deviceRelSchema.parse(body);
     const dto = { ...validatedData, oldMac, schoolNo: parseInt(schoolNo, 10) };
 
-    const { userAgent, ip } = getClientInfo(request);
+    const commonContext = await getCommonContext(request);
     const result = await updateDevice(dto, {
-      managerNo: 1, // 임시로 1로 설정
-      ip,
-      userAgent: userAgent,
+      managerNo: commonContext.managerNo,
+      ip: commonContext.ip,
+      userAgent: commonContext.userAgent,
     });
     return NextResponse.json(
       {
@@ -99,13 +104,13 @@ export async function DELETE(
 ) {
   try {
     const { mac, schoolNo } = await params;
-    const { userAgent, ip } = getClientInfo(request);
+    const commonContext = await getCommonContext(request);
     await deleteDevice(
       { mac, schoolNo: parseInt(schoolNo, 10) },
       {
-        managerNo: 1, // 임시로 1로 설정
-        ip,
-        userAgent: userAgent,
+        managerNo: commonContext.managerNo,
+        ip: commonContext.ip,
+        userAgent: commonContext.userAgent,
       },
     );
     return NextResponse.json({ success: true, message: '센서가 성공적으로 삭제되었습니다.' }, { status: 200 });

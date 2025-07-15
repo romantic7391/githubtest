@@ -2,8 +2,8 @@ import type { AreasApiResponse } from '@/types/area';
 import { areaSchema } from '@/types/area';
 import { NextRequest, NextResponse } from 'next/server';
 import { getAreas } from '@/services/areas/areas.service';
-import { getClientInfo } from '@/services/log-action/log-action.service';
 import { handleError, handleZodError } from '@/utils/error.utils';
+import { getCommonContext } from '@/utils/context.utils';
 
 /**
  * 지역 목록 조회
@@ -25,12 +25,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       }
     }
 
-    const { ip, userAgent } = getClientInfo(request);
+    const commonContext = await getCommonContext(request);
 
     const { areas: areasData, total } = await getAreas(page, limit, areas.length > 0 ? areas : undefined, {
-      managerNo: 1, // 임시로 1로 설정
-      ip,
-      userAgent,
+      managerNo: commonContext.managerNo,
+      ip: commonContext.ip,
+      userAgent: commonContext.userAgent,
       schoolNo: 0,
     });
 

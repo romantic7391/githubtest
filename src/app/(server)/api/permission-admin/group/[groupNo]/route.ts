@@ -1,7 +1,7 @@
 // import type { BaseApiResponse } from '@/types/common';
 import { NextRequest, NextResponse } from 'next/server';
-import { updateGroupS, deleteGroupS } from '@/services/permission-admin/group.service';
-import { getSession } from '@/lib/auth/session';
+import { updateGroupS, deleteGroupS, getGroupS } from '@/services/permission-admin/group.service';
+import { getCommonContext } from '@/utils/context.utils';
 import { handleZodError, handleError } from '@/utils/error.utils';
 import {
   Group,
@@ -9,11 +9,50 @@ import {
   groupUpdateRequestSchema,
   groupCreateOrUpdateApiResponseSchema,
   groupDeleteApiResponseSchema,
+  groupApiResponseSchema,
   FindGroupDto,
 } from '@/types/permission/group';
 // import {updateGroupSchema,groupCreateOrUpdateApiResponseSchema ,RouteParams} from '@/types/permission'
 import { AppError } from '@/utils/error.utils';
 import { findGroup } from '@/models/group/group-model';
+
+/**
+ * 특정 그룹 조회
+ */
+export async function GET(request: NextRequest, context: GroupRouteParams) {
+  try {
+    const { groupNo } = await context.params;
+    const groupNoNum = Number(groupNo);
+
+    const commonContext = await getCommonContext(request);
+
+    // 그룹 정보 조회 (서비스 함수 사용)
+    const group = await getGroupS(groupNoNum, commonContext);
+
+    return NextResponse.json(
+      groupApiResponseSchema.parse({
+        success: true,
+        data: group,
+        message: '그룹을 조회했습니다.',
+      }),
+      { status: 200 },
+    );
+  } catch (error) {
+    if (error instanceof AppError) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: error.message,
+          code: error.code,
+        },
+        { status: error.statusCode },
+      );
+    }
+    const zodError = handleZodError(error);
+    if (zodError) return zodError;
+    return handleError(error, '그룹 조회');
+  }
+}
 
 /**
  * 그룹 수정
@@ -24,21 +63,7 @@ export async function PUT(request: NextRequest, context: GroupRouteParams) {
     const groupNoNum = Number(groupNo);
     const body = await request.json();
 
-    // 개발 환경에서 테스트를 위해 헤더 설정
-    if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
-      request.headers.set('x-manager-no', '1');
-    }
-
-    const session = await getSession(request);
-    if (!session) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: '인증되지 않은 요청입니다.',
-        },
-        { status: 401 },
-      );
-    }
+    const commonContext = await getCommonContext(request);
 
     // 요청 데이터 검증
     const validatedData = groupUpdateRequestSchema.parse(body);
@@ -61,12 +86,7 @@ export async function PUT(request: NextRequest, context: GroupRouteParams) {
       parentGroupName: existingGroup.parentGroupName,
     };
 
-    const result = await updateGroupS(groupData, {
-      managerNo: session.managerNo,
-      ip: request.headers.get('x-forwarded-for') || '',
-      userAgent: request.headers.get('user-agent') || '',
-      schoolNo: 0,
-    });
+    const result = await updateGroupS(groupData, commonContext);
 
     // 응답 데이터 검증
     return NextResponse.json(
@@ -102,30 +122,11 @@ export async function DELETE(request: NextRequest, context: GroupRouteParams) {
     const { groupNo } = await context.params;
     const groupNoNum = Number(groupNo);
 
-    // 개발 환경에서 테스트를 위해 헤더 설정
-    if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
-      request.headers.set('x-manager-no', '1');
-    }
-
-    const session = await getSession(request);
-    if (!session) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: '인증되지 않은 요청입니다.',
-        },
-        { status: 401 },
-      );
-    }
+    const commonContext = await getCommonContext(request);
 
     // 1. 그룹 존재 여부 확인
 
-    await deleteGroupS(groupNoNum, {
-      managerNo: session.managerNo,
-      ip: request.headers.get('x-forwarded-for') || '',
-      userAgent: request.headers.get('user-agent') || '',
-      schoolNo: 0,
-    });
+    await deleteGroupS(groupNoNum, commonContext);
 
     return NextResponse.json(
       groupDeleteApiResponseSchema.parse({

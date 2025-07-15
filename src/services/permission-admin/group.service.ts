@@ -74,6 +74,44 @@ export async function getGroupsS(
   }
 }
 
+// 개별 그룹 조회
+export async function getGroupS(groupNo: number, meta: LogMeta): Promise<Group> {
+  try {
+    const findDto: FindGroupDto = {
+      groupNo,
+    };
+    const group = await findGroup(findDto);
+
+    if (!group) {
+      throw new AppError('존재하지 않는 그룹입니다.', 404);
+    }
+
+    // 로그 기록
+    await logAction(
+      makeLogParams({
+        schoolNo: meta.schoolNo,
+        managerNo: meta.managerNo,
+        ip: meta.ip,
+        userAgent: meta.userAgent,
+        actionType: 'S',
+        targetTable: 'group',
+        targetId: groupNo.toString(),
+        oldValues: JSON.stringify(group),
+        newValues: null,
+        reason: `그룹 조회: ${group.name}`,
+      }),
+    );
+
+    return group;
+  } catch (error) {
+    console.error('그룹 조회 중 오류 발생:', error);
+    if (error instanceof AppError) {
+      throw error;
+    }
+    throw new AppError('그룹 조회 중 오류가 발생했습니다.', 500);
+  }
+}
+
 // 그룹 생성
 export async function createGroupS(group: CreateGroup, meta: LogMeta): Promise<{ groupNo: number }> {
   let conn;

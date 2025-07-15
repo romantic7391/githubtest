@@ -1,4 +1,4 @@
-import type { BaseApiResponse, CommonContext } from '@/types/common';
+import type { BaseApiResponse } from '@/types/common';
 import type {
   SchoolApiResponse,
   SchoolCreateOrUpdateApiResponse,
@@ -13,11 +13,9 @@ import {
   updateRnSchool,
   deleteRnSchool,
 } from '@/services/areas/[area]/schools/[schoolNo]/[schoolNo].service';
-import { getClientInfo } from '@/services/log-action/log-action.service';
-// import { checkPermissionMiddleware } from '@/middleware/permission.middleware';
+import { checkPermission } from '@/utils/permission-check.utils';
 import { handleError, handleZodError } from '@/utils/error.utils';
-import { auth } from '@/auth';
-import { Session } from 'next-auth';
+import { getCommonContext } from '@/utils/context.utils';
 import { z } from 'zod';
 
 const updateSchoolSchema = z.object({
@@ -28,32 +26,6 @@ const updateSchoolSchema = z.object({
 });
 
 /**
- * 공통 컨텍스트 정보 가져오기
- */
-async function getCommonContext(request: NextRequest): Promise<CommonContext> {
-  let session = await auth();
-  if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
-    session = {
-      ...session,
-      user: {
-        ...session?.user,
-        managerNo: 1,
-      },
-    } as Session;
-  }
-  if (!session?.user.managerNo) {
-    throw new Error('로그인이 필요합니다.');
-  }
-  const { userAgent, ip } = getClientInfo(request);
-
-  return {
-    managerNo: session.user.managerNo,
-    ip: ip,
-    userAgent: userAgent,
-  };
-}
-
-/**
  * 지역 학교 정보
  */
 export async function GET(request: NextRequest, { params }: { params: Promise<SchoolDto> }) {
@@ -61,12 +33,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<Sc
     const resolvedParams = await params;
     const schoolNoNum = Number(resolvedParams.schoolNo);
 
-    // 테스트를 위해 권한 체크 주석 처리
-    // const permissionError = await checkPermissionMiddleware(request, {
-    //   params: Promise.resolve({ schoolNo: schoolNoNum, area: resolvedParams.area }),
-    // });
+    const permissionError = await checkPermission(request, {
+      params: Promise.resolve({ schoolNo: schoolNoNum, area: resolvedParams.area }),
+    });
 
-    // if (permissionError) return permissionError;
+    if (permissionError) return permissionError;
 
     const context = await getCommonContext(request);
     const school = await getSchoolBySchoolNo(schoolNoNum, context);
