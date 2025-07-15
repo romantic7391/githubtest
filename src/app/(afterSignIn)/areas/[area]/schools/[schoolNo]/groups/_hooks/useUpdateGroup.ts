@@ -4,7 +4,6 @@ import { UpdateGroup } from '@/types/permission';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 interface UseUpdateGroupProps {
-  area: string;
   schoolNo: number;
 }
 
@@ -12,7 +11,7 @@ interface UpdateGroupParams {
   group: UpdateGroup;
 }
 
-export default function useUpdateGroup({ area, schoolNo }: UseUpdateGroupProps) {
+export default function useUpdateGroup({ schoolNo }: UseUpdateGroupProps) {
   const queryClient = useQueryClient();
 
   async function updateData({ group }: UpdateGroupParams) {
@@ -41,7 +40,7 @@ export default function useUpdateGroup({ area, schoolNo }: UseUpdateGroupProps) 
     mutationFn: updateData,
     onSuccess: () => {
       // 그룹 목록 캐시 무효화
-      queryClient.invalidateQueries({ queryKey: ['groups', area, schoolNo] });
+      queryClient.invalidateQueries({ queryKey: ['groups', schoolNo] });
     },
   });
 }

@@ -6,11 +6,10 @@ import { School } from '@/types/school';
 import { useQuery } from '@tanstack/react-query';
 
 interface UseFilteredGroupsProps {
-  area: School['area'];
   schoolNo: School['schoolNo'];
 }
 
-export default function useFilteredGroups({ area = 'all', schoolNo }: UseFilteredGroupsProps) {
+export default function useFilteredGroups({ schoolNo }: UseFilteredGroupsProps) {
   function getInitialData(): GroupsApiResponse['data'] {
     return {
       groups: [],
@@ -32,19 +31,19 @@ export default function useFilteredGroups({ area = 'all', schoolNo }: UseFiltere
 
     const { success, message, data } = await response.json();
 
-    if (!success) {
-      throw new HTTPStatusError(message, response.status);
-    }
-
     if (response.status === 404) {
       return getInitialData();
+    }
+
+    if (!success) {
+      throw new HTTPStatusError(message, response.status);
     }
 
     return data satisfies GroupsApiResponse['data'];
   }
 
   return useQuery({
-    queryKey: ['groups', area, schoolNo],
+    queryKey: ['groups', schoolNo],
     retry: false,
     staleTime: 0,
     gcTime: 0,

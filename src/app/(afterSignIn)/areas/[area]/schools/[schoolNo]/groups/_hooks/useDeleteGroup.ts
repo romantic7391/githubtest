@@ -3,7 +3,6 @@ import { isJsonResponse } from '@/lib/util/common.util';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 interface UseDeleteGroupProps {
-  area: string;
   schoolNo: number;
 }
 
@@ -11,7 +10,7 @@ interface DeleteGroupParams {
   groupNo: number;
 }
 
-export default function useDeleteGroup({ area, schoolNo }: UseDeleteGroupProps) {
+export default function useDeleteGroup({ schoolNo }: UseDeleteGroupProps) {
   const queryClient = useQueryClient();
 
   async function deleteData({ groupNo }: DeleteGroupParams) {
@@ -35,7 +34,7 @@ export default function useDeleteGroup({ area, schoolNo }: UseDeleteGroupProps) 
     mutationFn: deleteData,
     onSuccess: () => {
       // 그룹 목록 캐시 무효화
-      queryClient.invalidateQueries({ queryKey: ['groups', area, schoolNo] });
+      queryClient.invalidateQueries({ queryKey: ['groups', schoolNo] });
     },
   });
 }

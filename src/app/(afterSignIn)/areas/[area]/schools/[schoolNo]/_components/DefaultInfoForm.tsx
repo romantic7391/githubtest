@@ -4,13 +4,13 @@ import { Button, Grid, Group, NumberInput, Radio, Stack, TextInput } from '@mant
 import useSchool from '../_hooks/useSchool';
 import { useParams, useRouter } from 'next/navigation';
 import { useForm } from '@mantine/form';
-import { Fragment, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { schoolFormSchema, schoolSchema } from '@/types/school';
-import { ZodError } from 'zod';
 import useDeleteSchool from '../_hooks/useDeleteSchool';
 import { notifications } from '@mantine/notifications';
 import { IconAlertCircleFilled, IconCheck } from '@tabler/icons-react';
 import useUpdateSchool from '../_hooks/useUpdateSchool';
+import { showError } from '@/utils/common.util';
 
 export default function DefaultInfoForm({ schoolNo }: { schoolNo: number }) {
   const { area } = useParams();
@@ -72,17 +72,6 @@ export default function DefaultInfoForm({ schoolNo }: { schoolNo: number }) {
       },
     },
   });
-
-  function showError(error: ZodError) {
-    return error.issues.map((issue, index, array) => {
-      return (
-        <Fragment key={issue.code}>
-          {issue.message}
-          {index < array.length - 1 ? <br /> : ''}
-        </Fragment>
-      );
-    });
-  }
 
   useEffect(() => {
     if (!data) return;

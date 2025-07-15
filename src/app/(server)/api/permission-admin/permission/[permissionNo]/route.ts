@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSession } from '@/lib/auth/session';
+import { auth } from '@/auth';
+import { getDevSession } from '@/lib/auth/session';
 import {
   PermissionRouteParams,
   permissionCreateOrUpdateApiResponseSchema,
@@ -9,7 +10,74 @@ import {
 } from '@/types/permission/permission';
 import { handleError, handleZodError } from '@/utils/error.utils';
 import { AppError } from '@/utils/error.utils';
-import { updatePermissionS, deletePermissionS } from '@/services/permission-admin/permission.service';
+import { updatePermissionS, deletePermissionS, getPermissionS } from '@/services/permission-admin/permission.service';
+
+/**
+ * 세션 정보 가져오기 (미들웨어와 연동)
+ */
+async function getSessionInfo(request: NextRequest) {
+  // 개발 환경에서는 미들웨어에서 설정한 세션 사용
+  if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
+    const devSession = getDevSession(request);
+    if (devSession) {
+      return devSession;
+    }
+  }
+
+  // 프로덕션 환경에서는 NextAuth 세션 사용
+  return await auth();
+}
+
+/**
+ * 권한 조회
+ */
+export async function GET(request: NextRequest, context: PermissionRouteParams) {
+  try {
+    const { permissionNo } = await context.params;
+    const permissionNoNum = Number(permissionNo);
+
+    const session = await getSessionInfo(request);
+    if (!session?.user?.managerNo) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: '인증되지 않은 요청입니다.',
+        },
+        { status: 401 },
+      );
+    }
+
+    const result = await getPermissionS(permissionNoNum, {
+      managerNo: session.user.managerNo,
+      ip: request.headers.get('x-forwarded-for') || '',
+      userAgent: request.headers.get('user-agent') || '',
+      schoolNo: session.user.schoolNo || 0,
+    });
+
+    return NextResponse.json(
+      {
+        success: true,
+        data: result,
+        message: '권한을 조회했습니다.',
+      },
+      { status: 200 },
+    );
+  } catch (error) {
+    if (error instanceof AppError) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: error.message,
+          code: error.code,
+        },
+        { status: error.statusCode },
+      );
+    }
+    const zodError = handleZodError(error);
+    if (zodError) return zodError;
+    return handleError(error, '권한 조회');
+  }
+}
 
 /**
  * 권한 수정
@@ -20,13 +88,8 @@ export async function PUT(request: NextRequest, context: PermissionRouteParams) 
     const permissionNoNum = Number(permissionNo);
     const body = await request.json();
 
-    // 개발 환경에서 테스트를 위해 헤더 설정
-    if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
-      request.headers.set('x-manager-no', '1');
-    }
-
-    const session = await getSession(request);
-    if (!session) {
+    const session = await getSessionInfo(request);
+    if (!session?.user?.managerNo) {
       return NextResponse.json(
         {
           success: false,
@@ -48,10 +111,10 @@ export async function PUT(request: NextRequest, context: PermissionRouteParams) 
     };
 
     const result = await updatePermissionS(dto, {
-      managerNo: session.managerNo,
+      managerNo: session.user.managerNo,
       ip: request.headers.get('x-forwarded-for') || '',
       userAgent: request.headers.get('user-agent') || '',
-      schoolNo: 0,
+      schoolNo: session.user.schoolNo || 0,
     });
 
     return NextResponse.json(
@@ -87,13 +150,8 @@ export async function DELETE(request: NextRequest, context: PermissionRouteParam
     const { permissionNo } = await context.params;
     const permissionNoNum = Number(permissionNo);
 
-    // 개발 환경에서 테스트를 위해 헤더 설정
-    if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
-      request.headers.set('x-manager-no', '1');
-    }
-
-    const session = await getSession(request);
-    if (!session) {
+    const session = await getSessionInfo(request);
+    if (!session?.user?.managerNo) {
       return NextResponse.json(
         {
           success: false,
@@ -104,10 +162,10 @@ export async function DELETE(request: NextRequest, context: PermissionRouteParam
     }
 
     await deletePermissionS(permissionNoNum, {
-      managerNo: session.managerNo,
+      managerNo: session.user.managerNo,
       ip: request.headers.get('x-forwarded-for') || '',
       userAgent: request.headers.get('user-agent') || '',
-      schoolNo: 0,
+      schoolNo: session.user.schoolNo || 0,
     });
 
     return NextResponse.json(

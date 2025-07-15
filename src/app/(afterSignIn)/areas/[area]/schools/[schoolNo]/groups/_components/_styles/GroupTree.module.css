@@ -1,0 +1,13 @@
+.tree-node {
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease-in-out;
+
+  &:hover {
+    background-color: var(--mantine-color-gray-0);
+  }
+}
+
+.tree-node.selected {
+  background-color: var(--mantine-color-blue-0);
+}

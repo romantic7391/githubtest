@@ -53,13 +53,6 @@ export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   console.log(`[middleware] ${request.method.toUpperCase()} ${pathname}${request.nextUrl.search}`);
 
-  // 백엔드 작업 중이면 모든 API URL은 통과시킵니다.
-  if (process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1') {
-    if (isMatch(pathname, ['/api{/*path}', '/test/api{/*path}'])) {
-      return NextResponse.next();
-    }
-  }
-
   // Auth.js 용 URL 처리. 그냥 통과시켜야 합니다.
   if (isMatch(pathname, matchersForAuthJsApiEndpoint)) {
     return NextResponse.next();
@@ -71,7 +64,24 @@ export async function middleware(request: NextRequest) {
   }
 
   // 세션 인증 확인
-  const session = await auth();
+  let session = await auth();
+
+  // 개발 모드일 때, 테스트 세션 주입.
+  if (
+    !session &&
+    process.env.WORKING_ON_BACKEND_DEVELOPMENT === '1' &&
+    isMatch(pathname, ['/api{/*path}', '/test/api{/*path}'])
+  ) {
+    session = {
+      user: {
+        managerNo: Number(process.env.DEV_MANAGER_NO) || 1,
+        schoolNo: Number(process.env.DEV_SCHOOL_NO) || 0,
+        signInId: 'test',
+        name: '테스트',
+      },
+      expires: new Date(Date.now() + (authConfig.session?.maxAge ?? 0) * 1000).toISOString(),
+    };
+  }
 
   // 로그인이 필요한 페이지 처리
   if (!isMatch(pathname, [...matchersForSignInAndSignUp])) {

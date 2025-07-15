@@ -50,9 +50,9 @@ export async function getGroupsS(
         userAgent: meta.userAgent,
         actionType: 'S',
         targetTable: 'group',
-        targetId: '',
-        oldValues: '',
-        newValues: JSON.stringify(result),
+        targetId: null,
+        oldValues: JSON.stringify(result),
+        newValues: null,
         reason: `그룹 목록 조회`,
       }),
     );
@@ -109,7 +109,7 @@ export async function createGroupS(group: CreateGroup, meta: LogMeta): Promise<{
         actionType: 'I',
         targetTable: 'group',
         targetId: result.insertId.toString(),
-        oldValues: JSON.stringify({}),
+        oldValues: null,
         newValues: JSON.stringify(group),
         reason: `그룹 생성: ${group.name}`,
       }),
@@ -137,28 +137,17 @@ export async function updateGroupS(group: Group, meta: LogMeta): Promise<{ group
   try {
     conn = await beginTransaction();
 
-    // 1. 그룹 존재 여부 확인
-    const existsDto: CheckGroupExistsDto = {
-      groupNo: group.groupNo,
-    };
-    const exists = await checkGroupExists(existsDto);
-    if (!exists) {
-      throw new AppError('존재하지 않는 그룹입니다.', 404);
-    }
-
-    // 2. 기존 그룹 정보 조회
+    // 1. 기존 그룹 정보 조회 (로그용)
     const findDto: FindGroupDto = {
       groupNo: group.groupNo,
     };
     const existingGroup = await findGroup(findDto);
-    if (!existingGroup) {
-      throw new AppError('존재하지 않는 그룹입니다.', 404);
-    }
 
     // 3. 다른 그룹과의 중복 체크 (name이나 schoolNo가 변경된 경우에만)
     if (
-      (group.name && group.name !== existingGroup.name) ||
-      (group.schoolNo !== undefined && group.schoolNo !== existingGroup.schoolNo)
+      existingGroup &&
+      ((group.name && group.name !== existingGroup.name) ||
+        (group.schoolNo !== undefined && group.schoolNo !== existingGroup.schoolNo))
     ) {
       const duplicateDto: CheckGroupDuplicateDto = {
         name: group.name || existingGroup.name,
@@ -171,9 +160,9 @@ export async function updateGroupS(group: Group, meta: LogMeta): Promise<{ group
       }
     }
 
-    // 4. 그룹 수정 (변경된 필드만 업데이트)
+    // 4. 그룹 수정
     const updateDto: UpdateGroupDto = {
-      ...existingGroup,
+      ...(existingGroup || {}),
       ...group, // 변경된 필드만 덮어쓰기
     };
     await updateGroup(updateDto, conn);
@@ -188,9 +177,9 @@ export async function updateGroupS(group: Group, meta: LogMeta): Promise<{ group
         actionType: 'U',
         targetTable: 'group',
         targetId: group.groupNo.toString(),
-        oldValues: JSON.stringify(existingGroup),
+        oldValues: existingGroup ? JSON.stringify(existingGroup) : null,
         newValues: JSON.stringify(updateDto),
-        reason: `그룹 수정: ${group.name || existingGroup.name}`,
+        reason: `그룹 수정: ${group.name || existingGroup?.name || ''}`,
       }),
       conn,
     );
@@ -201,7 +190,7 @@ export async function updateGroupS(group: Group, meta: LogMeta): Promise<{ group
     if (conn) {
       await rollbackTransaction(conn);
     }
-    throw error;
+    throw error instanceof AppError ? error : new AppError('그룹 수정 중 오류가 발생했습니다.', 500);
   }
 }
 
@@ -236,8 +225,8 @@ export async function deleteGroupS(groupNo: number, meta: LogMeta) {
         actionType: 'D',
         targetTable: 'group',
         targetId: groupNo.toString(),
-        oldValues: JSON.stringify({}),
-        newValues: '',
+        oldValues: JSON.stringify(exists),
+        newValues: null,
         reason: `그룹 삭제: ${groupNo}`,
       }),
       conn,

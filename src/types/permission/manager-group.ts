@@ -49,6 +49,7 @@ export const updateManagerGroupSchema = createManagerGroupSchema.extend({
 export const managerGroupListRequestSchema = z.object({
   groupNo: z.number().optional(),
   schoolNo: z.number().optional(),
+  managerNo: z.number().optional(),
 });
 
 /**
@@ -86,6 +87,7 @@ export interface FindManagerGroupsDto {
   filters?: {
     groupNo?: number;
     schoolNo?: number;
+    managerNo?: number;
   };
 }
 

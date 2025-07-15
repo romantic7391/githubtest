@@ -12,7 +12,7 @@ import DeviceCard from './DeviceCard';
 export default function DeviceList({ area, schoolNo }: { area: string; schoolNo: number }) {
   const [page, setPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(DEFAULT_PAGE_SIZE);
-  const { data, status, isError, refetch } = useFilteredDevices({
+  const { data, isError, refetch } = useFilteredDevices({
     area,
     schoolNo,
     page,
@@ -27,10 +27,6 @@ export default function DeviceList({ area, schoolNo }: { area: string; schoolNo:
     pageSize: data?.pagination?.pageSize ?? DEFAULT_PAGE_SIZE,
     totalPages: Math.ceil(total / (data?.pagination?.pageSize ?? DEFAULT_PAGE_SIZE)),
   });
-
-  useEffect(() => {
-    console.log('devices info: ', status, data);
-  }, [status, data]);
 
   useEffect(() => {
     if (isError) {
