@@ -16,9 +16,9 @@ import { getCommonContext } from '@/utils/context.utils';
  * @todo (옵션) 필터링 추가: `tags`를 받아서 태그로 학교 센서 장치 목록 조회.
  *
  */
-export async function GET(request: NextRequest, { params }: { params: Promise<{ area: string; schoolNo: string }> }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ schoolNo: string }> }) {
   try {
-    const { area, schoolNo } = await params; // eslint-disable-line @typescript-eslint/no-unused-vars
+    const { schoolNo } = await params; // eslint-disable-line @typescript-eslint/no-unused-vars
     const searchParams = request.nextUrl.searchParams;
     const commonContext = await getCommonContext(request);
 
