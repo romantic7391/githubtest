@@ -69,12 +69,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<Sc
     // 요청 데이터 검증
     const validatedData = updateSchoolSchema.parse(body);
 
-    const permissionError = await checkPermission(request, {
-      params: Promise.resolve({ schoolNo: schoolNoNum, area: resolvedParams.area }),
-    });
-
-    if (permissionError) return permissionError;
-
     const dto: updateRnSchoolDto = {
       ...validatedData,
       schoolNo: schoolNoNum,
@@ -117,12 +111,6 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     const dto: School = {
       schoolNo: schoolNoNum,
     } as School;
-
-    const permissionError = await checkPermission(request, {
-      params: Promise.resolve({ schoolNo: schoolNoNum, area: resolvedParams.area }),
-    });
-
-    if (permissionError) return permissionError;
 
     const context = await getCommonContext(request);
     await deleteRnSchool(dto, context);
