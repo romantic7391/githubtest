@@ -9,7 +9,7 @@ import { groupPermissionSchema } from '@/types/permission/group-permission';
 import { groupSchema } from '@/types/permission/group';
 import { managerGroupSchema } from '@/types/permission/manager-group';
 
-import { getSchoolBySchoolNo } from '@/services/areas/[area]/schools/[schoolNo]/[schoolNo].service';
+import { findSchoolBySchoolNo } from '@/models/rn-school/rn-school.model';
 
 /**
  * [실시간 권한 체크] 계층 구조를 따라 Deny 우선, 조건 누적 권한 체크
@@ -24,12 +24,7 @@ export async function checkPermission(
   permissionName: string,
 ): Promise<{ allowed: 'Y' | 'N'; override: 'Y' | 'N' | null; extraCondition: string | null }> {
   // 1. 사용자의 학교 정보 조회 (한 번만 조회)
-  const userSchool = await getSchoolBySchoolNo(schoolNo, {
-    managerNo: managerNo,
-    schoolNo: schoolNo,
-    ip: '',
-    userAgent: '',
-  });
+  const userSchool = await findSchoolBySchoolNo({ schoolNo });
 
   if (!userSchool || !userSchool.area) {
     return { allowed: 'N', override: null, extraCondition: null };
@@ -53,12 +48,7 @@ export async function checkPermission(
     userGroups.push(...upperGroups);
 
     // 상위상위 기관이 있는 경우에만 조회
-    const upperSchool = await getSchoolBySchoolNo(userSchool.parentNo, {
-      managerNo: managerNo,
-      schoolNo: userSchool.parentNo,
-      ip: '',
-      userAgent: '',
-    });
+    const upperSchool = await findSchoolBySchoolNo({ schoolNo: userSchool.parentNo });
     if (upperSchool?.parentNo) {
       const upperUpperGroups = await findManagerGroups(managerNo, upperSchool.parentNo);
       userGroups.push(...upperUpperGroups);
