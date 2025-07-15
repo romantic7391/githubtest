@@ -13,10 +13,6 @@ export async function getCommonContext(request: NextRequest) {
     throw new AppError('로그인이 필요합니다.', 401);
   }
 
-  if (session.user.schoolNo === undefined || session.user.schoolNo === null) {
-    throw new AppError('사용자 학교 정보가 없습니다.', 401);
-  }
-
   return {
     managerNo: session.user.managerNo,
     schoolNo: session.user.schoolNo,
