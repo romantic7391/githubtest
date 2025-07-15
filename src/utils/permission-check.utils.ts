@@ -1,11 +1,10 @@
-/* eslint-disable */
-// @ts-nocheck
 import { NextRequest, NextResponse } from 'next/server';
-import { checkPermission, checkPermissions } from '@/services/permission-check/permission-check.service';
+import { checkPermissions } from '@/services/permission-check/permission-check.service';
 import { permissionMappings } from '@/config/permission-mapping';
 import { HTTPMethod } from '@/types/common';
 import { getSchoolBySchoolNo } from '@/services/areas/[area]/schools/[schoolNo]/[schoolNo].service';
 import { getCommonContext } from '@/utils/context.utils';
+import { AppError } from '@/utils/error.utils';
 
 /**
  * URL 패턴과 실제 URL을 매칭하여 파라미터를 추출
@@ -59,6 +58,7 @@ export async function checkPermission(
 
         const userSchool = await getSchoolBySchoolNo(commonContext.schoolNo, {
           managerNo: commonContext.managerNo,
+          schoolNo: commonContext.schoolNo,
           ip: commonContext.ip,
           userAgent: commonContext.userAgent,
         });
@@ -88,6 +88,7 @@ export async function checkPermission(
         // 일반 사용자는 자신의 학교와 하위 학교만 접근 가능
         const userSchool = await getSchoolBySchoolNo(commonContext.schoolNo, {
           managerNo: commonContext.managerNo,
+          schoolNo: commonContext.schoolNo,
           ip: commonContext.ip,
           userAgent: commonContext.userAgent,
         });
@@ -100,8 +101,13 @@ export async function checkPermission(
         }
 
         // 대상 학교가 사용자 학교의 하위인지 확인
+        if (!targetSchoolNo) {
+          return NextResponse.json({ success: false, message: '대상 학교 번호가 없습니다.' }, { status: 400 });
+        }
+
         const targetSchool = await getSchoolBySchoolNo(targetSchoolNo, {
           managerNo: commonContext.managerNo,
+          schoolNo: commonContext.schoolNo,
           ip: commonContext.ip,
           userAgent: commonContext.userAgent,
         });
@@ -121,6 +127,7 @@ export async function checkPermission(
           }
           currentSchool = await getSchoolBySchoolNo(currentSchool.parentNo, {
             managerNo: commonContext.managerNo,
+            schoolNo: commonContext.schoolNo,
             ip: commonContext.ip,
             userAgent: commonContext.userAgent,
           });
@@ -160,14 +167,10 @@ export async function checkPermission(
     console.error('[checkPermission] 권한 체크 중 오류 발생:', error);
 
     // AppError인 경우 적절한 상태 코드로 처리
-    if (error instanceof Error && 'statusCode' in error) {
-      const appError = error as any;
-      return NextResponse.json(
-        { success: false, message: appError.message || '오류가 발생했습니다.' },
-        { status: appError.statusCode || 500 },
-      );
+    if (error instanceof AppError) {
+      throw error;
     }
 
-    return NextResponse.json({ success: false, message: '권한 체크 중 오류가 발생했습니다.' }, { status: 500 });
+    throw new AppError('권한 체크 중 오류가 발생했습니다.', 500);
   }
 }
