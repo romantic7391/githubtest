@@ -28,6 +28,7 @@ export async function getManagerGroupsS(
   filters?: {
     groupNo?: number;
     schoolNo?: number;
+    managerNo?: number;
   },
 ) {
   let conn;
@@ -55,8 +56,8 @@ export async function getManagerGroupsS(
           actionType: 'S',
           targetTable: 'managerGroup',
           targetId: filters?.groupNo ? `groupNo=${filters.groupNo}` : 'all',
-          oldValues: '',
-          newValues: JSON.stringify(result),
+          oldValues: JSON.stringify(result),
+          newValues: null,
           reason: `관리자 그룹 조회: ${filters?.groupNo ? `groupNo ${filters.groupNo}` : '전체'}`,
         }),
         conn,
@@ -77,7 +78,6 @@ export async function getManagerGroupsS(
     if (conn) {
       await rollbackTransaction(conn);
     }
-    console.error('관리자 그룹 목록 조회 중 오류 발생:', error);
     if (error instanceof AppError) {
       throw error;
     }
@@ -92,19 +92,14 @@ export async function createManagerGroupS(managerGroup: ManagerGroup, meta: LogM
     conn = await beginTransaction();
 
     // 1. 중복 체크
-    console.log('중복 체크 시작:', { no: managerGroup.no, groupNo: managerGroup.groupNo });
     const existingGroup = await findManagerGroup(managerGroup.no, managerGroup.groupNo);
-    console.log('중복 체크 결과:', existingGroup);
     if (existingGroup) {
-      console.log('중복 발견:', existingGroup);
-      throw new AppError('이미 존재하는 관리자 그룹입니다.', 400);
+      throw new AppError('이미 존재하는 관리자 그룹입니다.', 409);
     }
 
     // 2. 관리자 그룹 생성
-    console.log('관리자 그룹 생성 시작:', managerGroup);
     const dto: InsertManagerGroupDto = managerGroup;
     await insertManagerGroup(dto, conn);
-    console.log('관리자 그룹 생성 완료');
 
     // 3. 로그 기록
     await logAction(
@@ -116,7 +111,7 @@ export async function createManagerGroupS(managerGroup: ManagerGroup, meta: LogM
         actionType: 'I',
         targetTable: 'managerGroup',
         targetId: `${managerGroup.no}_${managerGroup.groupNo}`,
-        oldValues: JSON.stringify({}),
+        oldValues: null,
         newValues: JSON.stringify(managerGroup),
         reason: `관리자 그룹 생성: managerNo ${managerGroup.no}, groupNo ${managerGroup.groupNo}`,
       }),
@@ -132,7 +127,6 @@ export async function createManagerGroupS(managerGroup: ManagerGroup, meta: LogM
     if (conn) {
       await rollbackTransaction(conn);
     }
-    console.error('관리자 그룹 생성 중 오류 발생:', error);
     throw error instanceof AppError ? error : new AppError('관리자 그룹 생성 중 오류가 발생했습니다.', 500);
   }
 }
@@ -196,8 +190,10 @@ export async function updateManagerGroupS(
     if (conn) {
       await rollbackTransaction(conn);
     }
-    console.error('관리자 그룹 수정 중 오류 발생:', error);
-    throw error instanceof AppError ? error : new AppError('관리자 그룹 수정 중 오류가 발생했습니다.', 500);
+    if (error instanceof AppError) {
+      throw error;
+    }
+    throw new AppError('관리자 그룹 수정 중 오류가 발생했습니다.', 500);
   }
 }
 
@@ -230,8 +226,8 @@ export async function deleteManagerGroupS(no: number, groupNo: number, meta: Log
         actionType: 'D',
         targetTable: 'managerGroup',
         targetId: `${no}_${groupNo}`,
-        oldValues: JSON.stringify({ no, groupNo }),
-        newValues: JSON.stringify({}),
+        oldValues: JSON.stringify(existingGroup), // 실제 삭제되는 데이터
+        newValues: null,
         reason: `관리자 그룹 삭제: managerNo ${no}, groupNo ${groupNo}`,
       }),
       conn,
@@ -243,7 +239,9 @@ export async function deleteManagerGroupS(no: number, groupNo: number, meta: Log
     if (conn) {
       await rollbackTransaction(conn);
     }
-    console.error('관리자 그룹 삭제 중 오류 발생:', error);
-    throw error instanceof AppError ? error : new AppError('관리자 그룹 삭제 중 오류가 발생했습니다.', 500);
+    if (error instanceof AppError) {
+      throw error;
+    }
+    throw new AppError('관리자 그룹 삭제 중 오류가 발생했습니다.', 500);
   }
 }

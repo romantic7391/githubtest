@@ -12,8 +12,6 @@ export default function useDeleteDevice({ area, schoolNo, mac }: UseDeleteDevice
   const queryClient = useQueryClient();
 
   async function deleteData() {
-    console.log(`${mac} 장치를 삭제합니다.`, { area, schoolNo, mac });
-
     const requestUrl = new URL(`/api/areas/${area}/schools/${schoolNo}/devices/${mac}`, window.location.origin);
     const response = await fetch(requestUrl, {
       method: 'DELETE',

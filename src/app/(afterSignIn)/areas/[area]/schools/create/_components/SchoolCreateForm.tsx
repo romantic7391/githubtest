@@ -176,7 +176,6 @@ export default function SchoolCreateForm() {
     const { hasError } = form.validateField('sname');
 
     if (!hasError) {
-      console.log('form.values.sname: ', form.values.sname);
       setSearchFilter({
         snames: [form.values.sname],
         stypes: [],

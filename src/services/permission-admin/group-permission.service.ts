@@ -18,17 +18,12 @@ import {
 } from '@/types/permission/group-permission';
 
 // 그룹 권한 조회
-export async function getGroupPermissionsS(
-  schoolNo: number,
-  pagination: Pagination,
-  filters?: GroupPermissionFilter,
-  meta?: LogMeta,
-) {
+export async function getGroupPermissionsS(pagination: Pagination, filters?: GroupPermissionFilter, meta?: LogMeta) {
   let conn;
   try {
     conn = await beginTransaction();
 
-    const result = await selectGroupPermission(schoolNo, pagination, filters);
+    const result = await selectGroupPermission(pagination, filters);
 
     // 데이터가 없는 경우 404 에러
     if (result.groupPermissions.length === 0) {
@@ -38,15 +33,15 @@ export async function getGroupPermissionsS(
     if (meta) {
       await logAction(
         makeLogParams({
-          schoolNo: meta.schoolNo,
+          schoolNo: 0,
           managerNo: meta.managerNo,
           ip: meta.ip,
           userAgent: meta.userAgent,
           actionType: 'S',
           targetTable: 'groupPermission',
           targetId: filters?.groupNo ? `groupNo=${filters.groupNo}` : 'all',
-          oldValues: '',
-          newValues: JSON.stringify(result),
+          oldValues: JSON.stringify(result),
+          newValues: null,
           reason: `그룹 권한 조회: ${filters?.groupNo ? `groupNo ${filters.groupNo}` : '전체'}`,
         }),
         conn,
@@ -73,29 +68,22 @@ export async function createGroupPermissionS(
 ): Promise<GroupPermissionCreateOrUpdateResponse> {
   let conn;
   try {
-    console.log('그룹 권한 생성 시작:', { groupPermission, meta });
-
     conn = await beginTransaction();
 
     // 1. 중복 체크
-    console.log('중복 체크 시작...');
     const existingPermission = await findGroupPermission({
       groupNo: groupPermission.groupNo,
       permissionNo: groupPermission.permissionNo,
     });
-    console.log('중복 체크 결과:', existingPermission);
 
     if (existingPermission) {
-      throw new AppError('이미 존재하는 그룹 권한입니다.', 400);
+      throw new AppError('이미 존재하는 그룹 권한입니다.', 409);
     }
 
     // 2. 그룹 권한 생성
-    console.log('그룹 권한 생성 시작...');
-    const result = await insertGroupPermission(groupPermission, conn);
-    console.log('그룹 권한 생성 결과:', result);
+    await insertGroupPermission(groupPermission, conn);
 
     // 3. 로그 기록
-    console.log('로그 기록 시작...');
     await logAction(
       makeLogParams({
         schoolNo: meta.schoolNo,
@@ -105,7 +93,7 @@ export async function createGroupPermissionS(
         actionType: 'I',
         targetTable: 'groupPermission',
         targetId: `${groupPermission.groupNo}|${groupPermission.permissionNo}`,
-        oldValues: '',
+        oldValues: null,
         newValues: JSON.stringify(groupPermission),
         reason: `그룹 권한 생성: groupNo ${groupPermission.groupNo}, permissionNo ${groupPermission.permissionNo}`,
       }),
@@ -113,7 +101,6 @@ export async function createGroupPermissionS(
     );
 
     await commitTransaction(conn);
-    console.log('그룹 권한 생성 완료');
 
     return {
       groupNo: groupPermission.groupNo,

@@ -39,11 +39,11 @@ export async function GET(request: NextRequest) {
     }
 
     const searchParams = request.nextUrl.searchParams;
-    const schoolNo = Number(searchParams.get('schoolNo'));
     const page = Number(searchParams.get('page')) || 1;
     const pageSize = Number(searchParams.get('pageSize')) || DEFAULT_PAGE_SIZE;
     const groupNo = searchParams.get('groupNo');
     const permissionNo = searchParams.get('permissionNo');
+    const schoolNo = searchParams.get('schoolNo');
 
     // 페이지네이션 검증
     const pagination = paginationSchema.parse({ page, pageSize });
@@ -52,13 +52,14 @@ export async function GET(request: NextRequest) {
     const filters = groupPermissionFilterSchema.parse({
       groupNo: groupNo ? Number(groupNo) : undefined,
       permissionNo: permissionNo ? Number(permissionNo) : undefined,
+      schoolNo: schoolNo ? Number(schoolNo) : undefined,
     });
 
-    const result = await getGroupPermissionsS(schoolNo, pagination, filters, {
+    const result = await getGroupPermissionsS(pagination, filters, {
       managerNo: session.managerNo,
       ip: request.headers.get('x-forwarded-for') || '',
       userAgent: request.headers.get('user-agent') || '',
-      schoolNo: schoolNo,
+      schoolNo: 0,
     });
 
     return NextResponse.json(

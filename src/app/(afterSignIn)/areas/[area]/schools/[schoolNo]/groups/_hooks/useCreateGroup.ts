@@ -4,7 +4,6 @@ import { CreateGroup } from '@/types/permission';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 interface UseCreateGroupProps {
-  area: string;
   schoolNo: number;
 }
 
@@ -12,7 +11,7 @@ interface CreateGroupParams {
   group: CreateGroup;
 }
 
-export default function useCreateGroup({ area, schoolNo }: UseCreateGroupProps) {
+export default function useCreateGroup({ schoolNo }: UseCreateGroupProps) {
   const queryClient = useQueryClient();
 
   async function createData({ group }: CreateGroupParams) {
@@ -29,13 +28,21 @@ export default function useCreateGroup({ area, schoolNo }: UseCreateGroupProps) 
     if (!isJsonResponse(response)) {
       throw new HTTPStatusError('서버가 JSON 응답을 반환하지 않았습니다.', response.status);
     }
+
+    const { success, message, data } = await response.json();
+
+    if (!success) {
+      throw new HTTPStatusError(message, response.status);
+    }
+
+    return data;
   }
 
   return useMutation({
     mutationFn: createData,
     onSuccess: () => {
       // 그룹 목록 캐시 무효화
-      queryClient.invalidateQueries({ queryKey: ['groups', area, schoolNo] });
+      queryClient.invalidateQueries({ queryKey: ['groups', schoolNo] });
     },
   });
 }

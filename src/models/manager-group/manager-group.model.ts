@@ -20,6 +20,13 @@ export async function findManagerGroups(
     const conditions = ['mg.deleted IS NULL'];
     const queryParams: (string | number)[] = [];
 
+    // 선택적 필터: 특정 매니저만 조회하고 싶을 때만 사용
+    if (params.filters?.managerNo) {
+      conditions.push('mg.no = ?');
+      queryParams.push(params.filters.managerNo);
+    }
+    // 필터가 없으면 모든 매니저 그룹 조회 (기본값)
+
     // 선택적 필터: 특정 그룹만 조회하고 싶을 때만 사용
     if (params.filters?.groupNo) {
       conditions.push('mg.group_no = ?');
