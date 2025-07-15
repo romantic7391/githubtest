@@ -47,6 +47,7 @@ export async function GET(request: NextRequest) {
     const pageSize = Number(searchParams.get('pageSize')) || DEFAULT_PAGE_SIZE;
     const groupNo = searchParams.get('groupNo');
     const schoolNo = searchParams.get('schoolNo');
+    const managerNo = searchParams.get('managerNo');
 
     // 페이지네이션 검증
     const pagination = paginationSchema.parse({ page, pageSize });
@@ -55,6 +56,7 @@ export async function GET(request: NextRequest) {
     const filters = managerGroupListRequestSchema.parse({
       groupNo: groupNo ? Number(groupNo) : undefined,
       schoolNo: schoolNo ? Number(schoolNo) : undefined,
+      managerNo: managerNo ? Number(managerNo) : undefined,
     });
 
     const result = await getManagerGroupsS(

@@ -56,8 +56,8 @@ export async function getRnDevicesRelBySchoolNo(
         actionType: 'S',
         targetTable: 'rnDevicesRel',
         targetId: `${params.schoolNo}`,
-        oldValues: null,
-        newValues: JSON.stringify({ devices, pagination }),
+        oldValues: JSON.stringify({ devices, pagination }),
+        newValues: null,
         reason: '센서 목록 조회',
       }),
       conn,
@@ -73,7 +73,6 @@ export async function getRnDevicesRelBySchoolNo(
         console.error('Rollback error:', rollbackError);
       }
     }
-    console.error('[getRnDevicesRelBySchoolNo] DB 조회 에러:', error);
     if (error instanceof AppError) {
       throw error;
     }

@@ -15,8 +15,6 @@ interface UseDeviceLatestSensorDataParams {
  */
 export default function useDeviceLatestSensorData({ mac, interval = 0 }: UseDeviceLatestSensorDataParams) {
   async function fetchData() {
-    console.log(`${mac}의 센서 데이터를 가져옵니다. ( v, t )`);
-
     return {
       values: [Math.ceil(Math.random() * 100), Math.ceil(Math.random() * 100), Math.ceil(Math.random() * 100)],
       detected: dayjs().format(DEFAULT_DATETIME_FORMAT),

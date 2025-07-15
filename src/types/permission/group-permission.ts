@@ -18,6 +18,8 @@ export const groupPermissionSchema = z.object({
  */
 export const groupPermissionDetailSchema = z.object({
   groupNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
+  schoolNo: z.number().nullable(),
+  schoolName: z.string().nullable(),
   groupName: z.string(),
   parentGroupNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER).nullable(),
   parentGroupName: z.string().nullable(),
@@ -62,6 +64,7 @@ export const updateGroupPermissionSchema = z.object({
 export const groupPermissionFilterSchema = z.object({
   groupNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER).optional(),
   permissionNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER).optional(),
+  schoolNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER).optional(),
 });
 
 // API 응답 스키마

@@ -12,11 +12,11 @@ import { AppError } from '@/utils/error.utils';
 
 // 그룹 권한 조회
 export async function selectGroupPermission(
-  schoolNo: number,
   pagination: Pagination,
   filters?: {
     groupNo?: number;
     permissionNo?: number;
+    schoolNo?: number;
   },
 ): Promise<{
   groupPermissions: GroupPermissionDetail[];
@@ -27,12 +27,9 @@ export async function selectGroupPermission(
     totalPages: number;
   };
 }> {
-  console.log('=== selectGroupPermission Start ===');
-  console.log('Input:', { pagination, filters });
-
   const offset = (pagination.page - 1) * pagination.pageSize;
-  const conditions = ['g.school_no=?', 'gp.deleted IS NULL', 'g.deleted IS NULL', 'p.deleted IS NULL'];
-  const params: number[] = [schoolNo];
+  const conditions = ['gp.deleted IS NULL', 'g.deleted IS NULL', 'p.deleted IS NULL'];
+  const params: (number | null)[] = [];
 
   if (filters?.groupNo) {
     conditions.push('gp.group_no = ?');
@@ -43,9 +40,10 @@ export async function selectGroupPermission(
     conditions.push('gp.permission_no = ?');
     params.push(filters.permissionNo);
   }
-
-  console.log('SQL Conditions:', conditions);
-  console.log('SQL Params:', params);
+  if (filters?.schoolNo !== undefined && filters?.schoolNo !== null) {
+    conditions.push('g.school_no = ?');
+    params.push(filters.schoolNo);
+  }
 
   // 전체 개수 조회
   const countQuery = `
@@ -55,18 +53,17 @@ export async function selectGroupPermission(
     JOIN permission p ON gp.permission_no = p.permission_no
     WHERE ${conditions.join(' AND ')}
   `;
-  console.log('Count Query:', countQuery);
 
   const totalResult = await getRow<{ total: number }>(countQuery, params);
   const total = totalResult?.total || 0;
   const totalPages = Math.ceil(total / pagination.pageSize);
 
-  console.log('Count Result:', { total, totalPages });
-
   // 그룹 권한 목록 조회
   const query = `
     SELECT 
       gp.group_no as groupNo,
+      r.school_no as schoolNo,
+      r.sname as schoolName,
       g.name as groupName,
       g.parent_group_no as parentGroupNo,
       pg.name as parentGroupName,
@@ -81,18 +78,13 @@ export async function selectGroupPermission(
     JOIN \`group\` g ON gp.group_no = g.group_no
     LEFT JOIN \`group\` pg ON g.parent_group_no = pg.group_no
     JOIN permission p ON gp.permission_no = p.permission_no
+    LEFT JOIN rnSchool r ON g.school_no = r.school_no
     WHERE ${conditions.join(' AND ')}
     ORDER BY g.parent_group_no, gp.group_no, gp.permission_no
     LIMIT ? OFFSET ?
   `;
 
-  console.log('Select Query:', query);
-  console.log('Final Params:', [...params, pagination.pageSize, offset]);
-
   const groupPermissions = await getAll<GroupPermissionDetail>(query, [...params, pagination.pageSize, offset]);
-
-  console.log('Query Result:', { groupPermissions });
-  console.log('=== selectGroupPermission End ===');
 
   return {
     groupPermissions,

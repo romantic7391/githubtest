@@ -42,8 +42,8 @@ export async function getRnSchoolsByArea(
           actionType: 'S',
           targetTable: 'rnschool',
           targetId: area === 'all' ? 'all' : `area=${area}`,
-          oldValues: '',
-          newValues: JSON.stringify(result),
+          oldValues: JSON.stringify(result),
+          newValues: null,
           reason: `학교 목록 조회: ${area === 'all' ? '전체' : `지역 ${area}`}`,
         }),
         conn,
@@ -69,7 +69,6 @@ export async function getRnSchoolsByArea(
         console.error('Rollback error:', rollbackError);
       }
     }
-    console.error('학교 목록 조회 중 오류 발생:', error);
     if (error instanceof AppError) {
       throw error;
     }

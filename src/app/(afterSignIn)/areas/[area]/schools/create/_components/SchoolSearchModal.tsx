@@ -42,13 +42,8 @@ export default function SchoolSearchModal() {
   }, [data]);
 
   useEffect(() => {
-    console.log('searchFilter: ', searchFilter);
     setSName(searchFilter.snames?.[0] ?? '');
   }, [searchFilter]);
-
-  useEffect(() => {
-    console.log('sname: ', sname);
-  }, [sname]);
 
   function handleSearch() {
     setSearchFilter({

@@ -8,6 +8,6 @@ export default async function Page({
     schoolNo: string;
   }>;
 }) {
-  const { area, schoolNo } = await params;
-  return <GroupList area={area} schoolNo={Number(schoolNo)} />;
+  const { schoolNo } = await params;
+  return <GroupList schoolNo={Number(schoolNo)} />;
 }

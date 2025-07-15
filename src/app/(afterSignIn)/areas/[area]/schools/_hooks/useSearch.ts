@@ -57,7 +57,6 @@ export default function useSearch({ delay = 300, onSearch }: UseSearchProps) {
   // TODO: 쿼리 스트링 검색 시 여러 키를 여러개 전달하는 경우 (foo=001&bar=002&bar=0021&baz=003&baz=0031) single false, combine true
   const search = useDebouncedCallback(
     (key: string, value: string, option: SearchOption = { single: false, combine: true }) => {
-      console.log('useSearch: ', key, value, option);
       const params = new URLSearchParams(searchParams);
 
       // 검색 조건에 따른 처리
@@ -81,7 +80,6 @@ export default function useSearch({ delay = 300, onSearch }: UseSearchProps) {
         params.delete(key);
       }
 
-      console.log(`${pathname}?${params.toString()}`);
       router.replace(`${pathname}?${params.toString()}`);
       onSearch?.({ key, value, searchParams: params });
     },
