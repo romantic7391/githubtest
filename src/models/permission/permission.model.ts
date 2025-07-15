@@ -27,7 +27,6 @@ export async function findPermissionByName(name: string): Promise<Permission | n
     WHERE name = ? AND deleted IS NULL
   `;
   const result = await getRow<Permission>(query, [name]);
-  console.log('[findPermissionByName] 쿼리 결과:', { name, result });
   return result;
 }
 
@@ -46,7 +45,6 @@ export async function findManagerGroups(managerNo: number, schoolNo: number): Pr
     ORDER BY CASE WHEN g.school_no = 0 THEN 0 ELSE 1 END, g.group_no;
   `;
   const result = await getAll<ManagerGroup>(query, [managerNo, schoolNo]);
-  console.log('[findManagerGroups] 쿼리 결과:', { managerNo, schoolNo, result });
   return result;
 }
 
@@ -68,7 +66,6 @@ export async function findGroupByGroupNo(groupNo: number): Promise<Group | null>
     WHERE g.group_no = ? AND g.deleted IS NULL
   `;
   const result = await getRow<Group>(query, [groupNo]);
-  console.log('[findGroupByGroupNo] 쿼리 결과:', { groupNo, result });
   return result;
 }
 
@@ -82,7 +79,6 @@ export async function findGroupPermission(groupNo: number, permissionNo: number)
     WHERE group_no = ? AND permission_no = ? AND deleted IS NULL
   `;
   const result = await getRow<GroupPermission>(query, [groupNo, permissionNo]);
-  console.log('[findGroupPermission] 쿼리 결과:', { groupNo, permissionNo, result });
   return result;
 }
 

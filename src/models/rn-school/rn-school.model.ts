@@ -172,10 +172,7 @@ export async function findRnSchoolsByAreas(dto: findRnSchoolsByAreasDto): Promis
       WHERE rs.area = ?
     `;
     const params = [dto.area];
-    console.log('실행할 쿼리:', query);
-    console.log('파라미터:', params);
     const result = await getAll<School>(query, params);
-    console.log('쿼리 결과:', result);
     return result;
   } catch (error) {
     console.error('지역별 학교 조회 중 오류 발생:', error);
@@ -204,10 +201,7 @@ export async function findSchoolBySchoolNo(dto: findSchoolBySchoolNoDto): Promis
       WHERE rs.school_no = ?
       LIMIT 1;
     `;
-    console.log('실행할 쿼리:', query);
-    console.log('파라미터:', dto.schoolNo);
     const result = await getRow<School>(query, [dto.schoolNo]);
-    console.log('쿼리 결과:', result);
     return result;
   } catch (error) {
     console.error('학교 정보 조회 중 오류 발생:', error);
