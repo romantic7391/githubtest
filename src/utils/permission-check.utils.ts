@@ -49,27 +49,18 @@ export async function checkPermission(
   try {
     // 1. 공통 컨텍스트 가져오기 (세션 포함)
     const commonContext = await getCommonContext(request);
-    console.log('[checkPermission] commonContext:', {
-      managerNo: commonContext.managerNo,
-      schoolNo: commonContext.schoolNo,
-      path: request.nextUrl.pathname,
-      method: request.method,
-    });
 
     const method = request.method as HTTPMethod;
     const path = request.nextUrl.pathname;
 
     // 2. 권한 매핑 찾기
     const mapping = permissionMappings.find((m) => m.method === method && matchPath(m.path, path));
-    console.log('[checkPermission] mapping found:', mapping);
     if (!mapping) {
-      console.log('[checkPermission] no mapping found for:', { method, path });
       return null;
     }
 
     // 관리자는 모든 권한 허용
     if (isAdmin(commonContext.schoolNo)) {
-      console.log('[checkPermission] admin user - all permissions allowed');
       return null;
     }
 
@@ -136,22 +127,13 @@ export async function checkPermission(
     }
 
     // 5. 권한 체크
-    console.log('[checkPermission] checking permissions:', {
-      managerNo: commonContext.managerNo,
-      schoolNo: commonContext.schoolNo,
-      permissions: mapping.permissions,
-    });
-
     const { allowed, override } = await checkPermissions(
       commonContext.managerNo,
       commonContext.schoolNo,
       mapping.permissions,
     );
 
-    console.log('[checkPermission] permission result:', { allowed, override });
-
     if (allowed === 'N') {
-      console.log('[checkPermission] permission denied');
       return NextResponse.json(
         {
           success: false,
