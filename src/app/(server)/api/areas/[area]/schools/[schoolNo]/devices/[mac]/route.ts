@@ -7,6 +7,7 @@ import {
 import { deviceRelSchema } from '@/types/device';
 import { handleError, handleZodError } from '@/utils/error.utils';
 import { getCommonContext } from '@/utils/context.utils';
+import { checkPermission } from '@/utils/permission-check.utils';
 
 /**
  * 지역 학교 센서 장치 정보
@@ -19,9 +20,15 @@ export async function GET(
     const { mac, schoolNo, area } = await params;
     console.log('[GET] 요청 파라미터:', { mac, schoolNo, area });
 
+    const permissionError = await checkPermission(request, {
+      params: Promise.resolve({ schoolNo: Number(schoolNo), area: area }),
+    });
+
+    if (permissionError) return permissionError;
+
     const commonContext = await getCommonContext(request);
     const device = await getDevice(
-      { mac, schoolNo: parseInt(schoolNo, 10) },
+      { mac, schoolNo: Number(schoolNo) },
       {
         managerNo: commonContext.managerNo,
         ip: commonContext.ip,

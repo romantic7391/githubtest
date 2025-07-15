@@ -1,7 +1,7 @@
 /* eslint-disable */
 // @ts-nocheck
 import { NextRequest, NextResponse } from 'next/server';
-import { checkPermission, checkPermissions } from '@/services/permission-check/permission.service';
+import { checkPermission, checkPermissions } from '@/services/permission-check/permission-check.service';
 import { permissionMappings } from '@/config/permission-mapping';
 import { HTTPMethod } from '@/types/common';
 import { getSchoolBySchoolNo } from '@/services/areas/[area]/schools/[schoolNo]/[schoolNo].service';
@@ -11,16 +11,10 @@ import { getCommonContext } from '@/utils/context.utils';
  * URL 패턴과 실제 URL을 매칭하여 파라미터를 추출
  */
 function matchPath(pattern: string, path: string): Record<string, string> | null {
-  console.log('매칭 시도:', { pattern, path });
-
   const patternParts = pattern.split('/');
   const pathParts = path.split('/');
 
-  console.log('분리된 패턴:', patternParts);
-  console.log('분리된 경로:', pathParts);
-
   if (patternParts.length !== pathParts.length) {
-    console.log('길이 불일치');
     return null;
   }
 
@@ -29,14 +23,11 @@ function matchPath(pattern: string, path: string): Record<string, string> | null
     if (patternParts[i].startsWith('[') && patternParts[i].endsWith(']')) {
       const paramName = patternParts[i].slice(1, -1);
       params[paramName] = pathParts[i];
-      console.log('파라미터 매칭:', { paramName, value: pathParts[i] });
     } else if (patternParts[i] !== pathParts[i]) {
-      console.log('일치하지 않는 부분:', { pattern: patternParts[i], path: pathParts[i] });
       return null;
     }
   }
 
-  console.log('최종 매칭 결과:', params);
   return params;
 }
 
@@ -51,7 +42,6 @@ export async function checkPermission(
   try {
     // 1. 공통 컨텍스트 가져오기 (세션 포함)
     const commonContext = await getCommonContext(request);
-    console.log('공통 컨텍스트:', commonContext);
 
     const method = request.method as HTTPMethod;
     const path = request.nextUrl.pathname;
@@ -66,14 +56,6 @@ export async function checkPermission(
       // 관리자는 지역 제한 없음
       if (commonContext.schoolNo !== 0) {
         // 사용자의 학교 정보 조회
-        console.log('getSchoolBySchoolNo 호출 전 파라미터:', {
-          schoolNo: commonContext.schoolNo,
-          meta: {
-            managerNo: commonContext.managerNo,
-            ip: commonContext.ip,
-            userAgent: commonContext.userAgent,
-          },
-        });
 
         const userSchool = await getSchoolBySchoolNo(commonContext.schoolNo, {
           managerNo: commonContext.managerNo,
@@ -92,8 +74,6 @@ export async function checkPermission(
             { status: 403 },
           );
         }
-      } else {
-        console.log('관리자 권한으로 지역 제한 없음');
       }
     }
 
@@ -103,7 +83,7 @@ export async function checkPermission(
 
       // 관리자(schoolNo 0)는 모든 학교에 접근 가능
       if (commonContext.schoolNo === 0) {
-        console.log('관리자 권한으로 모든 학교 접근 가능');
+        // 관리자는 모든 학교에 접근 가능
       } else {
         // 일반 사용자는 자신의 학교와 하위 학교만 접근 가능
         const userSchool = await getSchoolBySchoolNo(commonContext.schoolNo, {
