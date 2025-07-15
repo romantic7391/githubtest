@@ -6,16 +6,16 @@ import { getCommonContext } from '@/utils/context.utils';
 /**
  * 지역 학교 센서 장치 추가
  */
-export async function POST(request: NextRequest, { params }: { params: Promise<{ area: string; schoolNo: string }> }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ schoolNo: string }> }) {
   try {
-    const { area, schoolNo } = await params;
+    const { schoolNo } = await params;
+
     const body = await request.json();
-    console.log('POST /api/areas/[area]/schools/[schoolNo]/devices/create', { area, schoolNo, body });
 
     // 1. 요청 데이터 검증
     const validatedData = deviceCreateSchema.parse({
       ...body,
-      schoolNo: parseInt(schoolNo, 10),
+      schoolNo: Number(schoolNo),
     });
 
     // 2. 공통 컨텍스트 가져오기
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     // 3. 센서 등록
     await createRnDevicesRel([validatedData], {
       managerNo: commonContext.managerNo,
-      schoolNo: parseInt(schoolNo, 10),
+      schoolNo: Number(schoolNo),
       ip: commonContext.ip,
       userAgent: commonContext.userAgent,
     });

@@ -18,7 +18,6 @@ export async function GET(
 ) {
   try {
     const { mac, schoolNo, area } = await params;
-    console.log('[GET] 요청 파라미터:', { mac, schoolNo, area });
 
     const permissionError = await checkPermission(request, {
       params: Promise.resolve({ schoolNo: Number(schoolNo), area: area }),
@@ -35,7 +34,6 @@ export async function GET(
         userAgent: commonContext.userAgent,
       },
     );
-    console.log('[GET] 조회된 디바이스:', device);
 
     // Zod로 응답 데이터 검증
     try {
