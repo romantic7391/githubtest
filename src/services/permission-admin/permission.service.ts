@@ -242,6 +242,7 @@ export async function getPermissionS(permissionNo: number, meta: LogMeta): Promi
     if (error instanceof AppError) {
       throw error;
     }
+    console.error('권한 조회 중 오류 발생:', error);
     throw new AppError('권한 조회 중 오류가 발생했습니다.', 500);
   }
 }

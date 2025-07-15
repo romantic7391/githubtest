@@ -49,6 +49,7 @@ describe('SchoolNo Service', () => {
 
   const meta = {
     managerNo: 1,
+    schoolNo: 100, // 현재 사용자가 접속한 학교 번호
     ip: '127.0.0.1',
     userAgent: 'test-agent',
   };
@@ -76,14 +77,14 @@ describe('SchoolNo Service', () => {
       // logAction 호출 검증
       expect(makeLogParams).toHaveBeenCalledWith({
         managerNo: meta.managerNo,
-        schoolNo: schoolNo,
+        schoolNo: meta.schoolNo, // 현재 사용자가 접속한 학교 번호
         ip: meta.ip,
         userAgent: meta.userAgent,
         actionType: 'S',
         targetTable: 'rnschool',
         targetId: `${schoolNo}`,
-        oldValues: JSON.stringify({}),
-        newValues: JSON.stringify(mockSchool),
+        oldValues: JSON.stringify(mockSchool),
+        newValues: null,
         reason: '학교 정보 조회',
       });
       expect(logAction).toHaveBeenCalledWith({}, mockConn);
@@ -181,7 +182,7 @@ describe('SchoolNo Service', () => {
       // logAction 호출 검증
       expect(makeLogParams).toHaveBeenCalledWith({
         managerNo: meta.managerNo,
-        schoolNo: updateDto.schoolNo,
+        schoolNo: meta.schoolNo, // 현재 사용자가 접속한 학교 번호
         ip: meta.ip,
         userAgent: meta.userAgent,
         actionType: 'U',
@@ -283,7 +284,7 @@ describe('SchoolNo Service', () => {
       // logAction 호출 검증
       expect(makeLogParams).toHaveBeenCalledWith({
         managerNo: meta.managerNo,
-        schoolNo: deleteDto.schoolNo,
+        schoolNo: meta.schoolNo, // 현재 사용자가 접속한 학교 번호
         ip: meta.ip,
         userAgent: meta.userAgent,
         actionType: 'D',
@@ -424,14 +425,14 @@ describe('SchoolNo Service', () => {
 
       expect(makeLogParams).toHaveBeenCalledWith({
         managerNo: meta.managerNo,
-        schoolNo: schoolNo,
+        schoolNo: meta.schoolNo, // 현재 사용자가 접속한 학교 번호
         ip: meta.ip,
         userAgent: meta.userAgent,
         actionType: 'S',
         targetTable: 'rnschool',
         targetId: `${schoolNo}`,
-        oldValues: JSON.stringify({}),
-        newValues: JSON.stringify(mockSchool),
+        oldValues: JSON.stringify(mockSchool),
+        newValues: null,
         reason: '학교 정보 조회',
       });
     });
@@ -460,7 +461,7 @@ describe('SchoolNo Service', () => {
 
       expect(makeLogParams).toHaveBeenCalledWith({
         managerNo: meta.managerNo,
-        schoolNo: updateDto.schoolNo,
+        schoolNo: meta.schoolNo, // 현재 사용자가 접속한 학교 번호
         ip: meta.ip,
         userAgent: meta.userAgent,
         actionType: 'U',
@@ -485,7 +486,7 @@ describe('SchoolNo Service', () => {
 
       expect(makeLogParams).toHaveBeenCalledWith({
         managerNo: meta.managerNo,
-        schoolNo: deleteDto.schoolNo,
+        schoolNo: meta.schoolNo, // 현재 사용자가 접속한 학교 번호
         ip: meta.ip,
         userAgent: meta.userAgent,
         actionType: 'D',

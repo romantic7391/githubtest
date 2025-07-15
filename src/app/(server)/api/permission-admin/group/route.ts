@@ -35,12 +35,6 @@ export async function GET(request: NextRequest) {
 
     const result = await getGroupsS(pagination, context, filters);
 
-    console.log('그룹 목록 조회 결과:', {
-      total: result.pagination.total,
-      totalPages: result.pagination.totalPages,
-      items: result.groups.length,
-    });
-
     return NextResponse.json(
       {
         success: true,
@@ -71,8 +65,6 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    console.log('[POST] 그룹 생성 시작');
-
     const context = await getCommonContext(request);
 
     const body = await request.json();
@@ -93,12 +85,9 @@ export async function POST(request: NextRequest) {
       data: result,
       message: '그룹이 성공적으로 생성되었습니다.',
     });
-    console.log('[POST] response:', response);
 
     return NextResponse.json(response, { status: 201 });
   } catch (error) {
-    console.error('[POST] 에러 발생:', error);
-
     // AppError를 먼저 체크
     if (error instanceof AppError) {
       return NextResponse.json(

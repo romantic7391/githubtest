@@ -12,7 +12,7 @@ import { AppError } from '@/utils/error.utils';
 // 학교 조회
 export async function getSchoolBySchoolNo(
   schoolNo: number,
-  meta: { managerNo: number; ip: string | null; userAgent: string | null },
+  meta: { managerNo: number; schoolNo: number; ip: string | null; userAgent: string | null },
 ) {
   let conn;
   try {
@@ -27,7 +27,7 @@ export async function getSchoolBySchoolNo(
     await logAction(
       makeLogParams({
         managerNo: meta.managerNo,
-        schoolNo: Number(schoolNo),
+        schoolNo: meta.schoolNo, // 현재 사용자가 접속한 학교 번호
         ip: meta.ip,
         userAgent: meta.userAgent,
         actionType: 'S',
@@ -55,7 +55,7 @@ export async function getSchoolBySchoolNo(
 // 학교 수정
 export async function updateRnSchool(
   dto: updateRnSchoolDto,
-  meta: { managerNo: number; ip: string | null; userAgent: string | null },
+  meta: { managerNo: number; schoolNo: number; ip: string | null; userAgent: string | null },
 ): Promise<void> {
   let conn;
   try {
@@ -73,7 +73,7 @@ export async function updateRnSchool(
     await logAction(
       makeLogParams({
         managerNo: meta.managerNo,
-        schoolNo: Number(dto.schoolNo),
+        schoolNo: meta.schoolNo, // 현재 사용자가 접속한 학교 번호
         ip: meta.ip,
         userAgent: meta.userAgent,
         actionType: 'U',
@@ -100,7 +100,7 @@ export async function updateRnSchool(
 // 학교 삭제
 export async function deleteRnSchool(
   dto: deleteRnSchoolDto,
-  meta: { managerNo: number; ip: string | null; userAgent: string | null },
+  meta: { managerNo: number; schoolNo: number; ip: string | null; userAgent: string | null },
 ) {
   let conn;
   try {
@@ -118,7 +118,7 @@ export async function deleteRnSchool(
     await logAction(
       makeLogParams({
         managerNo: meta.managerNo,
-        schoolNo: Number(dto.schoolNo),
+        schoolNo: meta.schoolNo, // 현재 사용자가 접속한 학교 번호
         ip: meta.ip,
         userAgent: meta.userAgent,
         actionType: 'D',

@@ -23,59 +23,50 @@ export async function checkPermission(
   schoolNo: number,
   permissionName: string,
 ): Promise<{ allowed: 'Y' | 'N'; override: 'Y' | 'N' | null; extraCondition: string | null }> {
-  console.log('권한 체크 시작:', { managerNo, schoolNo, permissionName });
-
   // 1. 사용자의 학교 정보 조회 (한 번만 조회)
   const userSchool = await getSchoolBySchoolNo(schoolNo, {
     managerNo: managerNo,
+    schoolNo: schoolNo,
     ip: '',
     userAgent: '',
   });
 
   if (!userSchool || !userSchool.area) {
-    console.log('사용자의 학교 정보를 찾을 수 없거나 지역 정보가 없음');
     return { allowed: 'N', override: null, extraCondition: null };
   }
 
   // 2. 권한 번호 조회
   const permission = await findPermissionByName(permissionName);
   if (!permission) {
-    console.log('권한 정보를 찾을 수 없음:', permissionName);
     return { allowed: 'N', override: null, extraCondition: null };
   }
 
   // 3. schoolNo가 0인 경우 URL 체크는 무시
   const isAdminSchool = userSchool.schoolNo === 0;
-  if (isAdminSchool) {
-    console.log('전체 접근 가능 학교(schoolNo: 0) - URL 체크 무시');
-  }
 
   // 4. 사용자가 속한 그룹 조회 (현재 학교만)
   const userGroups = await findManagerGroups(managerNo, schoolNo);
-  console.log('현재 학교 그룹:', userGroups);
 
   // 5. 상위 기관이 있는 경우에만 상위 기관 그룹 조회
   if (!isAdminSchool && userSchool.parentNo) {
     const upperGroups = await findManagerGroups(managerNo, userSchool.parentNo);
     userGroups.push(...upperGroups);
-    console.log('상위 기관 그룹:', upperGroups);
 
     // 상위상위 기관이 있는 경우에만 조회
     const upperSchool = await getSchoolBySchoolNo(userSchool.parentNo, {
       managerNo: managerNo,
+      schoolNo: userSchool.parentNo,
       ip: '',
       userAgent: '',
     });
     if (upperSchool?.parentNo) {
       const upperUpperGroups = await findManagerGroups(managerNo, upperSchool.parentNo);
       userGroups.push(...upperUpperGroups);
-      console.log('상위상위 기관 그룹:', upperUpperGroups);
     }
   }
 
   // 6. 각 그룹별로 권한 체크
   const validatedGroups = userGroups.map((group) => managerGroupSchema.parse(group));
-  console.log('검증된 그룹 목록:', validatedGroups);
 
   for (const managerGroup of validatedGroups) {
     let currentGroupNo = managerGroup.groupNo;
@@ -83,32 +74,18 @@ export async function checkPermission(
     let overrideFound = false;
     const extraConditions: string[] = [];
 
-    console.log('그룹 체크 시작:', { currentGroupNo });
-
     while (currentGroupNo) {
       const group = await findGroupByGroupNo(currentGroupNo);
       if (!group) break;
 
       const validatedGroup = groupSchema.parse(group);
-      console.log('현재 체크 중인 그룹:', {
-        groupNo: currentGroupNo,
-        name: validatedGroup.name,
-        parentGroupNo: validatedGroup.parentGroupNo,
-      });
 
       const groupPermission = await findGroupPermission(currentGroupNo, permission.permissionNo);
       if (groupPermission) {
         const validatedGroupPermission = groupPermissionSchema.parse(groupPermission);
-        console.log('그룹 권한 정보:', {
-          groupNo: currentGroupNo,
-          permissionNo: permission.permissionNo,
-          isAllowed: validatedGroupPermission.isAllowed,
-          override: validatedGroupPermission.override,
-        });
 
         // Deny 우선 원칙: N을 만나면 즉시 권한 거부
         if (validatedGroupPermission.isAllowed === 'N') {
-          console.log('권한 거부 발견:', { groupNo: currentGroupNo });
           return { allowed: 'N', override: null, extraCondition: null };
         }
         if (validatedGroupPermission.isAllowed === 'Y') {
@@ -134,7 +111,6 @@ export async function checkPermission(
     }
   }
 
-  console.log('권한 없음');
   return { allowed: 'N', override: null, extraCondition: null };
 }
 

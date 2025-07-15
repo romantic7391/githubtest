@@ -18,7 +18,7 @@ import {
 } from '@/types/permission/group-permission';
 
 // 그룹 권한 조회
-export async function getGroupPermissionsS(pagination: Pagination, filters?: GroupPermissionFilter, meta?: LogMeta) {
+export async function getGroupPermissionsS(pagination: Pagination, meta: LogMeta, filters?: GroupPermissionFilter) {
   let conn;
   try {
     conn = await beginTransaction();
@@ -30,23 +30,22 @@ export async function getGroupPermissionsS(pagination: Pagination, filters?: Gro
       throw new AppError('해당하는 학교에 그룹 권한 목록이 존재하지 않습니다.', 404);
     }
 
-    if (meta) {
-      await logAction(
-        makeLogParams({
-          schoolNo: 0,
-          managerNo: meta.managerNo,
-          ip: meta.ip,
-          userAgent: meta.userAgent,
-          actionType: 'S',
-          targetTable: 'groupPermission',
-          targetId: filters?.groupNo ? `groupNo=${filters.groupNo}` : 'all',
-          oldValues: JSON.stringify(result),
-          newValues: null,
-          reason: `그룹 권한 조회: ${filters?.groupNo ? `groupNo ${filters.groupNo}` : '전체'}`,
-        }),
-        conn,
-      );
-    }
+    // 로그 기록
+    await logAction(
+      makeLogParams({
+        schoolNo: meta.schoolNo, // 현재 사용자가 접속한 학교 번호
+        managerNo: meta.managerNo,
+        ip: meta.ip,
+        userAgent: meta.userAgent,
+        actionType: 'S',
+        targetTable: 'groupPermission',
+        targetId: filters?.groupNo ? `groupNo=${filters.groupNo}` : 'all',
+        oldValues: JSON.stringify(result),
+        newValues: null,
+        reason: `그룹 권한 조회: ${filters?.groupNo ? `groupNo ${filters.groupNo}` : '전체'}`,
+      }),
+      conn,
+    );
 
     await commitTransaction(conn);
     return result;
@@ -227,6 +226,7 @@ export async function deleteGroupPermissionS(groupNo: number, permissionNo: numb
   } catch (error) {
     if (conn) {
       await rollbackTransaction(conn);
+      console.error('그룹 권한 삭제 중 오류:', error);
     }
     throw error instanceof AppError ? error : new AppError('그룹 권한 삭제 중 오류가 발생했습니다.', 500);
   }
