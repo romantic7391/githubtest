@@ -72,14 +72,11 @@ export async function checkPermission(
     if (resolvedParams.area) {
       userSchool = await findSchoolBySchoolNo({ schoolNo: commonContext.schoolNo });
       if (!userSchool) {
-        return NextResponse.json({ success: false, message: '학교 정보를 찾을 수 없습니다.' }, { status: 404 });
+        throw new AppError('학교 정보를 찾을 수 없습니다.', 404);
       }
 
       if (userSchool.area !== resolvedParams.area) {
-        return NextResponse.json(
-          { success: false, message: `다른 지역의 학교 정보에 접근할 수 없습니다.` },
-          { status: 403 },
-        );
+        throw new AppError(`다른 지역의 학교 정보에 접근할 수 없습니다.`, 403);
       }
     }
 
@@ -87,7 +84,7 @@ export async function checkPermission(
     if (method === 'DELETE' || method === 'PUT') {
       const targetSchoolNo = resolvedParams.schoolNo;
       if (!targetSchoolNo) {
-        return NextResponse.json({ success: false, message: '대상 학교 번호가 없습니다.' }, { status: 400 });
+        throw new AppError('대상 학교 번호가 없습니다.', 400);
       }
 
       // userSchool이 아직 조회되지 않았다면 조회
@@ -96,14 +93,14 @@ export async function checkPermission(
       }
 
       if (!userSchool) {
-        return NextResponse.json({ success: false, message: '사용자 학교 정보를 찾을 수 없습니다.' }, { status: 404 });
+        throw new AppError('사용자 학교 정보를 찾을 수 없습니다.', 404);
       }
 
       const targetSchool = await findSchoolBySchoolNo({
         schoolNo: typeof targetSchoolNo === 'string' ? parseInt(targetSchoolNo, 10) : targetSchoolNo,
       });
       if (!targetSchool) {
-        return NextResponse.json({ success: false, message: '대상 학교 정보를 찾을 수 없습니다.' }, { status: 404 });
+        throw new AppError('대상 학교 정보를 찾을 수 없습니다.', 404);
       }
 
       // 계층 구조 체크: 사용자 학교가 대상 학교의 상위인지 확인
@@ -126,7 +123,7 @@ export async function checkPermission(
       }
 
       if (!isAuthorized) {
-        return NextResponse.json({ success: false, message: '해당 학교에 대한 권한이 없습니다.' }, { status: 403 });
+        throw new AppError('해당 학교에 대한 권한이 없습니다.', 403);
       }
     }
 
@@ -138,13 +135,7 @@ export async function checkPermission(
     );
 
     if (allowed === 'N') {
-      return NextResponse.json(
-        {
-          success: false,
-          message: override ? '권한이 거부되었습니다. 관리자에게 문의하세요.' : '권한이 없습니다.',
-        },
-        { status: 403 },
-      );
+      throw new AppError(override ? '권한이 거부되었습니다. 관리자에게 문의하세요.' : '권한이 없습니다.', 403);
     }
 
     return null;
