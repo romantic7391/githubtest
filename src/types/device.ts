@@ -242,3 +242,17 @@ export const deviceRelFormSchema = deviceRelSchema;
  * 학교 센서 장치 폼 타입
  */
 export type DeviceRelForm = z.infer<typeof deviceRelFormSchema>;
+
+/**
+ * 센서 API 파라미터 스키마
+ */
+export const deviceParamsSchema = z.object({
+  area: z.string(),
+  schoolNo: z.string(),
+  mac: z.string(),
+});
+
+/**
+ * 센서 API 파라미터 타입
+ */
+export type DeviceParams = z.infer<typeof deviceParamsSchema>;

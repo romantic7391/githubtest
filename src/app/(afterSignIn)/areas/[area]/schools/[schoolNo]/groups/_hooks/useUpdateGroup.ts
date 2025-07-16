@@ -1,6 +1,6 @@
 import { HTTPStatusError } from '@/lib/common.error';
 import { isJsonResponse } from '@/lib/util/common.util';
-import { UpdateGroup } from '@/types/permission';
+import { UpdateGroup } from '@/types/permission/group';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 interface UseUpdateGroupProps {

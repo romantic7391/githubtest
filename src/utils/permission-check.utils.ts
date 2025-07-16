@@ -6,6 +6,7 @@ import { findSchoolBySchoolNo } from '@/models/rn-school/rn-school.model';
 import { getCommonContext } from '@/utils/context.utils';
 import { AppError } from '@/utils/error.utils';
 import { School } from '@/types/school';
+import { PermissionParams } from '@/types/api-wrapper';
 
 /**
  * URL 패턴과 실제 URL을 매칭하여 파라미터를 추출
@@ -44,7 +45,7 @@ function isAdmin(schoolNo: number): boolean {
  */
 export async function checkPermission(
   request: NextRequest,
-  { params }: { params: Promise<{ schoolNo?: number | null; area?: string | null; permissionNo?: number }> },
+  { params }: { params: Promise<PermissionParams> },
 ): Promise<NextResponse | null> {
   try {
     // 1. 공통 컨텍스트 가져오기 (세션 포함)
@@ -98,7 +99,9 @@ export async function checkPermission(
         return NextResponse.json({ success: false, message: '사용자 학교 정보를 찾을 수 없습니다.' }, { status: 404 });
       }
 
-      const targetSchool = await findSchoolBySchoolNo({ schoolNo: targetSchoolNo });
+      const targetSchool = await findSchoolBySchoolNo({
+        schoolNo: typeof targetSchoolNo === 'string' ? parseInt(targetSchoolNo, 10) : targetSchoolNo,
+      });
       if (!targetSchool) {
         return NextResponse.json({ success: false, message: '대상 학교 정보를 찾을 수 없습니다.' }, { status: 404 });
       }
@@ -117,7 +120,8 @@ export async function checkPermission(
       }
 
       // 자신의 학교는 직접 접근 가능
-      if (targetSchoolNo === userSchool.schoolNo) {
+      const targetSchoolNoNumber = typeof targetSchoolNo === 'string' ? parseInt(targetSchoolNo, 10) : targetSchoolNo;
+      if (targetSchoolNoNumber === userSchool.schoolNo) {
         isAuthorized = true;
       }
 

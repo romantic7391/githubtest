@@ -61,6 +61,9 @@ export async function getDevice(
       }
     }
     console.error('[getDeviceService] DB 조회 에러:', error);
+    if (error instanceof AppError) {
+      throw error;
+    }
     throw new AppError('센서 조회 중 오류가 발생했습니다.', 500);
   } finally {
     if (conn) {
