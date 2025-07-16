@@ -44,11 +44,12 @@ export async function getSchoolBySchoolNo(
     return school;
   } catch (error) {
     if (conn) await rollbackTransaction(conn);
-    console.error('[getSchoolBySchoolNoService] DB 조회 에러:', error);
-    if (error instanceof AppError) {
-      throw error;
+    // AppError가 아닌 경우에만 로깅 (중복 로깅 방지)
+    if (!(error instanceof AppError)) {
+      console.error('[getSchoolBySchoolNoService] DB 조회 에러:', error);
+      throw new AppError('학교 정보 조회 중 오류가 발생했습니다.', 500);
     }
-    throw new AppError('학교 정보 조회 중 오류가 발생했습니다.', 500);
+    throw error;
   }
 }
 
