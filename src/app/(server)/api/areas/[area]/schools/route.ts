@@ -1,13 +1,10 @@
 import { DEFAULT_PAGE_SIZE } from '@/lib/default.constant';
-// import { DEFAULT_ERROR_MESSAGE_500 } from '@/types/common';
-// import type { BaseApiResponse } from '@/types/common';
 import type { SchoolsApiResponse } from '@/types/school';
 import { schoolListFilterSchema } from '@/types/school';
 import { NextRequest, NextResponse } from 'next/server';
 import { getRnSchoolsByArea } from '@/services/areas/[area]/schools/schools.service';
-import { AppError } from '@/utils/error.utils';
-import { handleError, handleZodError } from '@/utils/error.utils';
-import { getCommonContext } from '@/utils/context.utils';
+import { withPermissionCheck } from '@/utils/api-wrapper.utils';
+import { CommonContext, PermissionParams } from '@/types/api-wrapper';
 import { paginationSchema } from '@/types/common';
 
 /**
@@ -20,9 +17,15 @@ import { paginationSchema } from '@/types/common';
  * @todo (옵션) 필터링 추가: `active`를 받아서 활성화 여부에 따른 학교 목록 조회.
  * @todo (옵션) 필터링 추가: `administrationcode`를 받아서 관리 코드로 학교 목록 조회.
  */
-export async function GET(request: NextRequest, { params }: { params: Promise<{ area: string }> }) {
-  try {
-    const { area } = await params;
+export const GET = withPermissionCheck<PermissionParams>(
+  async (request: NextRequest, { params }: { params: Promise<PermissionParams> }, commonContext: CommonContext) => {
+    const resolvedParams = await params;
+    const { area } = resolvedParams;
+
+    if (!area) {
+      return NextResponse.json({ success: false, message: '지역 정보가 필요합니다.' }, { status: 400 });
+    }
+
     const searchParams = request.nextUrl.searchParams;
 
     // 파라미터 파싱 및 검증
@@ -44,13 +47,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     // 필터 파라미터 검증
     const validatedFilters = schoolListFilterSchema.parse(filters);
 
-    const context = await getCommonContext(request);
     const { schools, pagination } = await getRnSchoolsByArea(
       area,
       validatedPagination.page,
       validatedPagination.pageSize,
       validatedFilters,
-      context,
+      commonContext,
     );
 
     return NextResponse.json(
@@ -64,18 +66,5 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       } satisfies SchoolsApiResponse,
       { status: 200 },
     );
-  } catch (error) {
-    if (error instanceof AppError) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: error.message,
-        },
-        { status: error.statusCode },
-      );
-    }
-    const zodError = handleZodError(error);
-    if (zodError) return zodError;
-    return handleError(error, 'GET');
-  }
-}
+  },
+);

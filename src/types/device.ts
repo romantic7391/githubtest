@@ -253,6 +253,16 @@ export const deviceParamsSchema = z.object({
 });
 
 /**
+ * 센서 생성용 파라미터 스키마 (mac 제외)
+ */
+export const deviceCreateParamsSchema = deviceParamsSchema.omit({ mac: true });
+
+/**
  * 센서 API 파라미터 타입
  */
 export type DeviceParams = z.infer<typeof deviceParamsSchema>;
+
+/**
+ * 센서 생성용 파라미터 타입
+ */
+export type DeviceCreateParams = z.infer<typeof deviceCreateParamsSchema>;

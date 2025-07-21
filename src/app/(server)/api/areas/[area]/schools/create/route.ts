@@ -1,23 +1,31 @@
 import { SchoolCreateOrUpdateApiResponse, schoolCreateSchema } from '@/types/school';
 import { NextRequest, NextResponse } from 'next/server';
 import { createRnSchool } from '@/services/areas/[area]/schools/create/create.service';
-import { handleError, handleZodError } from '@/utils/error.utils';
-import { AppError } from '@/utils/error.utils';
-import { getCommonContext } from '@/utils/context.utils';
+import { withPermissionCheck } from '@/utils/api-wrapper.utils';
+import { CommonContext, PermissionParams } from '@/types/api-wrapper';
 
 /**
  * 지역 학교 추가
  */
-export async function POST(request: NextRequest, { params }: { params: Promise<{ area: string }> }) {
-  try {
-    const { area } = await params;
+export const POST = withPermissionCheck<PermissionParams>(
+  async (request: NextRequest, { params }: { params: Promise<PermissionParams> }, commonContext: CommonContext) => {
+    const resolvedParams = await params;
+    const { area } = resolvedParams;
+
+    if (!area) {
+      return NextResponse.json({ success: false, message: '지역 정보가 필요합니다.' }, { status: 400 });
+    }
+
     const body = await request.json();
 
     // 요청 데이터 검증
     const validatedData = schoolCreateSchema.parse(body);
 
-    const context = await getCommonContext(request);
-    const result = await createRnSchool(validatedData.administrationCode || '', { ...validatedData, area }, context);
+    const result = await createRnSchool(
+      validatedData.administrationCode || '',
+      { ...validatedData, area },
+      commonContext,
+    );
 
     return NextResponse.json(
       {
@@ -29,18 +37,5 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       } satisfies SchoolCreateOrUpdateApiResponse,
       { status: 201 },
     );
-  } catch (error) {
-    if (error instanceof AppError) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: error.message,
-        },
-        { status: error.statusCode },
-      );
-    }
-    const zodError = handleZodError(error);
-    if (zodError) return zodError;
-    return handleError(error, 'POST');
-  }
-}
+  },
+);

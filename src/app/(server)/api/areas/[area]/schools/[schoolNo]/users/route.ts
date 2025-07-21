@@ -2,17 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { handleError } from '@/utils/error.utils';
 import { withPermissionCheck } from '@/utils/api-wrapper.utils';
 import { CommonContext } from '@/types/api-wrapper';
-
-interface UserParams {
-  area: string;
-  schoolNo: string;
-}
+import { SchoolDto } from '@/types/school';
 
 /**
  * 지역 학교 사용자 목록 조회
  */
-export const GET = withPermissionCheck<UserParams>(
-  async (request: NextRequest, { params }: { params: Promise<UserParams> }, commonContext: CommonContext) => {
+export const GET = withPermissionCheck<SchoolDto>(
+  async (request: NextRequest, { params }: { params: Promise<SchoolDto> }, commonContext: CommonContext) => {
     try {
       const { area, schoolNo } = await params;
 
