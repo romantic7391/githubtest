@@ -7,26 +7,16 @@ export async function findManagerBySignInId(signInId: string, conn?: PoolConnect
   try {
     const query = `
       SELECT
-        no
-        , school_no
-        , login_id
+        no as managerNo
+        , school_no as schoolNo
+        , login_id as signInId
         , name
       FROM manager
       WHERE login_id = ?
     `;
     const params = [signInId];
 
-    const result = await getRow(
-      query,
-      params,
-      {
-        managerNo: 'no',
-        schoolNo: 'school_no',
-        signInId: 'login_id',
-        name: 'name',
-      },
-      conn,
-    );
+    const result = await getRow(query, params, undefined, conn);
 
     return result as User | null;
   } catch (error) {
@@ -39,28 +29,17 @@ export async function findManagerWithPasswordBySignInId(signInId: string, conn?:
   try {
     const query = `
       SELECT
-        no
-        , school_no
-        , login_id
+        no as managerNo
+        , school_no as schoolNo
+        , login_id as signInId
         , name
-        , passwd
+        , passwd as hashedPassword
       FROM manager
       WHERE login_id = ?
     `;
     const params = [signInId];
 
-    const result = await getRow(
-      query,
-      params,
-      {
-        managerNo: 'no',
-        schoolNo: 'school_no',
-        signInId: 'login_id',
-        name: 'name',
-        hashedPassword: 'passwd',
-      },
-      conn,
-    );
+    const result = await getRow(query, params, undefined, conn);
 
     return result as UserWithPassword | null;
   } catch (error) {
@@ -136,7 +115,7 @@ export async function findManagerByNo(managerNo: number, conn?: PoolConnection) 
   try {
     const query = `
       SELECT
-        m.no
+        m.no as managerNo
         , m.school_no AS schoolNo
         , m.login_id AS signInId
         , m.name
