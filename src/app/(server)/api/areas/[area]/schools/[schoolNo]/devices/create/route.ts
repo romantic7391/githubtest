@@ -1,27 +1,24 @@
-import { DeviceCreateOrUpdateApiResponse, deviceCreateSchema } from '@/types/device';
+import { DeviceCreateOrUpdateApiResponse, deviceCreateSchema, DeviceCreateParams } from '@/types/device';
 import { NextRequest, NextResponse } from 'next/server';
 import { createRnDevicesRel } from '@/services/areas/[area]/schools/[schoolNo]/devices/create/craete.service';
-import { handleError, handleZodError } from '@/utils/error.utils';
-import { getCommonContext } from '@/utils/context.utils';
+import { withPermissionCheck } from '@/utils/api-wrapper.utils';
+import { CommonContext } from '@/types/api-wrapper';
+
 /**
  * 지역 학교 센서 장치 추가
  */
-export async function POST(request: NextRequest, { params }: { params: Promise<{ schoolNo: string }> }) {
-  try {
+export const POST = withPermissionCheck<DeviceCreateParams>(
+  async (request: NextRequest, { params }: { params: Promise<DeviceCreateParams> }, commonContext: CommonContext) => {
     const { schoolNo } = await params;
-
     const body = await request.json();
 
-    // 1. 요청 데이터 검증
+    // 요청 데이터 검증
     const validatedData = deviceCreateSchema.parse({
       ...body,
       schoolNo: Number(schoolNo),
     });
 
-    // 2. 공통 컨텍스트 가져오기
-    const commonContext = await getCommonContext(request);
-
-    // 3. 센서 등록
+    // 센서 등록
     await createRnDevicesRel([validatedData], {
       managerNo: commonContext.managerNo,
       schoolNo: Number(schoolNo),
@@ -39,9 +36,5 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       } satisfies DeviceCreateOrUpdateApiResponse,
       { status: 201 },
     );
-  } catch (error) {
-    const zodError = handleZodError(error);
-    if (zodError) return zodError;
-    return handleError(error, '센서 생성');
-  }
-}
+  },
+);

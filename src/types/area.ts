@@ -93,3 +93,12 @@ export const areasWithPaginationApiResponseSchema = baseApiResponseSchema.extend
  * 지역 목록 응답 (페이지네이션 포함)
  */
 export type AreasWithPaginationApiResponse = z.infer<typeof areasWithPaginationApiResponseSchema>;
+
+/**
+ * 지역 파라미터
+ */
+export const AreaParamsSchema = areaSchema.pick({
+  area: true,
+});
+
+export type AreaParams = z.infer<typeof AreaParamsSchema>;

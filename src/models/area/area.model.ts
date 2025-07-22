@@ -69,7 +69,7 @@ export async function insertArea(dto: AreaCreate, conn?: PoolConnection): Promis
 }
 
 // 지역 수정
-export async function updateAreaInfo(dto: Area, conn?: PoolConnection): Promise<void> {
+export async function updateAreaInfo(dto: Area, conn?: PoolConnection, originalArea?: string): Promise<void> {
   const sql = `
     UPDATE AreaData
     SET area = ?,
@@ -79,7 +79,8 @@ export async function updateAreaInfo(dto: Area, conn?: PoolConnection): Promise<
     WHERE area = ?
   `;
 
-  await exec(sql, [dto.area, dto.x, dto.y, dto.areaCode, dto.area], conn);
+  const whereArea = originalArea || dto.area;
+  await exec(sql, [dto.area, dto.x, dto.y, dto.areaCode, whereArea], conn);
 }
 
 // 지역 삭제

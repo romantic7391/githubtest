@@ -81,8 +81,8 @@ export async function POST(request: NextRequest) {
 
     // 서비스 함수에 전달할 데이터 변환
     const managerGroupData = managerGroupSchema.parse({
-      ...validatedData,
-      created: null,
+      managerNo: validatedData.managerNo,
+      groupNo: validatedData.groupNo,
     });
 
     const result = await createManagerGroupS(managerGroupData, context);
@@ -123,9 +123,8 @@ export async function PUT(request: NextRequest) {
 
     // 서비스 함수에 전달할 데이터 변환
     const managerGroupData = managerGroupSchema.parse({
-      no: validatedData.no,
+      managerNo: validatedData.managerNo,
       groupNo: validatedData.groupNo,
-      created: null,
     });
 
     const result = await updateManagerGroupS(
@@ -166,22 +165,22 @@ export async function DELETE(request: NextRequest) {
   try {
     const context = await getCommonContext(request);
 
-    let no: string | null = null;
+    let managerNo: string | null = null;
     let groupNo: string | null = null;
 
     // body에서 파라미터 확인
     try {
       const body = await request.json();
-      no = body.no?.toString() || null;
+      managerNo = body.managerNo?.toString() || null;
       groupNo = body.groupNo?.toString() || null;
     } catch {
       // body가 없는 경우 query string에서 파라미터 확인
       const { searchParams } = new URL(request.url);
-      no = searchParams.get('no');
+      managerNo = searchParams.get('managerNo');
       groupNo = searchParams.get('groupNo');
     }
 
-    if (!no || !groupNo) {
+    if (!managerNo || !groupNo) {
       return NextResponse.json(
         {
           success: false,
@@ -191,7 +190,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    await deleteManagerGroupS(Number(no), Number(groupNo), context);
+    await deleteManagerGroupS(Number(managerNo), Number(groupNo), context);
 
     return NextResponse.json(
       managerGroupCreateOrUpdateApiResponseSchema.parse({
@@ -199,7 +198,7 @@ export async function DELETE(request: NextRequest) {
         message: '관리자 그룹이 성공적으로 삭제되었습니다.',
         data: {
           groupNo: Number(groupNo),
-          no: Number(no),
+          managerNo: Number(managerNo),
         },
       }),
       { status: 200 },

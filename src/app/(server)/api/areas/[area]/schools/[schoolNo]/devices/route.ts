@@ -1,9 +1,8 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import type { DevicesApiResponse, DeviceListParams } from '@/types/device';
+import type { DevicesApiResponse, DeviceListParams, DeviceCreateParams } from '@/types/device';
 import { NextRequest, NextResponse } from 'next/server';
 import { getRnDevicesRelBySchoolNo } from '@/services/areas/[area]/schools/[schoolNo]/devices/devices.service';
-import { handleError, handleZodError } from '@/utils/error.utils';
-import { getCommonContext } from '@/utils/context.utils';
+import { withPermissionCheck } from '@/utils/api-wrapper.utils';
+import { CommonContext } from '@/types/api-wrapper';
 
 /**
  * 지역 학교 센서 장치 목록 조회
@@ -16,13 +15,12 @@ import { getCommonContext } from '@/utils/context.utils';
  * @todo (옵션) 필터링 추가: `tags`를 받아서 태그로 학교 센서 장치 목록 조회.
  *
  */
-export async function GET(request: NextRequest, { params }: { params: Promise<{ area: string; schoolNo: string }> }) {
-  try {
-    const { area, schoolNo } = await params; // eslint-disable-line @typescript-eslint/no-unused-vars
+export const GET = withPermissionCheck<DeviceCreateParams>(
+  async (request: NextRequest, { params }: { params: Promise<DeviceCreateParams> }, commonContext: CommonContext) => {
+    const { schoolNo } = await params;
     const searchParams = request.nextUrl.searchParams;
-    const commonContext = await getCommonContext(request);
 
-    // 1. 쿼리 파라미터 파싱
+    // 쿼리 파라미터 파싱
     const queryParams: DeviceListParams = {
       schoolNo: parseInt(schoolNo),
       page: parseInt(searchParams.get('page') ?? '1'),
@@ -37,7 +35,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       },
     };
 
-    // 2. 센서 목록 조회
+    // 센서 목록 조회
     const result = await getRnDevicesRelBySchoolNo(queryParams, {
       managerNo: commonContext.managerNo,
       schoolNo: parseInt(schoolNo),
@@ -56,9 +54,5 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       } satisfies DevicesApiResponse,
       { status: 200 },
     );
-  } catch (error) {
-    const zodError = handleZodError(error);
-    if (zodError) return zodError;
-    return handleError(error, '학교 센서 장치 목록 조회');
-  }
-}
+  },
+);

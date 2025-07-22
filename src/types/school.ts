@@ -287,15 +287,13 @@ export const findSchoolBySchoolNoDtoSchema = schoolSchema.pick({
 export type findSchoolBySchoolNoDto = z.infer<typeof findSchoolBySchoolNoDtoSchema>;
 
 /**
- * 학교 수정 DTO
+ * 학교 수정 DTO (요청 body용)
  */
-
 export const updateRnSchoolDtoSchema = schoolSchema.pick({
   sname: true,
   scode: true,
   area: true,
   administrationCode: true,
-  schoolNo: true,
 });
 
 /**
@@ -315,3 +313,13 @@ export const deleteRnSchoolDtoSchema = schoolSchema.pick({
  * 학교 존재 여부 DTO 객채채
  */
 export type deleteRnSchoolDto = z.infer<typeof deleteRnSchoolDtoSchema>;
+
+/**
+ * 학교 동적 세그먼트 용용
+ */
+export const SchoolParamsSchema = schoolSchema.pick({
+  area: true,
+  schoolNo: true,
+});
+
+export type SchoolParams = z.infer<typeof SchoolParamsSchema>;

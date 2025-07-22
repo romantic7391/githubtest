@@ -1,30 +1,31 @@
 // import type { BaseApiResponse } from '@/types/common';
 import { NextRequest, NextResponse } from 'next/server';
 import { updateGroupS, deleteGroupS, getGroupS } from '@/services/permission-admin/group.service';
-import { getCommonContext } from '@/utils/context.utils';
-import { handleZodError, handleError } from '@/utils/error.utils';
 import {
   Group,
-  GroupRouteParams,
   groupUpdateRequestSchema,
   groupCreateOrUpdateApiResponseSchema,
   groupDeleteApiResponseSchema,
   groupApiResponseSchema,
   FindGroupDto,
 } from '@/types/permission/group';
-// import {updateGroupSchema,groupCreateOrUpdateApiResponseSchema ,RouteParams} from '@/types/permission'
-import { AppError } from '@/utils/error.utils';
+import { withPermissionCheck } from '@/utils/api-wrapper.utils';
+import { CommonContext, PermissionParams } from '@/types/api-wrapper';
 import { findGroup } from '@/models/group/group-model';
+
+// 그룹 번호 파라미터 타입 정의
+interface GroupNoParams extends PermissionParams {
+  groupNo: string;
+}
 
 /**
  * 특정 그룹 조회
  */
-export async function GET(request: NextRequest, context: GroupRouteParams) {
-  try {
-    const { groupNo } = await context.params;
+export const GET = withPermissionCheck<GroupNoParams>(
+  async (request: NextRequest, { params }, commonContext: CommonContext) => {
+    const resolvedParams = await params;
+    const { groupNo } = resolvedParams;
     const groupNoNum = Number(groupNo);
-
-    const commonContext = await getCommonContext(request);
 
     // 그룹 정보 조회 (서비스 함수 사용)
     const group = await getGroupS(groupNoNum, commonContext);
@@ -37,33 +38,18 @@ export async function GET(request: NextRequest, context: GroupRouteParams) {
       }),
       { status: 200 },
     );
-  } catch (error) {
-    if (error instanceof AppError) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: error.message,
-          code: error.code,
-        },
-        { status: error.statusCode },
-      );
-    }
-    const zodError = handleZodError(error);
-    if (zodError) return zodError;
-    return handleError(error, '그룹 조회');
-  }
-}
+  },
+);
 
 /**
  * 그룹 수정
  */
-export async function PUT(request: NextRequest, context: GroupRouteParams) {
-  try {
-    const { groupNo } = await context.params;
+export const PUT = withPermissionCheck<GroupNoParams>(
+  async (request: NextRequest, { params }, commonContext: CommonContext) => {
+    const resolvedParams = await params;
+    const { groupNo } = resolvedParams;
     const groupNoNum = Number(groupNo);
     const body = await request.json();
-
-    const commonContext = await getCommonContext(request);
 
     // 요청 데이터 검증
     const validatedData = groupUpdateRequestSchema.parse(body);
@@ -74,7 +60,7 @@ export async function PUT(request: NextRequest, context: GroupRouteParams) {
     };
     const existingGroup = await findGroup(findDto);
     if (!existingGroup) {
-      throw new AppError('존재하지 않는 그룹입니다.', 404);
+      throw new Error('존재하지 않는 그룹입니다.');
     }
 
     const groupData: Group = {
@@ -97,34 +83,17 @@ export async function PUT(request: NextRequest, context: GroupRouteParams) {
       }),
       { status: 200 },
     );
-  } catch (error) {
-    if (error instanceof AppError) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: error.message,
-          code: error.code,
-        },
-        { status: error.statusCode },
-      );
-    }
-    const zodError = handleZodError(error);
-    if (zodError) return zodError;
-    return handleError(error, '그룹 수정');
-  }
-}
+  },
+);
 
 /**
  * 그룹 삭제
  */
-export async function DELETE(request: NextRequest, context: GroupRouteParams) {
-  try {
-    const { groupNo } = await context.params;
+export const DELETE = withPermissionCheck<GroupNoParams>(
+  async (request: NextRequest, { params }, commonContext: CommonContext) => {
+    const resolvedParams = await params;
+    const { groupNo } = resolvedParams;
     const groupNoNum = Number(groupNo);
-
-    const commonContext = await getCommonContext(request);
-
-    // 1. 그룹 존재 여부 확인
 
     await deleteGroupS(groupNoNum, commonContext);
 
@@ -136,19 +105,5 @@ export async function DELETE(request: NextRequest, context: GroupRouteParams) {
       }),
       { status: 200 },
     );
-  } catch (error) {
-    if (error instanceof AppError) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: error.message,
-          code: error.code,
-        },
-        { status: error.statusCode },
-      );
-    }
-    const zodError = handleZodError(error);
-    if (zodError) return zodError;
-    return handleError(error, '그룹 삭제');
-  }
-}
+  },
+);

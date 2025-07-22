@@ -60,8 +60,12 @@ export async function getDevice(
         console.error('Rollback error:', rollbackError);
       }
     }
-    console.error('[getDeviceService] DB 조회 에러:', error);
-    throw new AppError('센서 조회 중 오류가 발생했습니다.', 500);
+    // AppError가 아닌 경우에만 로깅 (중복 로깅 방지)
+    if (!(error instanceof AppError)) {
+      console.error('[getDeviceService] DB 조회 에러:', error);
+      throw new AppError('센서 조회 중 오류가 발생했습니다.', 500);
+    }
+    throw error;
   } finally {
     if (conn) {
       try {

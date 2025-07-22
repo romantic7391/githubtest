@@ -10,46 +10,31 @@ interface PermissionMapping {
 }
 
 export const permissionMappings: PermissionMapping[] = [
-  // 권한 관리 API
+  // 지역 관련 API
   {
-    path: '/api/permission-admin/permission',
+    path: '/api/areas',
     method: 'GET',
-    permissions: ['권한_조회'],
+    permissions: ['지역_조회'],
   },
   {
-    path: '/api/permission-admin/permission',
+    path: '/api/areas/create',
     method: 'POST',
-    permissions: ['권한_생성'],
+    permissions: ['지역_생성'],
   },
   {
-    path: '/api/permission-admin/group',
+    path: '/api/areas/[area]',
     method: 'GET',
-    permissions: ['그룹_조회'],
+    permissions: ['특정정지역_조회'],
   },
   {
-    path: '/api/permission-admin/group',
-    method: 'POST',
-    permissions: ['그룹_생성'],
+    path: '/api/areas/[area]',
+    method: 'PUT',
+    permissions: ['지역_수정'],
   },
   {
-    path: '/api/permission-admin/group-permission',
-    method: 'GET',
-    permissions: ['그룹권한_조회'],
-  },
-  {
-    path: '/api/permission-admin/group-permission',
-    method: 'POST',
-    permissions: ['그룹권한_생성'],
-  },
-  {
-    path: '/api/permission-admin/manager-group',
-    method: 'GET',
-    permissions: ['관리자그룹_조회'],
-  },
-  {
-    path: '/api/permission-admin/manager-group',
-    method: 'POST',
-    permissions: ['관리자그룹_생성'],
+    path: '/api/areas/[area]',
+    method: 'DELETE',
+    permissions: ['지역_삭제'],
   },
   // 학교 관련 API
   {
@@ -68,6 +53,7 @@ export const permissionMappings: PermissionMapping[] = [
       schoolNo: 'schoolNo',
     },
   },
+
   {
     path: '/api/areas/[area]/schools/[schoolNo]',
     method: 'DELETE',
@@ -77,10 +63,16 @@ export const permissionMappings: PermissionMapping[] = [
     },
   },
   {
-    path: '/api/areas/[area]/schools',
+    path: '/api/areas/[area]/schools/create',
     method: 'POST',
     permissions: ['학교_생성'],
   },
+  {
+    path: '/api/areas/[area]/schools',
+    method: 'GET',
+    permissions: ['학교_조회'],
+  },
+
   // 센서 관련 API 추가
   {
     path: '/api/areas/[area]/schools/[schoolNo]/devices/[mac]',
@@ -107,11 +99,110 @@ export const permissionMappings: PermissionMapping[] = [
     },
   },
   {
-    path: '/api/areas/[area]/schools/[schoolNo]/devices',
+    path: '/api/areas/[area]/schools/[schoolNo]/devices/create',
     method: 'POST',
     permissions: ['센서_생성'],
     params: {
       schoolNo: 'schoolNo',
     },
+  },
+  {
+    path: '/api/areas/[area]/schools/[schoolNo]/devices',
+    method: 'GET',
+    permissions: ['센서_목록_조회'],
+    params: {
+      schoolNo: 'schoolNo',
+    },
+  },
+  // 권한 관리 API
+  {
+    path: '/api/permission-admin/permission',
+    method: 'GET',
+    permissions: ['권한_조회'],
+  },
+  {
+    path: '/api/permission-admin/permission',
+    method: 'POST',
+    permissions: ['권한_생성'],
+  },
+  {
+    path: '/api/permission-admin/permission/[permissionNo]',
+    method: 'GET',
+    permissions: ['권한_조회'],
+  },
+  {
+    path: '/api/permission-admin/permission/[permissionNo]',
+    method: 'PUT',
+    permissions: ['권한_수정'],
+  },
+  {
+    path: '/api/permission-admin/permission/[permissionNo]',
+    method: 'DELETE',
+    permissions: ['권한_삭제'],
+  },
+  {
+    path: '/api/permission-admin/group',
+    method: 'GET',
+    permissions: ['그룹_조회'],
+  },
+  {
+    path: '/api/permission-admin/group',
+    method: 'POST',
+    permissions: ['그룹_생성'],
+  },
+  {
+    path: '/api/permission-admin/group/[groupNo]',
+    method: 'GET',
+    permissions: ['그룹_조회'],
+  },
+  {
+    path: '/api/permission-admin/group/[groupNo]',
+    method: 'PUT',
+    permissions: ['그룹_수정'],
+  },
+  {
+    path: '/api/permission-admin/group/[groupNo]',
+    method: 'DELETE',
+    permissions: ['그룹_삭제'],
+  },
+  {
+    path: '/api/permission-admin/group-permission',
+    method: 'GET',
+    permissions: ['그룹권한_조회'],
+  },
+  {
+    path: '/api/permission-admin/group-permission',
+    method: 'POST',
+    permissions: ['그룹권한_생성'],
+  },
+  {
+    path: '/api/permission-admin/group-permission/[groupPermissionNo]',
+    method: 'PUT',
+    permissions: ['그룹권한_수정'],
+  },
+  {
+    path: '/api/permission-admin/group-permission/[groupPermissionNo]',
+    method: 'DELETE',
+    permissions: ['그룹권한_삭제'],
+  },
+  {
+    path: '/api/permission-admin/manager-group',
+    method: 'GET',
+    permissions: ['관리자그룹_조회'],
+  },
+  {
+    path: '/api/permission-admin/manager-group',
+    method: 'POST',
+    permissions: ['관리자그룹_생성'],
+  },
+  {
+    path: '/api/permission-admin/manager-group/[managerGroupNo]',
+    method: 'PUT',
+    permissions: ['관리자그룹_수정'],
+  },
+  {
+    path: '/api/permission-admin/manager-group/[managerGroupNo]',
+    method: 'DELETE',
+    permissions: ['관리자그룹_삭제'],
   },
 ];

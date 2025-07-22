@@ -2,9 +2,8 @@ import type { BaseApiResponse } from '@/types/common';
 import type {
   SchoolApiResponse,
   SchoolCreateOrUpdateApiResponse,
-  School,
-  SchoolDto,
   updateRnSchoolDto,
+  deleteRnSchoolDto,
 } from '@/types/school';
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -13,34 +12,19 @@ import {
   updateRnSchool,
   deleteRnSchool,
 } from '@/services/areas/[area]/schools/[schoolNo]/[schoolNo].service';
-import { checkPermission } from '@/utils/permission-check.utils';
-import { handleError, handleZodError } from '@/utils/error.utils';
-import { getCommonContext } from '@/utils/context.utils';
-import { z } from 'zod';
-
-const updateSchoolSchema = z.object({
-  sname: z.string().min(1, '학교 이름은 필수입니다.'),
-  scode: z.string().min(1, '학교 코드는 필수입니다.'),
-  area: z.string().min(1, '지역은 필수입니다.'),
-  administrationCode: z.string().min(1, '행정코드는 필수입니다.'),
-});
+import { withPermissionCheck } from '@/utils/api-wrapper.utils';
+import { CommonContext } from '@/types/api-wrapper';
+import { updateRnSchoolDtoSchema, SchoolParams } from '@/types/school';
 
 /**
  * 지역 학교 정보
  */
-export async function GET(request: NextRequest, { params }: { params: Promise<SchoolDto> }) {
-  try {
+export const GET = withPermissionCheck<SchoolParams>(
+  async (request: NextRequest, { params }: { params: Promise<SchoolParams> }, commonContext: CommonContext) => {
     const resolvedParams = await params;
     const schoolNoNum = Number(resolvedParams.schoolNo);
 
-    const permissionError = await checkPermission(request, {
-      params: Promise.resolve({ schoolNo: schoolNoNum, area: resolvedParams.area }),
-    });
-
-    if (permissionError) return permissionError;
-
-    const context = await getCommonContext(request);
-    const school = await getSchoolBySchoolNo(schoolNoNum, context);
+    const school = await getSchoolBySchoolNo(schoolNoNum, commonContext);
 
     return NextResponse.json(
       {
@@ -50,24 +34,20 @@ export async function GET(request: NextRequest, { params }: { params: Promise<Sc
       } satisfies SchoolApiResponse,
       { status: 200 },
     );
-  } catch (error) {
-    const zodError = handleZodError(error);
-    if (zodError) return zodError;
-    return handleError(error, 'GET');
-  }
-}
+  },
+);
 
 /**
  * 지역 학교 수정
  */
-export async function PUT(request: NextRequest, { params }: { params: Promise<SchoolDto> }) {
-  try {
+export const PUT = withPermissionCheck<SchoolParams>(
+  async (request: NextRequest, { params }: { params: Promise<SchoolParams> }, commonContext: CommonContext) => {
     const resolvedParams = await params;
     const schoolNoNum = Number(resolvedParams.schoolNo);
     const body = await request.json();
 
     // 요청 데이터 검증
-    const validatedData = updateSchoolSchema.parse(body);
+    const validatedData = updateRnSchoolDtoSchema.parse(body);
 
     const dto: updateRnSchoolDto = {
       ...validatedData,
@@ -81,8 +61,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<Sc
       parentNo: null,
     };
 
-    const context = await getCommonContext(request);
-    await updateRnSchool(dto, context);
+    await updateRnSchool(dto, commonContext);
 
     return NextResponse.json(
       {
@@ -94,26 +73,21 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<Sc
       } satisfies SchoolCreateOrUpdateApiResponse,
       { status: 200 },
     );
-  } catch (error) {
-    const zodError = handleZodError(error);
-    if (zodError) return zodError;
-    return handleError(error, 'PUT');
-  }
-}
+  },
+);
 
 /**
  * 지역 학교 삭제
  */
-export async function DELETE(request: NextRequest, { params }: { params: Promise<SchoolDto> }) {
-  try {
+export const DELETE = withPermissionCheck<SchoolParams>(
+  async (request: NextRequest, { params }: { params: Promise<SchoolParams> }, commonContext: CommonContext) => {
     const resolvedParams = await params;
     const schoolNoNum = Number(resolvedParams.schoolNo);
-    const dto: School = {
+    const dto: deleteRnSchoolDto = {
       schoolNo: schoolNoNum,
-    } as School;
+    };
 
-    const context = await getCommonContext(request);
-    await deleteRnSchool(dto, context);
+    await deleteRnSchool(dto, commonContext);
 
     return NextResponse.json(
       {
@@ -122,9 +96,5 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       } satisfies BaseApiResponse,
       { status: 200 },
     );
-  } catch (error) {
-    const zodError = handleZodError(error);
-    if (zodError) return zodError;
-    return handleError(error, 'DELETE');
-  }
-}
+  },
+);

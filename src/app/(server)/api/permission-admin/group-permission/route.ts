@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
       schoolNo: schoolNo ? Number(schoolNo) : undefined,
     });
 
-    const result = await getGroupPermissionsS(pagination, filters, context);
+    const result = await getGroupPermissionsS(pagination, context, filters);
 
     return NextResponse.json(
       groupPermissionsApiResponseSchema.parse({

@@ -6,7 +6,7 @@ import { baseApiResponseSchema, paginationSchema } from '../common';
  */
 export const managerGroupSchema = z.object({
   groupNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
-  no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
+  managerNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
 });
 
 /**
@@ -32,7 +32,7 @@ export const managerGroupDetailSchema = z.object({
  */
 export const createManagerGroupSchema = z.object({
   groupNo: z.number().min(1, '그룹 번호는 필수입니다.').max(Number.MAX_SAFE_INTEGER),
-  no: z.number().min(1, '관리자 번호는 필수입니다.').max(Number.MAX_SAFE_INTEGER),
+  managerNo: z.number().min(1, '관리자 번호는 필수입니다.').max(Number.MAX_SAFE_INTEGER),
 });
 
 /**
@@ -75,7 +75,7 @@ export const managerGroupsApiResponseSchema = baseApiResponseSchema.extend({
 export const managerGroupCreateOrUpdateApiResponseSchema = baseApiResponseSchema.extend({
   data: z.object({
     groupNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
-    no: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
+    managerNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
   }),
 });
 
@@ -93,7 +93,7 @@ export interface FindManagerGroupsDto {
 
 // DTO 스키마
 export const findManagerGroupDtoSchema = managerGroupSchema.pick({
-  no: true,
+  managerNo: true,
   groupNo: true,
 });
 
@@ -102,7 +102,7 @@ export const insertManagerGroupDtoSchema = managerGroupSchema;
 export const updateManagerGroupDtoSchema = updateManagerGroupSchema;
 
 export const deleteManagerGroupDtoSchema = managerGroupSchema.pick({
-  no: true,
+  managerNo: true,
   groupNo: true,
 });
 
