@@ -69,7 +69,7 @@ export async function checkPermission(
     const resolvedParams = await params;
     let userSchool: School | null = null;
 
-    if (resolvedParams.area) {
+    if (resolvedParams && resolvedParams.area) {
       userSchool = await findSchoolBySchoolNo({ schoolNo: commonContext.schoolNo });
       if (!userSchool) {
         throw new AppError('학교 정보를 찾을 수 없습니다.', 404);
@@ -80,8 +80,8 @@ export async function checkPermission(
       }
     }
 
-    // 4. 학교 계층 구조 체크 (삭제/수정 시)
-    if (method === 'DELETE' || method === 'PUT') {
+    // 4. 학교 계층 구조 체크 (삭제/수정 시, 학교 번호가 필요한 API만)
+    if ((method === 'DELETE' || method === 'PUT') && mapping.params?.schoolNo && resolvedParams) {
       const targetSchoolNo = resolvedParams.schoolNo;
       if (!targetSchoolNo) {
         throw new AppError('대상 학교 번호가 없습니다.', 400);
@@ -140,12 +140,13 @@ export async function checkPermission(
 
     return null;
   } catch (error) {
-    console.error('[checkPermission] 권한 체크 중 오류 발생:', error);
-
+    // AppError는 로그 없이 그대로 던지기
     if (error instanceof AppError) {
       throw error;
     }
 
+    // 다른 에러만 로그 출력
+    console.error('[checkPermission] 권한 체크 중 오류 발생:', error);
     throw new AppError('권한 체크 중 오류가 발생했습니다.', 500);
   }
 }

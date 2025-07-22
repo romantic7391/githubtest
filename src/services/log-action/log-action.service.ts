@@ -1,6 +1,8 @@
 import { History, historySchema } from '@/types/history';
 import { insertLogAction } from '@/models/history-action/history-action.model';
 import type { PoolConnection } from 'mariadb';
+// import { headers } from 'next/headers';
+// import { auth } from '@/auth';
 
 // 로그 파라미터를 History 타입으로 변환
 export function makeLogParams(params: Partial<History>) {
