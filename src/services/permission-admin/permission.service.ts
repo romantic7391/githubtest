@@ -6,7 +6,12 @@ import {
   findPermission,
   findPermissionByNameNormalized,
 } from '@/models/permission/permission.model';
-import { CreatePermissionDto, UpdatePermissionDto, FindPermissionsDto } from '@/types/permission/permission';
+import {
+  CreatePermissionDto,
+  UpdatePermissionDto,
+  FindPermissionsDto,
+  Permission,
+} from '@/types/permission/permission';
 import { logAction, makeLogParams } from '@/services/log-action/log-action.service';
 import { beginTransaction, commitTransaction, rollbackTransaction } from '@/lib/mariadb/query';
 import { LogMeta } from '@/types/history';
@@ -212,7 +217,7 @@ export async function deletePermissionS(permissionNo: number, meta: LogMeta) {
 }
 
 // 권한 조회
-export async function getPermissionS(permissionNo: number, meta: LogMeta): Promise<{ permissionNo: number }> {
+export async function getPermissionS(permissionNo: number, meta: LogMeta): Promise<Permission> {
   try {
     const permission = await findPermission({ permissionNo: permissionNo });
     if (!permission) {
@@ -235,9 +240,7 @@ export async function getPermissionS(permissionNo: number, meta: LogMeta): Promi
       }),
     );
 
-    return {
-      permissionNo: permission.permissionNo,
-    };
+    return permission; // 전체 권한 정보 반환
   } catch (error) {
     if (error instanceof AppError) {
       throw error;

@@ -1,25 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getCommonContext } from '@/utils/context.utils';
 import {
-  PermissionRouteParams,
   permissionCreateOrUpdateApiResponseSchema,
   permissionDeleteResponseSchema,
   UpdatePermissionDto,
   createPermissionDtoSchema,
 } from '@/types/permission/permission';
-import { handleError, handleZodError } from '@/utils/error.utils';
-import { AppError } from '@/utils/error.utils';
 import { updatePermissionS, deletePermissionS, getPermissionS } from '@/services/permission-admin/permission.service';
+import { withPermissionCheck } from '@/utils/api-wrapper.utils';
+import { CommonContext, PermissionParams } from '@/types/api-wrapper';
 
 /**
  * 권한 조회
  */
-export async function GET(request: NextRequest, context: PermissionRouteParams) {
-  try {
-    const { permissionNo } = await context.params;
+export const GET = withPermissionCheck<PermissionParams>(
+  async (request: NextRequest, { params }, commonContext: CommonContext) => {
+    const resolvedParams = await params;
+    const { permissionNo } = resolvedParams;
     const permissionNoNum = Number(permissionNo);
-
-    const commonContext = await getCommonContext(request);
 
     const result = await getPermissionS(permissionNoNum, commonContext);
 
@@ -31,33 +28,18 @@ export async function GET(request: NextRequest, context: PermissionRouteParams) 
       },
       { status: 200 },
     );
-  } catch (error) {
-    if (error instanceof AppError) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: error.message,
-          code: error.code,
-        },
-        { status: error.statusCode },
-      );
-    }
-    const zodError = handleZodError(error);
-    if (zodError) return zodError;
-    return handleError(error, '권한 조회');
-  }
-}
+  },
+);
 
 /**
  * 권한 수정
  */
-export async function PUT(request: NextRequest, context: PermissionRouteParams) {
-  try {
-    const { permissionNo } = await context.params;
+export const PUT = withPermissionCheck<PermissionParams>(
+  async (request: NextRequest, { params }, commonContext: CommonContext) => {
+    const resolvedParams = await params;
+    const { permissionNo } = resolvedParams;
     const permissionNoNum = Number(permissionNo);
     const body = await request.json();
-
-    const commonContext = await getCommonContext(request);
 
     // 요청 데이터 검증
     const validatedData = createPermissionDtoSchema.parse(body);
@@ -80,32 +62,17 @@ export async function PUT(request: NextRequest, context: PermissionRouteParams) 
       }),
       { status: 200 },
     );
-  } catch (error) {
-    if (error instanceof AppError) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: error.message,
-          code: error.code,
-        },
-        { status: error.statusCode },
-      );
-    }
-    const zodError = handleZodError(error);
-    if (zodError) return zodError;
-    return handleError(error, '권한 수정');
-  }
-}
+  },
+);
 
 /**
  * 권한 삭제
  */
-export async function DELETE(request: NextRequest, context: PermissionRouteParams) {
-  try {
-    const { permissionNo } = await context.params;
+export const DELETE = withPermissionCheck<PermissionParams>(
+  async (request: NextRequest, { params }, commonContext: CommonContext) => {
+    const resolvedParams = await params;
+    const { permissionNo } = resolvedParams;
     const permissionNoNum = Number(permissionNo);
-
-    const commonContext = await getCommonContext(request);
 
     await deletePermissionS(permissionNoNum, commonContext);
 
@@ -119,19 +86,5 @@ export async function DELETE(request: NextRequest, context: PermissionRouteParam
       }),
       { status: 200 },
     );
-  } catch (error) {
-    if (error instanceof AppError) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: error.message,
-          code: error.code,
-        },
-        { status: error.statusCode },
-      );
-    }
-    const zodError = handleZodError(error);
-    if (zodError) return zodError;
-    return handleError(error, '권한 삭제');
-  }
-}
+  },
+);
