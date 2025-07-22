@@ -1,5 +1,6 @@
 import { Fragment } from 'react';
 import { ZodError } from 'zod';
+import { v4 as uuidv4 } from 'uuid';
 
 // 트리 노드 타입 정의 (원본 타입 + children 배열)
 export type TreeNode<T> = {
@@ -135,7 +136,7 @@ export function findChildren<T>(nodes: TreeNode<T>[]): string[] {
 export function showError(error: ZodError) {
   return error.issues.map((issue, index, array) => {
     return (
-      <Fragment key={issue.code}>
+      <Fragment key={uuidv4()}>
         {issue.message}
         {index < array.length - 1 ? <br /> : ''}
       </Fragment>

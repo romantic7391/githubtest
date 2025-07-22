@@ -26,3 +26,8 @@ export const REGEX_ALPHABET = /^[a-zA-Z]+$/;
  * 숫자 정규 표현식
  */
 export const REGEX_NUMBER = /^[0-9]+$/;
+export const ALLOWED_SPECIAL_CHARACTERS = '!@#$%^&*';
+/**
+ * 알파벳, 숫자, 특수문자 정규 표현식
+ */
+export const REGEX_ALPHABET_NUMBER_SPECIAL = /^[a-zA-Z0-9!@#$%^&*]+$/;

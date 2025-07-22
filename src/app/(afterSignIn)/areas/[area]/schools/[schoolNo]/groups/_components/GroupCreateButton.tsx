@@ -13,7 +13,7 @@ export default function GroupCreateButton({
 
   return (
     <>
-      <CreateButton name="새 그룹" onClick={handlers.open} />
+      <CreateButton name="그룹" onClick={handlers.open} />
 
       <GroupCreateModal opened={opened} schoolNo={schoolNo} handlers={handlers} onSuccess={onSuccess} />
     </>

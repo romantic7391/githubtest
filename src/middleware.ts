@@ -24,7 +24,7 @@ export const config = {
 /**
  * 로그인이 필요없는 URL
  */
-const matchersForPublic: string[] = ['/logo.svg'];
+const matchersForPublic: string[] = ['/logo.svg', '/api/signin', '/api/signup', '/api/duplicate-check/:signInId'];
 
 /**
  * 로그인, 회원가입 페이지 및 관련 엔드포인트 URL

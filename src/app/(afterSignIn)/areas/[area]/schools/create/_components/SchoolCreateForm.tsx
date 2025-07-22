@@ -135,7 +135,8 @@ export default function SchoolCreateForm() {
       position: 'top-center',
       color: 'red',
     });
-  }, [notificationId, isError, error]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [notificationId, isError, error]); // 무한 렌더링 방지를 위해 form 제외.
 
   useEffect(() => {
     if (!notificationId || !isSuccess) return;
@@ -170,6 +171,7 @@ export default function SchoolCreateForm() {
       area: selectedSchool.area || '',
       administrationCode: selectedSchool.administrationCode || '',
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedSchool]);
 
   function handleSearchButtonClick() {

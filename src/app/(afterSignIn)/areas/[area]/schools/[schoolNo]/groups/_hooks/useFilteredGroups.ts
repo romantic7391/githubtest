@@ -1,8 +1,8 @@
 import { HTTPStatusError } from '@/lib/common.error';
 import { isJsonResponse } from '@/lib/util/common.util';
 import { paginationSchema } from '@/types/common';
-import { GroupsApiResponse } from '@/types/permission/group';
-import { School } from '@/types/school';
+import type { GroupsApiResponse } from '@/types/permission/group';
+import type { School } from '@/types/school';
 import { useQuery } from '@tanstack/react-query';
 
 interface UseFilteredGroupsProps {
