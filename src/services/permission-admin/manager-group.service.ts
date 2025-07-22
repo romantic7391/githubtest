@@ -92,7 +92,7 @@ export async function createManagerGroupS(managerGroup: ManagerGroup, meta: LogM
     conn = await beginTransaction();
 
     // 1. 중복 체크
-    const existingGroup = await findManagerGroup(managerGroup.no, managerGroup.groupNo);
+    const existingGroup = await findManagerGroup(managerGroup.managerNo, managerGroup.groupNo);
     if (existingGroup) {
       throw new AppError('이미 존재하는 관리자 그룹입니다.', 409);
     }
@@ -110,10 +110,10 @@ export async function createManagerGroupS(managerGroup: ManagerGroup, meta: LogM
         userAgent: meta.userAgent,
         actionType: 'I',
         targetTable: 'managerGroup',
-        targetId: `${managerGroup.no}_${managerGroup.groupNo}`,
+        targetId: `${managerGroup.managerNo}_${managerGroup.groupNo}`,
         oldValues: null,
         newValues: JSON.stringify(managerGroup),
-        reason: `관리자 그룹 생성: managerNo ${managerGroup.no}, groupNo ${managerGroup.groupNo}`,
+        reason: `관리자 그룹 생성: managerNo ${managerGroup.managerNo}, groupNo ${managerGroup.groupNo}`,
       }),
       conn,
     );
@@ -121,7 +121,7 @@ export async function createManagerGroupS(managerGroup: ManagerGroup, meta: LogM
     await commitTransaction(conn);
     return {
       groupNo: managerGroup.groupNo,
-      no: managerGroup.no,
+      managerNo: managerGroup.managerNo,
     };
   } catch (error) {
     if (conn) {
@@ -149,8 +149,8 @@ export async function updateManagerGroupS(
     }
 
     // 2. 중복 체크 (변경된 경우에만)
-    if (managerGroup.no !== originalNo || managerGroup.groupNo !== originalGroupNo) {
-      const duplicateGroup = await findManagerGroup(managerGroup.no, managerGroup.groupNo);
+    if (managerGroup.managerNo !== originalNo || managerGroup.groupNo !== originalGroupNo) {
+      const duplicateGroup = await findManagerGroup(managerGroup.managerNo, managerGroup.groupNo);
       if (duplicateGroup) {
         throw new AppError('이미 존재하는 관리자 그룹입니다.', 400);
       }
@@ -173,10 +173,10 @@ export async function updateManagerGroupS(
         userAgent: meta.userAgent,
         actionType: 'U',
         targetTable: 'managerGroup',
-        targetId: `${managerGroup.no}_${managerGroup.groupNo}`,
-        oldValues: JSON.stringify({ no: originalNo, groupNo: originalGroupNo }),
+        targetId: `${managerGroup.managerNo}_${managerGroup.groupNo}`,
+        oldValues: JSON.stringify({ managerNo: originalNo, groupNo: originalGroupNo }),
         newValues: JSON.stringify(managerGroup),
-        reason: `관리자 그룹 수정: managerNo ${originalNo}->${managerGroup.no}, groupNo ${originalGroupNo}->${managerGroup.groupNo}`,
+        reason: `관리자 그룹 수정: managerNo ${originalNo}->${managerGroup.managerNo}, groupNo ${originalGroupNo}->${managerGroup.groupNo}`,
       }),
       conn,
     );
@@ -184,7 +184,7 @@ export async function updateManagerGroupS(
     await commitTransaction(conn);
     return {
       groupNo: managerGroup.groupNo,
-      no: managerGroup.no,
+      managerNo: managerGroup.managerNo,
     };
   } catch (error) {
     if (conn) {
@@ -211,7 +211,7 @@ export async function deleteManagerGroupS(no: number, groupNo: number, meta: Log
 
     // 2. 관리자 그룹 삭제
     const dto: DeleteManagerGroupDto = {
-      no,
+      managerNo: no,
       groupNo,
     };
     const result = await deleteManagerGroup(dto, conn);

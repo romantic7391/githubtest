@@ -126,6 +126,21 @@ export const permissionMappings: PermissionMapping[] = [
     permissions: ['권한_생성'],
   },
   {
+    path: '/api/permission-admin/permission/[permissionNo]',
+    method: 'GET',
+    permissions: ['권한_조회'],
+  },
+  {
+    path: '/api/permission-admin/permission/[permissionNo]',
+    method: 'PUT',
+    permissions: ['권한_수정'],
+  },
+  {
+    path: '/api/permission-admin/permission/[permissionNo]',
+    method: 'DELETE',
+    permissions: ['권한_삭제'],
+  },
+  {
     path: '/api/permission-admin/group',
     method: 'GET',
     permissions: ['그룹_조회'],
@@ -134,6 +149,21 @@ export const permissionMappings: PermissionMapping[] = [
     path: '/api/permission-admin/group',
     method: 'POST',
     permissions: ['그룹_생성'],
+  },
+  {
+    path: '/api/permission-admin/group/[groupNo]',
+    method: 'GET',
+    permissions: ['그룹_조회'],
+  },
+  {
+    path: '/api/permission-admin/group/[groupNo]',
+    method: 'PUT',
+    permissions: ['그룹_수정'],
+  },
+  {
+    path: '/api/permission-admin/group/[groupNo]',
+    method: 'DELETE',
+    permissions: ['그룹_삭제'],
   },
   {
     path: '/api/permission-admin/group-permission',
@@ -146,6 +176,16 @@ export const permissionMappings: PermissionMapping[] = [
     permissions: ['그룹권한_생성'],
   },
   {
+    path: '/api/permission-admin/group-permission/[groupPermissionNo]',
+    method: 'PUT',
+    permissions: ['그룹권한_수정'],
+  },
+  {
+    path: '/api/permission-admin/group-permission/[groupPermissionNo]',
+    method: 'DELETE',
+    permissions: ['그룹권한_삭제'],
+  },
+  {
     path: '/api/permission-admin/manager-group',
     method: 'GET',
     permissions: ['관리자그룹_조회'],
@@ -154,5 +194,15 @@ export const permissionMappings: PermissionMapping[] = [
     path: '/api/permission-admin/manager-group',
     method: 'POST',
     permissions: ['관리자그룹_생성'],
+  },
+  {
+    path: '/api/permission-admin/manager-group/[managerGroupNo]',
+    method: 'PUT',
+    permissions: ['관리자그룹_수정'],
+  },
+  {
+    path: '/api/permission-admin/manager-group/[managerGroupNo]',
+    method: 'DELETE',
+    permissions: ['관리자그룹_삭제'],
   },
 ];

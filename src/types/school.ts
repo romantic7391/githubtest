@@ -313,3 +313,13 @@ export const deleteRnSchoolDtoSchema = schoolSchema.pick({
  * 학교 존재 여부 DTO 객채채
  */
 export type deleteRnSchoolDto = z.infer<typeof deleteRnSchoolDtoSchema>;
+
+/**
+ * 학교 동적 세그먼트 용용
+ */
+export const SchoolParamsSchema = schoolSchema.pick({
+  area: true,
+  schoolNo: true,
+});
+
+export type SchoolParams = z.infer<typeof SchoolParamsSchema>;

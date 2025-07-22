@@ -118,7 +118,7 @@ export async function insertManagerGroup(dto: InsertManagerGroupDto, conn?: Pool
     const query = `
       INSERT INTO \`managerGroup\` (no, group_no) VALUES (?, ?);
     `;
-    const params = [dto.no, dto.groupNo];
+    const params = [dto.managerNo, dto.groupNo];
     return exec(query, params, conn);
   } catch (error) {
     console.error('관리자 그룹 생성 중 오류 발생:', error);
@@ -134,7 +134,7 @@ export async function updateManagerGroup(dto: UpdateManagerGroupDto, conn?: Pool
       SET no = ?, group_no = ? 
       WHERE no = ? AND group_no = ?
     `;
-    const params = [dto.no, dto.groupNo, dto.originalNo, dto.originalGroupNo];
+    const params = [dto.managerNo, dto.groupNo, dto.originalNo, dto.originalGroupNo];
     return exec(query, params, conn);
   } catch (error) {
     console.error('관리자 그룹 수정 중 오류 발생:', error);
@@ -146,7 +146,7 @@ export async function updateManagerGroup(dto: UpdateManagerGroupDto, conn?: Pool
 export async function deleteManagerGroup(dto: DeleteManagerGroupDto, conn?: PoolConnection) {
   try {
     const query = `DELETE FROM \`managerGroup\` WHERE no = ? AND group_no = ?`;
-    return exec(query, [dto.no, dto.groupNo], conn);
+    return exec(query, [dto.managerNo, dto.groupNo], conn);
   } catch (error) {
     console.error('관리자 그룹 삭제 중 오류 발생:', error);
     throw new AppError('관리자 그룹 삭제 중 오류가 발생했습니다.', 500);
