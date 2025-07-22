@@ -78,6 +78,11 @@ export const permissionMappings: PermissionMapping[] = [
   },
   {
     path: '/api/areas/[area]/schools',
+    method: 'GET',
+    permissions: ['학교_조회'],
+  },
+  {
+    path: '/api/areas/[area]/schools/create',
     method: 'POST',
     permissions: ['학교_생성'],
   },
