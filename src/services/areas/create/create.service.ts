@@ -18,6 +18,7 @@ export async function createArea(dto: AreaCreate, meta: LogMeta): Promise<void> 
   let conn;
   try {
     conn = await beginTransaction();
+
     // 중복 검증
     const exists = await checkAreaExists(dto.area);
     if (exists) {
@@ -30,6 +31,7 @@ export async function createArea(dto: AreaCreate, meta: LogMeta): Promise<void> 
     await logAction(
       makeLogParams({
         managerNo: meta.managerNo,
+        schoolNo: meta.schoolNo, // 사용자의 schoolNo 사용
         ip: meta.ip,
         userAgent: meta.userAgent,
         actionType: 'I',

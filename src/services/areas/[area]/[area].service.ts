@@ -21,6 +21,7 @@ export async function getAreaByArea(area: string, meta: LogMeta) {
     await logAction(
       makeLogParams({
         managerNo: meta.managerNo,
+        schoolNo: meta.schoolNo, // 사용자의 schoolNo 사용
         ip: meta.ip,
         userAgent: meta.userAgent,
         actionType: 'S',
@@ -51,7 +52,7 @@ export async function getAreaByArea(area: string, meta: LogMeta) {
 }
 
 // 지역 수정
-export async function updateArea(dto: Area, meta: LogMeta): Promise<void> {
+export async function updateArea(dto: Area, meta: LogMeta, originalArea?: string): Promise<void> {
   let conn;
   try {
     conn = await beginTransaction();
@@ -59,27 +60,36 @@ export async function updateArea(dto: Area, meta: LogMeta): Promise<void> {
       throw new AppError('지역명이 필요합니다.', 400);
     }
 
-    // 중복 검증 (자기 자신 제외)
-    const exists = await checkAreaExists(dto.area);
-    if (exists) {
-      throw new AppError('이미 존재하는 지역명입니다.', 409);
+    // 기존 area 값이 제공된 경우 (URL에서 가져온 값)
+    const targetArea = originalArea || dto.area;
+
+    // 이전 데이터 조회 (기존 area로 조회)
+    const oldData = await findAreaByArea(targetArea);
+    if (!oldData?.length) {
+      throw new AppError('수정할 지역이 존재하지 않습니다.', 404);
     }
 
-    // 이전 데이터 조회
-    const oldData = await findAreaByArea(dto.area);
+    // area 값이 변경되는 경우에만 중복 검증
+    if (dto.area !== targetArea) {
+      const exists = await checkAreaExists(dto.area);
+      if (exists) {
+        throw new AppError('이미 존재하는 지역명입니다.', 409);
+      }
+    }
 
-    // 데이터 수정
-    await updateAreaInfo(dto, conn);
+    // 데이터 수정 (기존 area로 WHERE 조건 설정)
+    await updateAreaInfo(dto, conn, targetArea);
 
     // 로그 기록
     await logAction(
       makeLogParams({
         managerNo: meta.managerNo,
+        schoolNo: meta.schoolNo, // 사용자의 schoolNo 사용
         ip: meta.ip,
         userAgent: meta.userAgent,
         actionType: 'U',
         targetTable: 'AreaData',
-        targetId: dto.area,
+        targetId: targetArea,
         oldValues: JSON.stringify(oldData),
         newValues: JSON.stringify(dto),
         reason: '지역 정보 수정',
@@ -121,6 +131,7 @@ export async function deleteArea(area: string, meta: LogMeta): Promise<void> {
     await logAction(
       makeLogParams({
         managerNo: meta.managerNo,
+        schoolNo: meta.schoolNo, // 사용자의 schoolNo 사용
         ip: meta.ip,
         userAgent: meta.userAgent,
         actionType: 'D',

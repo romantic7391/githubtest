@@ -23,7 +23,7 @@ export const GET = withPermissionCheck<AreaParams>(
       managerNo: commonContext.managerNo,
       ip: commonContext.ip,
       userAgent: commonContext.userAgent,
-      schoolNo: 0,
+      schoolNo: commonContext.schoolNo,
     });
 
     return NextResponse.json(
@@ -52,12 +52,16 @@ export const PUT = withPermissionCheck<AreaParams>(
     const body = await request.json();
     const validatedData = areaSchema.parse(body);
 
-    await updateArea(validatedData, {
-      managerNo: commonContext.managerNo,
-      ip: commonContext.ip,
-      userAgent: commonContext.userAgent,
-      schoolNo: 0,
-    });
+    await updateArea(
+      validatedData,
+      {
+        managerNo: commonContext.managerNo,
+        ip: commonContext.ip,
+        userAgent: commonContext.userAgent,
+        schoolNo: commonContext.schoolNo,
+      },
+      area,
+    ); // URL의 기존 area 값 전달
 
     return NextResponse.json(
       {
@@ -86,7 +90,7 @@ export const DELETE = withPermissionCheck<AreaParams>(
       managerNo: commonContext.managerNo,
       ip: commonContext.ip,
       userAgent: commonContext.userAgent,
-      schoolNo: 0,
+      schoolNo: commonContext.schoolNo,
     });
 
     return NextResponse.json(
@@ -94,7 +98,7 @@ export const DELETE = withPermissionCheck<AreaParams>(
         success: true,
         message: '지역이 삭제되었습니다.',
       },
-      { status: 204 },
+      { status: 200 },
     );
   },
 );
