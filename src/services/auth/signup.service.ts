@@ -105,7 +105,7 @@ export async function signUp({ signInId, password, name, schoolNo, parentGroupNo
     // 6. 관리자 아이디 그룹에 관리자 추가
     await insertManagerGroup(
       {
-        no: managerNo,
+        managerNo,
         groupNo,
       },
       conn,
