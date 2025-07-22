@@ -35,7 +35,7 @@ export async function findPermissionByName(name: string): Promise<Permission | n
  */
 export async function findManagerGroups(managerNo: number, schoolNo: number): Promise<ManagerGroup[]> {
   const query = `
-    SELECT mg.group_no as groupNo, mg.no
+    SELECT mg.group_no as groupNo, mg.no as managerNo
     FROM managerGroup mg
     JOIN manager m ON mg.no = m.no
     JOIN \`group\` g ON mg.group_no = g.group_no
