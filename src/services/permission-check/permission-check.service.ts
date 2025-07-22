@@ -8,7 +8,6 @@ import {
 import { groupPermissionSchema } from '@/types/permission/group-permission';
 import { groupSchema } from '@/types/permission/group';
 import { managerGroupSchema } from '@/types/permission/manager-group';
-
 import { findSchoolBySchoolNo } from '@/models/rn-school/rn-school.model';
 
 /**

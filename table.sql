@@ -21,7 +21,6 @@ ENGINE=InnoDB
 AUTO_INCREMENT=0
 ;
 
-
 /*
 그룹 테이블
 */
@@ -104,17 +103,17 @@ CREATE TABLE `manager` (
   `salt` varchar(255) DEFAULT NULL COMMENT '비밀번호 salt',
   `last_passwd_changed` datetime DEFAULT NULL COMMENT '마지막 비밀번호 변경 일시',
   `login_attempt_count` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '로그인 시도 횟수',
-  `approved` tinyint(1) unsigned NOT NULL DEFAULT 0 COMMENT '계정 승인 여부',
-  `locked` tinyint(1) unsigned NOT NULL DEFAULT 0 COMMENT '계정 잠금 여부',
+  `approved_status` varchar(16) NOT NULL DEFAULT 'PENDING' COMMENT '계정 승인 여부',
+  `locked` ENUM('Y','N') NOT NULL DEFAULT 'N' COMMENT '계정 잠금 여부',
   `created` datetime NOT NULL DEFAULT current_timestamp(),
   `updated` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`no`) USING BTREE
 ) 
-COMMENT='사용자';
+COMMENT='사용자'
 ENGINE=InnoDB
 AUTO_INCREMENT=0
 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci 
-
+;
 
 /*
 사용자 그룹 테이블

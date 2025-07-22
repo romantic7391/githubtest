@@ -1,22 +1,24 @@
 'use client';
 
-import { Button, Group, Modal, Pagination, Radio, Stack, Text, TextInput, useMantineTheme } from '@mantine/core';
-import { useMediaQuery } from '@mantine/hooks';
+import { Button, Group, Modal, Pagination, Radio, Stack, Text, TextInput } from '@mantine/core';
 import styles from './_styles/SchoolSearchModal.module.css';
 import { useEffect, useMemo, useState } from 'react';
 import { useSchoolSearchModalStore } from '@/stores/modal/school-search-modal.store';
 import { IconSearch } from '@tabler/icons-react';
 import useFindSchool from '../_hooks/useFindSchool';
 import { BaseResultItem } from '@/types/school-finder/school';
+import useIsMobile from '@/app/_hooks/useIsMobile';
 
+/**
+ * 학교 검색 모달. 학교알리미와 유치원알리미를 통해 추가할 학교를 검색할 수 있습니다.
+ * @returns 학교 검색 모달
+ */
 export default function SchoolSearchModal() {
-  const theme = useMantineTheme();
-  const isMobile = useMediaQuery(`(max-width: ${theme.breakpoints.md})`);
+  const isMobile = useIsMobile();
   const opened = useSchoolSearchModalStore((state) => state.opened);
   const close = useSchoolSearchModalStore((state) => state.close);
   const searchFilter = useSchoolSearchModalStore((state) => state.searchFilter);
   const setSearchFilter = useSchoolSearchModalStore((state) => state.setSearchFilter);
-  // const selectedSchool = useSchoolSearchModalStore((state) => state.selectedSchool); // 임시주석
   const setSelectedSchool = useSchoolSearchModalStore((state) => state.setSelectedSchool);
 
   const [page, setPage] = useState(searchFilter.page);

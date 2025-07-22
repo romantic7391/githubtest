@@ -33,7 +33,6 @@ export async function getSchoolHierarchy(
   // 2. 대상 학교 찾기
   const targetSchool = schools.find((s) => s.schoolNo === targetSchoolNo);
   if (!targetSchool) {
-    console.log('학교를 찾을 수 없음:', { area, targetSchoolNo, schools });
     throw new Error('요청한 학교 정보를 찾을 수 없습니다.');
   }
 

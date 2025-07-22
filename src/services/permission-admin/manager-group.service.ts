@@ -198,20 +198,20 @@ export async function updateManagerGroupS(
 }
 
 // 관리자 그룹 삭제
-export async function deleteManagerGroupS(no: number, groupNo: number, meta: LogMeta) {
+export async function deleteManagerGroupS(managerNo: number, groupNo: number, meta: LogMeta) {
   let conn;
   try {
     conn = await beginTransaction();
 
     // 1. 기존 그룹 존재 여부 확인
-    const existingGroup = await findManagerGroup(no, groupNo);
+    const existingGroup = await findManagerGroup(managerNo, groupNo);
     if (!existingGroup) {
       throw new AppError('존재하지 않는 관리자 그룹입니다.', 404);
     }
 
     // 2. 관리자 그룹 삭제
     const dto: DeleteManagerGroupDto = {
-      managerNo: no,
+      managerNo,
       groupNo,
     };
     const result = await deleteManagerGroup(dto, conn);
@@ -225,10 +225,10 @@ export async function deleteManagerGroupS(no: number, groupNo: number, meta: Log
         userAgent: meta.userAgent,
         actionType: 'D',
         targetTable: 'managerGroup',
-        targetId: `${no}_${groupNo}`,
+        targetId: `${managerNo}_${groupNo}`,
         oldValues: JSON.stringify(existingGroup), // 실제 삭제되는 데이터
         newValues: null,
-        reason: `관리자 그룹 삭제: managerNo ${no}, groupNo ${groupNo}`,
+        reason: `관리자 그룹 삭제: managerNo ${managerNo}, groupNo ${groupNo}`,
       }),
       conn,
     );

@@ -82,7 +82,17 @@ export const bigintSchema = z.number().nonnegative().max(Number.MAX_SAFE_INTEGER
 
 export type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 
-export interface BaseApiResponse1 {
-  success: boolean;
-  message: string;
-}
+/**
+ * 공통 컨텍스트
+ */
+export const commonContextSchema = z.object({
+  managerNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
+  ip: z.string().nullable(),
+  userAgent: z.string().nullable(),
+  schoolNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER).optional(),
+});
+
+export type CommonContext = z.infer<typeof commonContextSchema>;
+
+export const ynSchema = z.enum(['Y', 'N']);
+export type YN = z.infer<typeof ynSchema>;
