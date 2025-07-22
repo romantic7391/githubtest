@@ -1,19 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { AreaApiResponse, AreaCreateOrUpdateApiResponse } from '@/types/area';
 import { getAreaByArea, updateArea, deleteArea } from '@/services/areas/[area]/[area].service';
-import { areaSchema } from '@/types/area';
-import { handleError, handleZodError } from '@/utils/error.utils';
-import { getCommonContext } from '@/utils/context.utils';
+import { areaSchema, AreaParams } from '@/types/area';
+import { withPermissionCheck } from '@/utils/api-wrapper.utils';
+import { CommonContext } from '@/types/api-wrapper';
 
 /**
  * 지역 조회
  *
  * @todo `area`가 `all`일 경우 모든 지역 조회. GET /api/areas 와 동일함.
  */
-export async function GET(request: NextRequest, { params }: { params: Promise<{ area: string }> }) {
-  try {
-    const { area } = await params;
-    const commonContext = await getCommonContext(request);
+export const GET = withPermissionCheck<AreaParams>(
+  async (request: NextRequest, { params }: { params: Promise<AreaParams> }, commonContext: CommonContext) => {
+    const resolvedParams = await params;
+    const { area } = resolvedParams;
+
+    if (!area) {
+      return NextResponse.json({ success: false, message: '지역 정보가 필요합니다.' }, { status: 400 });
+    }
 
     const areas = await getAreaByArea(area, {
       managerNo: commonContext.managerNo,
@@ -30,22 +34,23 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       } satisfies AreaApiResponse,
       { status: 200 },
     );
-  } catch (error) {
-    const zodError = handleZodError(error);
-    if (zodError) return zodError;
-    return handleError(error, '지역 조회');
-  }
-}
+  },
+);
 
 /**
  * 지역 수정
  */
-export async function PUT(request: NextRequest, { params }: { params: Promise<{ area: string }> }) {
-  try {
-    await params; // area는 사용하지 않으므로 구조 분해 할당 제거
+export const PUT = withPermissionCheck<AreaParams>(
+  async (request: NextRequest, { params }: { params: Promise<AreaParams> }, commonContext: CommonContext) => {
+    const resolvedParams = await params;
+    const { area } = resolvedParams;
+
+    if (!area) {
+      return NextResponse.json({ success: false, message: '지역 정보가 필요합니다.' }, { status: 400 });
+    }
+
     const body = await request.json();
     const validatedData = areaSchema.parse(body);
-    const commonContext = await getCommonContext(request);
 
     await updateArea(validatedData, {
       managerNo: commonContext.managerNo,
@@ -62,20 +67,20 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       } satisfies AreaCreateOrUpdateApiResponse,
       { status: 200 },
     );
-  } catch (error) {
-    const zodError = handleZodError(error);
-    if (zodError) return zodError;
-    return handleError(error, '지역 수정');
-  }
-}
+  },
+);
 
 /**
  * 지역 삭제
  */
-export async function DELETE(request: NextRequest, { params }: { params: Promise<{ area: string }> }) {
-  try {
-    const { area } = await params;
-    const commonContext = await getCommonContext(request);
+export const DELETE = withPermissionCheck<AreaParams>(
+  async (request: NextRequest, { params }: { params: Promise<AreaParams> }, commonContext: CommonContext) => {
+    const resolvedParams = await params;
+    const { area } = resolvedParams;
+
+    if (!area) {
+      return NextResponse.json({ success: false, message: '지역 정보가 필요합니다.' }, { status: 400 });
+    }
 
     await deleteArea(area, {
       managerNo: commonContext.managerNo,
@@ -91,9 +96,5 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       },
       { status: 204 },
     );
-  } catch (error) {
-    const zodError = handleZodError(error);
-    if (zodError) return zodError;
-    return handleError(error, '지역 삭제');
-  }
-}
+  },
+);

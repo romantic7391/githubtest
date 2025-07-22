@@ -107,7 +107,7 @@ export const permissionMappings: PermissionMapping[] = [
     },
   },
   {
-    path: '/api/areas/[area]/schools/[schoolNo]/devices',
+    path: '/api/areas/[area]/schools/[schoolNo]/devices/create',
     method: 'POST',
     permissions: ['센서_생성'],
     params: {
