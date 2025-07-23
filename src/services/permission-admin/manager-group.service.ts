@@ -152,7 +152,7 @@ export async function updateManagerGroupS(
     if (managerGroup.managerNo !== originalNo || managerGroup.groupNo !== originalGroupNo) {
       const duplicateGroup = await findManagerGroup(managerGroup.managerNo, managerGroup.groupNo);
       if (duplicateGroup) {
-        throw new AppError('이미 존재하는 관리자 그룹입니다.', 400);
+        throw new AppError('이미 존재하는 관리자 그룹입니다.', 409);
       }
     }
 
