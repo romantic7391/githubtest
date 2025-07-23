@@ -20,6 +20,8 @@ export async function findManagerGroups(
     const conditions = ['mg.deleted IS NULL'];
     const queryParams: (string | number)[] = [];
 
+    console.log('params: ', params);
+
     // 선택적 필터: 특정 매니저만 조회하고 싶을 때만 사용
     if (params.filters?.managerNo) {
       conditions.push('mg.no = ?');
@@ -53,6 +55,7 @@ export async function findManagerGroups(
       AND gp.deleted IS NULL
       AND p.deleted IS NULL
     `;
+    console.log('countQuery: ', countQuery);
     const totalResult = await getRow<{ total: number }>(countQuery, queryParams);
     const total = totalResult?.total || 0;
 
@@ -109,6 +112,23 @@ export async function findManagerGroup(no: number, groupNo: number): Promise<boo
   } catch (error) {
     console.error('관리자 그룹 조회 중 오류 발생:', error);
     throw new AppError('관리자 그룹 조회 중 오류가 발생했습니다.', 500);
+  }
+}
+
+export async function findManagerGroupsByManagerNo(managerNo: number) {
+  try {
+    const query = `
+      SELECT
+        mg.no as managerNo,
+        mg.group_no as groupNo
+      FROM managerGroup AS mg
+      WHERE
+        mg.no = ?
+    `;
+    return getAll<ManagerGroup>(query, [managerNo]);
+  } catch (error) {
+    console.error('관리자 그룹 목록 조회 중 오류 발생:', error);
+    throw new AppError('관리자 그룹 목록 조회 중 오류가 발생했습니다.', 500);
   }
 }
 
