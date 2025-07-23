@@ -34,7 +34,7 @@ export async function findManagerGroups(
     }
 
     // 선택적 필터: 특정 학교만 조회하고 싶을 때만 사용
-    if (params.filters?.schoolNo) {
+    if (params.filters?.schoolNo !== undefined) {
       conditions.push('g.school_no = ?');
       queryParams.push(params.filters.schoolNo);
     }
