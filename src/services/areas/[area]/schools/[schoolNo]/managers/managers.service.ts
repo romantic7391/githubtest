@@ -15,7 +15,7 @@ import { beginTransaction, commitTransaction, rollbackTransaction } from '@/lib/
 import { UpdateManagerDto } from '@/types/manager';
 import bcrypt from 'bcrypt';
 import { auth } from '@/auth';
-import { deleteManagerGroup, findManagerGroups } from '@/models/manager-group/manager-group.model';
+import { deleteManagerGroup, findManagerGroupsByManagerNo } from '@/models/manager-group/manager-group.model';
 import { deleteGroup } from '@/models/group/group-model';
 
 export async function getManagersS(
@@ -208,22 +208,8 @@ export async function deleteManagerS(managerNo: number, meta: LogMeta) {
       throw new AppError('해당하는 관리자가 존재하지 않습니다.', 404);
     }
 
-    const managerGroups = await findManagerGroups(
-      {
-        managerNo,
-        filters: {
-          schoolNo: meta.schoolNo,
-        },
-      },
-      {
-        page: 1,
-        pageSize: Number.MAX_SAFE_INTEGER,
-        total: 0,
-        totalPages: 0,
-      },
-    );
-
-    for (const mg of managerGroups.managerGroups) {
+    const managerGroups = await findManagerGroupsByManagerNo(managerNo);
+    for (const mg of managerGroups) {
       await deleteGroup({ groupNo: mg.groupNo }, conn);
       await logAction(
         makeLogParams({
