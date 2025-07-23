@@ -142,7 +142,7 @@ export async function updateGroupPermissionS(
         permissionNo: groupPermission.permissionNo,
       });
       if (existingPermission) {
-        throw new AppError('이미 존재하는 그룹 권한입니다.', 400);
+        throw new AppError('이미 존재하는 그룹 권한입니다.', 409);
       }
     }
 
