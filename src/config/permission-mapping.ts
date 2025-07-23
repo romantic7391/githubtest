@@ -188,21 +188,21 @@ export const permissionMappings: PermissionMapping[] = [
   {
     path: '/api/permission-admin/manager-group',
     method: 'GET',
-    permissions: ['관리자그룹_조회'],
+    permissions: ['사용자그룹_조회'],
   },
   {
     path: '/api/permission-admin/manager-group',
     method: 'POST',
-    permissions: ['관리자그룹_생성'],
+    permissions: ['사용자그룹_생성'],
   },
   {
     path: '/api/permission-admin/manager-group/[managerGroupNo]',
     method: 'PUT',
-    permissions: ['관리자그룹_수정'],
+    permissions: ['사용자그룹_수정'],
   },
   {
     path: '/api/permission-admin/manager-group/[managerGroupNo]',
     method: 'DELETE',
-    permissions: ['관리자그룹_삭제'],
+    permissions: ['사용자그룹_삭제'],
   },
 ];
