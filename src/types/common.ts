@@ -82,17 +82,59 @@ export const bigintSchema = z.number().nonnegative().max(Number.MAX_SAFE_INTEGER
 
 export type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 
-/**
- * 공통 컨텍스트
- */
-export const commonContextSchema = z.object({
-  managerNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER),
-  ip: z.string().nullable(),
-  userAgent: z.string().nullable(),
-  schoolNo: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER).optional(),
-});
-
-export type CommonContext = z.infer<typeof commonContextSchema>;
-
 export const ynSchema = z.enum(['Y', 'N']);
 export type YN = z.infer<typeof ynSchema>;
+
+/**
+ * 객체의 문자열 값을 숫자로 변환합니다.
+ * @param {unknown} obj 변환할 객체. Zod의 preprocess의 타입에 맞추기 위해 `unknown` 타입을 사용합니다. 실제 타입은 `object`입니다.
+ * @returns {Record<string, number>} 변환된 객체
+ */
+export function stringToNumberObject(obj: unknown): Record<string, number> {
+  if (!obj || typeof obj !== 'object') return {};
+
+  const result: Record<string, number> = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (typeof value === 'string' && value.trim() !== '') {
+      const num = Number(value);
+      if (!isNaN(num)) {
+        result[key] = num;
+      }
+    }
+  }
+  return result;
+}
+
+/**
+ * 문자열을 숫자로 변환합니다.
+ * @param {unknown} value 변환할 값. Zod의 preprocess의 타입에 맞추기 위해 `unknown` 타입을 사용합니다. 실제 타입은 `string`입니다.
+ * @returns {number} 변환된 숫자. 변환에 실패한 경우 `Number.NaN`을 반환합니다.
+ */
+export function stringToNumber(value: unknown): number {
+  if (typeof value === 'string' && value.trim() !== '') {
+    const num = Number(value);
+    if (!isNaN(num)) {
+      return num;
+    }
+  }
+  return Number.NaN;
+}
+
+/**
+ * 객체의 `null` 값을 `undefined`로 변환합니다.
+ * @param {unknown} obj 변환할 객체. Zod의 preprocess의 타입에 맞추기 위해 `unknown` 타입을 사용합니다. 실제 타입은 `object`입니다.
+ * @returns {Record<string, unknown>} 변환된 객체
+ */
+export function nullToUndefinedObject(obj: unknown): Record<string, unknown> {
+  if (!obj || typeof obj !== 'object') return {};
+
+  const result: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (value === null) {
+      result[key] = undefined;
+    } else {
+      result[key] = value;
+    }
+  }
+  return result;
+}

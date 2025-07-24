@@ -1,4 +1,15 @@
 import { z } from 'zod';
+import {
+  datetimeSchema,
+  nullToUndefinedObject,
+  paginationSchema,
+  stringToNumber,
+  stringToNumberObject,
+} from './common';
+import { areaSchema } from './area';
+import { schoolSchema } from './school';
+import { groupSchema } from './permission/group';
+import { managerSchema } from './manager';
 
 // 히스토리 기본 스키마
 export const historySchema = z.object({
@@ -30,3 +41,29 @@ export const historyNoSchema = z.object({
 export type History = z.infer<typeof historySchema>;
 export type LogMeta = z.infer<typeof logMetaSchema>;
 export type HistoryNo = z.infer<typeof historyNoSchema>;
+
+export const selectHistoryDtoSchema = z.object({
+  pagination: z.preprocess(stringToNumberObject, paginationSchema),
+  filters: z.preprocess(
+    nullToUndefinedObject,
+    z
+      .object({
+        area: areaSchema.shape.area,
+        schoolNo: z.preprocess(stringToNumber, schoolSchema.shape.schoolNo),
+        groupNo: z.preprocess(stringToNumber, groupSchema.shape.groupNo),
+        managerNo: z.preprocess(stringToNumber, managerSchema.shape.managerNo),
+        ip: z.string().ip({ version: 'v4' }),
+        userAgent: z.string(),
+        actionType: z.enum(['S', 'I', 'U', 'D']),
+        reason: z.string(),
+        startDate: datetimeSchema,
+        endDate: datetimeSchema,
+      })
+      .partial()
+      .extend({
+        order: z.enum(['asc', 'desc']).default('desc'),
+      }),
+  ),
+});
+
+export type SelectHistoryDto = z.infer<typeof selectHistoryDtoSchema>;
