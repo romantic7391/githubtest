@@ -37,11 +37,11 @@ export async function getHistorysS(dto: SelectHistoryDto, meta: LogMeta) {
         totalPages: Math.ceil(total / dto.pagination.pageSize),
       } satisfies Pagination,
     };
-  } catch {
+  } catch (error) {
     if (conn) {
       await rollbackTransaction(conn);
     }
-    throw new AppError('이력 목록 조회 중 오류가 발생했습니다.', 500);
+    throw error;
   }
 }
 
@@ -70,10 +70,10 @@ export async function getHistoryS(historyNo: number, meta: LogMeta) {
 
     await commitTransaction(conn);
     return history;
-  } catch {
+  } catch (error) {
     if (conn) {
       await rollbackTransaction(conn);
     }
-    throw new AppError('이력 조회 중 오류가 발생했습니다.', 500);
+    throw error;
   }
 }

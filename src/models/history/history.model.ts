@@ -1,6 +1,5 @@
 import type { PoolConnection } from 'mariadb';
 import type { HistoryWithNo, SelectHistoryDto } from '@/types/history';
-import { AppError } from '@/utils/error.utils';
 import { getRow, getAll } from '@/lib/mariadb/query';
 
 const selectFromClause = `
@@ -105,8 +104,8 @@ export async function selectHistorys(dto: SelectHistoryDto, conn?: PoolConnectio
       historys,
       total,
     };
-  } catch {
-    throw new AppError('이력 목록 조회 중 오류가 발생했습니다.', 500);
+  } catch (error) {
+    throw error;
   }
 }
 
@@ -118,7 +117,7 @@ export async function selectHistory(historyNo: number, conn?: PoolConnection) {
     `;
     const history = await getRow<HistoryWithNo>(query, [historyNo], undefined, conn);
     return history;
-  } catch {
-    throw new AppError('이력 조회 중 오류가 발생했습니다.', 500);
+  } catch (error) {
+    throw error;
   }
 }
