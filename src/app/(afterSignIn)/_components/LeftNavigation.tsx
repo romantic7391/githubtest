@@ -1,7 +1,7 @@
 'use client';
 
 import { NavLink } from '@mantine/core';
-import { IconHome, IconLocation, IconBox, IconLogs } from '@tabler/icons-react';
+import { IconHome, IconLicense, IconLocation, IconLogs } from '@tabler/icons-react';
 import { usePathname } from 'next/navigation';
 
 export default function LeftNavigation() {
@@ -15,7 +15,11 @@ export default function LeftNavigation() {
         {/* <NavLink href="/not-ready" label="교육지원청" /> */}
         {/* <NavLink href="/not-ready" label="교육청" /> */}
       </NavLink>
-      <NavLink href="/devices" label="센서" leftSection={<IconBox />} />
+      <NavLink
+        href="/permissions"
+        label="권한"
+        leftSection={<IconLicense />}
+        defaultOpened={pathname.startsWith('/permissions')}></NavLink>
       <NavLink href="/history" label="이력" leftSection={<IconLogs />} defaultOpened={pathname.startsWith('/history')}>
         <NavLink href="/history/task" label="작업 이력" />
         <NavLink href="/history/signin" label="로그인 이력" />

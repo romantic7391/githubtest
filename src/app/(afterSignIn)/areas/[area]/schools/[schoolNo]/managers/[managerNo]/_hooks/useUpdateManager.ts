@@ -18,7 +18,6 @@ export default function useUpdateManager({ area, schoolNo, managerNo }: UpdateMa
   const queryClient = useQueryClient();
 
   async function mutationFn(manager: UpdateManagerParams['manager']) {
-    console.log('update: ', { area, schoolNo, managerNo, manager });
     const requestUrl = new URL(`/api/areas/${area}/schools/${schoolNo}/managers/${managerNo}`, window.location.origin);
     const body = JSON.stringify(manager);
     const response = await fetch(requestUrl, {
