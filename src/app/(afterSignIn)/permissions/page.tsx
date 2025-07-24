@@ -3,6 +3,12 @@ import { Group, Stack, Title } from '@mantine/core';
 import Search from '../_components/Search';
 import PermissionList from './_components/PermissionList';
 import PermissionCreateButton from './_components/PermissionCreateButton';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: '권한 목록',
+  description: '권한 목록',
+};
 
 export default async function Page(params: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;

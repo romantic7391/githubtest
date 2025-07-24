@@ -1,5 +1,11 @@
 import { Anchor, Breadcrumbs, Stack, Title } from '@mantine/core';
 import PermissionForm from './_components/PermissionForm';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: '권한 정보',
+  description: '권한 정보',
+};
 
 export default async function Page({
   params,
