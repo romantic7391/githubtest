@@ -9,18 +9,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 /**
  * 검색한 내용을 쿼리 스트링으로 전달
  */
-export default function Search() {
-  const searchKeys: ComboboxItem[] = [
-    {
-      label: '학교 이름',
-      value: 'sname',
-    },
-    {
-      label: '학교 코드',
-      value: 'scode',
-    },
-  ];
-
+export default function Search({ searchKeys }: { searchKeys: ComboboxItem[] }) {
   const [searchKey, setSearchKey] = useState<ComboboxItem>(searchKeys[0]);
   const [searchValue, setSearchValue] = useState<string>('');
 
@@ -48,12 +37,16 @@ export default function Search() {
     router.replace(pathname);
   }
 
+  if (searchKeys.length === 0) {
+    return <Card withBorder>검색 조건이 없습니다.</Card>;
+  }
+
   return (
     <Card withBorder>
       <Grid>
         <Grid.Col span="content">
           <Flex h="100%" align="center">
-            <Text component="label" htmlFor="sname" fw="bold">
+            <Text component="label" htmlFor="search-key" fw="bold">
               검색
             </Text>
           </Flex>
@@ -70,9 +63,10 @@ export default function Search() {
                 if (!value) return;
                 setSearchKey(searchKeys.find((item) => item.value === value) || searchKeys[0]);
               }}
+              readOnly={searchKeys.length === 1}
             />
             <TextInput
-              id="sname"
+              id="search-value"
               flex={1}
               placeholder={`${searchKey.label}을 입력해주세요.`}
               value={searchValue}

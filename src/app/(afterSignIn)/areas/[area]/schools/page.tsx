@@ -35,7 +35,18 @@ export default async function Page(params: {
           <Title order={3}>학교 목록</Title>
           <SchoolAddButton />
         </Group>
-        <Search />
+        <Search
+          searchKeys={[
+            {
+              label: '학교 이름',
+              value: 'sname',
+            },
+            {
+              label: '학교 코드',
+              value: 'scode',
+            },
+          ]}
+        />
         <SchoolList sname={sname} scode={scode} page={page} pageSize={pageSize} />
       </Stack>
     </>

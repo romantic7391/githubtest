@@ -6,7 +6,7 @@ type SchoolCardProps = Pick<School, 'schoolNo' | 'sname' | 'scode' | 'area'>;
 
 export default function SchoolCard({ schoolNo, sname, scode, area }: SchoolCardProps) {
   return (
-    <Anchor className={styles.anchor} key={schoolNo} href={`/areas/${area}/schools/${schoolNo}`} underline="never">
+    <Anchor key={schoolNo} href={`/areas/${area}/schools/${schoolNo}`} underline="never">
       <Card className={styles.card} withBorder>
         <Group gap={0}>
           <Text>{sname}</Text>

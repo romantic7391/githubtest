@@ -119,7 +119,6 @@ export default function ManagerForm({ managerNo }: { managerNo: number }) {
     });
     setNotificationId(notificationId);
 
-    console.log('data: managerNo: ', data.managerNo);
     updateManager({
       managerNo: data.managerNo,
       name: values.name,

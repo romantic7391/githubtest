@@ -119,7 +119,6 @@ export default function ManagerCreateForm({ area, schoolNo }: { area: string; sc
   }, [duplicateCheckResult]); // 무한 렌더링 방지를 위해 form 제외.
 
   function handleSubmit(values: typeof form.values) {
-    console.log('사용자 생성: ', values);
     signUp({
       signInId: values.signInId,
       password: values.password,

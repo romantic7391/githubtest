@@ -20,8 +20,6 @@ export async function findManagerGroups(
     const conditions = ['mg.deleted IS NULL'];
     const queryParams: (string | number)[] = [];
 
-    console.log('params: ', params);
-
     // 선택적 필터: 특정 매니저만 조회하고 싶을 때만 사용
     if (params.filters?.managerNo) {
       conditions.push('mg.no = ?');
@@ -55,7 +53,7 @@ export async function findManagerGroups(
       AND gp.deleted IS NULL
       AND p.deleted IS NULL
     `;
-    console.log('countQuery: ', countQuery);
+
     const totalResult = await getRow<{ total: number }>(countQuery, queryParams);
     const total = totalResult?.total || 0;
 
