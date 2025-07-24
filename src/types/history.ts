@@ -35,12 +35,17 @@ export const logMetaSchema = z.object({
 
 // 히스토리 번호 스키마
 export const historyNoSchema = z.object({
-  historyNo: z.number().min(0).max(Number.MAX_SAFE_INTEGER),
+  historyNo: z.coerce.number().min(0).max(Number.MAX_SAFE_INTEGER),
+});
+
+export const historyWithNoSchema = historySchema.extend({
+  historyNo: historyNoSchema.shape.historyNo,
 });
 
 export type History = z.infer<typeof historySchema>;
 export type LogMeta = z.infer<typeof logMetaSchema>;
 export type HistoryNo = z.infer<typeof historyNoSchema>;
+export type HistoryWithNo = z.infer<typeof historyWithNoSchema>;
 
 export const selectHistoryDtoSchema = z.object({
   pagination: z.preprocess(stringToNumberObject, paginationSchema),

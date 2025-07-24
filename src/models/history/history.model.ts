@@ -1,8 +1,24 @@
+import type { PoolConnection } from 'mariadb';
+import type { HistoryWithNo, SelectHistoryDto } from '@/types/history';
 import { AppError } from '@/utils/error.utils';
-import { PoolConnection } from 'mariadb';
-import { SelectHistoryDto } from '@/types/history';
 import { getRow, getAll } from '@/lib/mariadb/query';
-import { History } from '@/types/history';
+
+const selectFromClause = `
+  SELECT
+    h.log_no AS historyNo
+    , h.manager_no AS managerNo
+    , h.school_no AS schoolNo
+    , h.ip
+    , h.user_agent AS userAgent
+    , h.action_type AS actionType
+    , h.target_table AS targetTable
+    , h.target_id AS targetId
+    , h.old_values AS oldValues
+    , h.new_values AS newValues
+    , h.reason
+    , h.created
+  FROM history AS h
+`;
 
 export async function selectHistorys(dto: SelectHistoryDto, conn?: PoolConnection) {
   try {
@@ -77,26 +93,13 @@ export async function selectHistorys(dto: SelectHistoryDto, conn?: PoolConnectio
     const total = totalResult?.total || 0;
 
     const query = `
-      SELECT
-        h.log_no AS historyNo
-        , h.manager_no AS managerNo
-        , h.school_no AS schoolNo
-        , h.ip
-        , h.user_agent AS userAgent
-        , h.action_type AS actionType
-        , h.target_table AS targetTable
-        , h.target_id AS targetId
-        , h.old_values AS oldValues
-        , h.new_values AS newValues
-        , h.reason
-        , h.created
-      FROM history AS h
+      ${selectFromClause}
       ${joins.join('\n')}
       WHERE ${conditions.join(' AND ')}
       ORDER BY h.log_no ${dto.filters.order?.toUpperCase()}
       LIMIT ${offset}, ${dto.pagination.pageSize}
     `;
-    const historys = await getAll<History>(query, params, undefined, conn);
+    const historys = await getAll<HistoryWithNo>(query, params, undefined, conn);
 
     return {
       historys,
@@ -110,23 +113,10 @@ export async function selectHistorys(dto: SelectHistoryDto, conn?: PoolConnectio
 export async function selectHistory(historyNo: number, conn?: PoolConnection) {
   try {
     const query = `
-      SELECT
-        h.log_no AS historyNo
-        , h.manager_no AS managerNo
-        , h.school_no AS schoolNo
-        , h.ip
-        , h.user_agent AS userAgent
-        , h.action_type AS actionType
-        , h.target_table AS targetTable
-        , h.target_id AS targetId
-        , h.old_values AS oldValues
-        , h.new_values AS newValues
-        , h.reason
-        , h.created
-      FROM history AS h
+      ${selectFromClause}
       WHERE h.log_no = ?
     `;
-    const history = await getRow<History>(query, [historyNo], undefined, conn);
+    const history = await getRow<HistoryWithNo>(query, [historyNo], undefined, conn);
     return history;
   } catch {
     throw new AppError('이력 조회 중 오류가 발생했습니다.', 500);
