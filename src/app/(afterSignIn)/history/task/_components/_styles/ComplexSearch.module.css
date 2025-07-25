@@ -1,6 +1,0 @@
-.control {
-  cursor: default;
-  &:hover {
-    background-color: transparent;
-  }
-}

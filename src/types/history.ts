@@ -1,15 +1,11 @@
 import { z } from 'zod';
 import {
+  baseApiResponseSchema,
   datetimeSchema,
   nullToUndefinedObject,
   paginationSchema,
-  stringToNumber,
   stringToNumberObject,
 } from './common';
-import { areaSchema } from './area';
-import { schoolSchema } from './school';
-import { groupSchema } from './permission/group';
-import { managerSchema } from './manager';
 
 // 히스토리 기본 스키마
 export const historySchema = z.object({
@@ -52,18 +48,7 @@ export const selectHistoryDtoSchema = z.object({
   filters: z.preprocess(
     nullToUndefinedObject,
     z
-      .object({
-        area: areaSchema.shape.area,
-        schoolNo: z.preprocess(stringToNumber, schoolSchema.shape.schoolNo),
-        groupNo: z.preprocess(stringToNumber, groupSchema.shape.groupNo),
-        managerNo: z.preprocess(stringToNumber, managerSchema.shape.managerNo),
-        ip: z.string().ip({ version: 'v4' }),
-        userAgent: z.string(),
-        actionType: z.enum(['S', 'I', 'U', 'D']),
-        reason: z.string(),
-        startDate: datetimeSchema,
-        endDate: datetimeSchema,
-      })
+      .object({})
       .partial()
       .extend({
         order: z.enum(['asc', 'desc']).default('desc'),
@@ -72,3 +57,74 @@ export const selectHistoryDtoSchema = z.object({
 });
 
 export type SelectHistoryDto = z.infer<typeof selectHistoryDtoSchema>;
+
+export const historiesApiResponseSchema = baseApiResponseSchema.extend({
+  data: z.object({
+    histories: historyWithNoSchema.array(),
+    pagination: paginationSchema,
+  }),
+});
+export type HistoriesApiResponse = z.infer<typeof historiesApiResponseSchema>;
+
+export const ACTION_TYPE = {
+  SELECT: 'S',
+  INSERT: 'I',
+  UPDATE: 'U',
+  DELETE: 'D',
+} as const;
+export const actionTypeSchema = z.enum([
+  ACTION_TYPE.SELECT,
+  ACTION_TYPE.INSERT,
+  ACTION_TYPE.UPDATE,
+  ACTION_TYPE.DELETE,
+]);
+export type ActionType = z.infer<typeof actionTypeSchema>;
+
+/**
+ * 작업 이력 목록 조회 요청 DTO
+ */
+export const selectHistoriesRequestDto = z.object({
+  pagination: z.preprocess(stringToNumberObject, paginationSchema),
+  filters: z.preprocess(
+    nullToUndefinedObject,
+    z
+      .object({})
+      .partial()
+      .extend({
+        order: z.enum(['asc', 'desc']).nullish().default('desc'),
+      }),
+  ),
+});
+export type SelectHistoriesRequestDto = z.infer<typeof selectHistoriesRequestDto>;
+
+export const selectHistoriesResponseDto = baseApiResponseSchema.extend({
+  data: z.object({
+    histories: z
+      .object({
+        // 이력 정보
+        historyNo: z.number().positive(),
+        ip: z.string().nullable(),
+        userAgent: z.string().nullable(),
+        actionType: actionTypeSchema,
+        targetTable: z.string().nullable(),
+        targetId: z.string().nullable(),
+        oldValues: z.string().nullable(),
+        newValues: z.string().nullable(),
+        reason: z.string().nullable(),
+        created: datetimeSchema,
+
+        // 학교
+        schoolNo: z.number().nonnegative(),
+        schoolCode: z.string(),
+        schoolName: z.string(),
+
+        // 사용자
+        managerNo: z.number().nonnegative().nullable(),
+        managerSignInId: z.string().nullable(),
+        managerName: z.string().nullable(),
+      })
+      .array(),
+    pagination: paginationSchema,
+  }),
+});
+export type SelectHistoriesResponseDto = z.infer<typeof selectHistoriesResponseDto>;

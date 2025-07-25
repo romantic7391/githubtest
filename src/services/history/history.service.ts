@@ -1,18 +1,20 @@
-import { LogMeta, SelectHistoryDto } from '@/types/history';
-import { selectHistory, selectHistorys } from '@/models/history/history.model';
+import { LogMeta, SelectHistoriesRequestDto, selectHistoriesResponseDto } from '@/types/history';
+import { selectHistories } from '@/models/history/history.model';
 import { AppError } from '@/utils/error.utils';
 import { beginTransaction, commitTransaction, rollbackTransaction } from '@/lib/mariadb/query';
 import { logAction, makeLogParams } from '../log-action/log-action.service';
-import { Pagination } from '@/types/common';
+import { paginationSchema } from '@/types/common';
 
-export async function getHistorysS(dto: SelectHistoryDto, meta: LogMeta) {
+export async function getHistoriesS(dto: SelectHistoriesRequestDto, meta: LogMeta) {
   let conn;
   try {
     conn = await beginTransaction();
-    const { historys, total } = await selectHistorys(dto, conn);
+    let { histories, total } = await selectHistories(dto, conn);
+    histories = selectHistoriesResponseDto.shape.data.shape.histories.parse(histories);
+    total = selectHistoriesResponseDto.shape.data.shape.pagination.shape.total.parse(total);
 
-    if (historys.length === 0) {
-      throw new AppError('이력 목록이 존재하지 않습니다.', 404);
+    if (histories.length === 0) {
+      throw new AppError('작업 이력 목록이 존재하지 않습니다.', 404);
     }
 
     await logAction(
@@ -21,56 +23,27 @@ export async function getHistorysS(dto: SelectHistoryDto, meta: LogMeta) {
         actionType: 'S',
         targetTable: 'history',
         targetId: null,
-        oldValues: JSON.stringify(historys),
+        oldValues: JSON.stringify({
+          historyNos: histories.map((v) => v.historyNo),
+        }),
         newValues: null,
-        reason: '이력 목록 조회',
+        reason: '작업 이력 목록 조회',
       }),
       conn,
     );
 
     await commitTransaction(conn);
     return {
-      historys,
-      pagination: {
-        ...dto.pagination,
+      histories,
+      pagination: paginationSchema.parse({
+        page: dto.pagination.page,
+        pageSize: dto.pagination.pageSize,
         total,
-        totalPages: Math.ceil(total / dto.pagination.pageSize),
-      } satisfies Pagination,
+        totalPages: Math.max(1, Math.ceil(total / dto.pagination.pageSize)),
+      }),
     };
   } catch (error) {
-    if (conn) {
-      await rollbackTransaction(conn);
-    }
-    throw error;
-  }
-}
-
-export async function getHistoryS(historyNo: number, meta: LogMeta) {
-  let conn;
-  try {
-    conn = await beginTransaction();
-    const history = await selectHistory(historyNo, conn);
-
-    if (!history) {
-      throw new AppError('존재하지 않는 이력입니다.', 404);
-    }
-
-    await logAction(
-      makeLogParams({
-        ...meta,
-        actionType: 'S',
-        targetTable: 'history',
-        targetId: historyNo.toString(),
-        oldValues: JSON.stringify(history),
-        newValues: null,
-        reason: '이력 조회',
-      }),
-      conn,
-    );
-
-    await commitTransaction(conn);
-    return history;
-  } catch (error) {
+    console.error('getHistoriesS: ', error);
     if (conn) {
       await rollbackTransaction(conn);
     }
