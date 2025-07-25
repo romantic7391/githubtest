@@ -19,8 +19,7 @@ export default function Search({ searchKeys }: { searchKeys: ComboboxItem[] }) {
 
   const selectWidth = useMemo(() => {
     return searchKeys.reduce((acc, curr) => {
-      console.log(acc, (curr.label.length + 1) * 14);
-      const result = Math.max(acc, (curr.label.length + 1) * 14);
+      const result = Math.max(acc, Buffer.byteLength(curr.label, 'utf-8') * 8);
       return result;
     }, 110);
   }, [searchKeys]);

@@ -21,8 +21,7 @@ export default function LeftNavigation() {
         leftSection={<IconLicense />}
         defaultOpened={pathname.startsWith('/permissions')}></NavLink>
       <NavLink href="/history" label="이력" leftSection={<IconLogs />} defaultOpened={pathname.startsWith('/history')}>
-        <NavLink href="/history/task" label="작업 이력" />
-        <NavLink href="/history/signin" label="로그인 이력" />
+        <NavLink href="/history/tasks" label="작업 이력" />
       </NavLink>
     </>
   );
