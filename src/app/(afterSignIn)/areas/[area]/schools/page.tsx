@@ -12,8 +12,6 @@ export const metadata: Metadata = {
 /**
  * 지역 학교 목록 페이지
  *
- * @todo 학교 목록 조회
- * @todo 학교 목록 필터링
  * - page: number 페이지 번호
  * - pageSize: number 페이지 당 아이템 수
  * - sname: string 학교 이름

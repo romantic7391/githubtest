@@ -1,7 +1,7 @@
 'use client';
 
 import { Button, Card, ComboboxItem, Flex, Grid, Group, Select, Text, TextInput } from '@mantine/core';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { IconSearch } from '@tabler/icons-react';
 import { useDebouncedCallback } from '@mantine/hooks';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -16,6 +16,13 @@ export default function Search({ searchKeys }: { searchKeys: ComboboxItem[] }) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const router = useRouter();
+
+  const selectWidth = useMemo(() => {
+    return searchKeys.reduce((acc, curr) => {
+      const result = Math.max(acc, Buffer.byteLength(curr.label, 'utf-8') * 8);
+      return result;
+    }, 110);
+  }, [searchKeys]);
 
   const handleSearch = useDebouncedCallback((key: string, value: string) => {
     const params = new URLSearchParams(searchParams);
@@ -51,7 +58,7 @@ export default function Search({ searchKeys }: { searchKeys: ComboboxItem[] }) {
           <Group w="100%">
             <Select
               id="search-key"
-              w={110}
+              w={selectWidth}
               allowDeselect={false}
               data={searchKeys}
               defaultValue={searchKeys[0].value}
