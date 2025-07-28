@@ -34,6 +34,9 @@ export async function findManagerWithPasswordBySignInId(signInId: string, conn?:
         , login_id as signInId
         , name
         , passwd as hashedPassword
+        , login_attempt_count as signInAttemptCount
+        , approved_status as approvedStatus
+        , locked
       FROM manager
       WHERE login_id = ?
     `;
@@ -184,6 +187,55 @@ export async function insertManager(dto: InsertManagerDto, conn?: PoolConnection
     return { insertId: result.insertId };
   } catch (error) {
     console.error(error);
+    throw error;
+  }
+}
+
+export async function addSignInAttemptCount(managerNo: number, conn?: PoolConnection) {
+  try {
+    const query = `
+      UPDATE manager
+      SET
+        login_attempt_count = login_attempt_count + 1
+        , updated = NOW()
+      WHERE no = ?
+    `;
+    const params = [managerNo];
+    return await exec(query, params, conn);
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function lockAccount(dto: { managerNo: number; signInAttemptCount: number }, conn?: PoolConnection) {
+  try {
+    const query = `
+      UPDATE manager
+      SET
+        locked = 'Y'
+        , login_attempt_count = ?
+        , updated = NOW()
+      WHERE no = ?  
+    `;
+    const params = [dto.signInAttemptCount, dto.managerNo];
+    return await exec(query, params, conn);
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function resetSignInAttemptCount(managerNo: number, conn?: PoolConnection) {
+  try {
+    const query = `
+      UPDATE manager
+      SET
+        login_attempt_count = 0
+        , updated = NOW()
+      WHERE no = ?
+    `;
+    const params = [managerNo];
+    return await exec(query, params, conn);
+  } catch (error) {
     throw error;
   }
 }
