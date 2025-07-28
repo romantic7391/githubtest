@@ -55,11 +55,11 @@ export const paginationSchema = z.object({
   /**
    * 현재 페이지
    */
-  page: z.number().positive().default(1),
+  page: z.coerce.number().positive().default(1),
   /**
    * 페이지당 아이템 수
    */
-  pageSize: z.number().positive().default(DEFAULT_PAGE_SIZE),
+  pageSize: z.coerce.number().positive().default(DEFAULT_PAGE_SIZE),
   /**
    * 총 아이템 수
    */

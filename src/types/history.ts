@@ -6,6 +6,8 @@ import {
   paginationSchema,
   stringToNumberObject,
 } from './common';
+import { schoolSchema } from './school';
+import { managerSchema } from './manager';
 
 // 히스토리 기본 스키마
 export const historySchema = z.object({
@@ -43,21 +45,6 @@ export type LogMeta = z.infer<typeof logMetaSchema>;
 export type HistoryNo = z.infer<typeof historyNoSchema>;
 export type HistoryWithNo = z.infer<typeof historyWithNoSchema>;
 
-export const selectHistoryDtoSchema = z.object({
-  pagination: z.preprocess(stringToNumberObject, paginationSchema),
-  filters: z.preprocess(
-    nullToUndefinedObject,
-    z
-      .object({})
-      .partial()
-      .extend({
-        order: z.enum(['asc', 'desc']).default('desc'),
-      }),
-  ),
-});
-
-export type SelectHistoryDto = z.infer<typeof selectHistoryDtoSchema>;
-
 export const historiesApiResponseSchema = baseApiResponseSchema.extend({
   data: z.object({
     histories: historyWithNoSchema.array(),
@@ -72,28 +59,38 @@ export const ACTION_TYPE = {
   UPDATE: 'U',
   DELETE: 'D',
 } as const;
-export const actionTypeSchema = z.enum([
-  ACTION_TYPE.SELECT,
-  ACTION_TYPE.INSERT,
-  ACTION_TYPE.UPDATE,
-  ACTION_TYPE.DELETE,
-]);
+export const actionTypeSchema = z.enum(
+  [ACTION_TYPE.SELECT, ACTION_TYPE.INSERT, ACTION_TYPE.UPDATE, ACTION_TYPE.DELETE],
+  { message: '작업 유형을 잘못 선택하셨습니다.' },
+);
 export type ActionType = z.infer<typeof actionTypeSchema>;
+
+export const historyFilterSchema = z
+  .object({
+    startDate: datetimeSchema.describe('시작 일시'),
+    endDate: datetimeSchema.describe('종료 일시'),
+    historyNo: z.coerce.number({ message: '이력 번호는 숫자여야 합니다.' }).describe('이력 번호'),
+    actionTypes: actionTypeSchema.array().default([]).describe('작업 유형'),
+    targetTables: z.string().array().default([]).describe('대상 테이블'),
+    targetId: z.string().describe('대상 ID'),
+    ip: z.string().ip({ version: 'v4', message: 'IP 주소는 IPv4 형식이어야 합니다.' }).describe('IP 주소'),
+    userAgent: z.string().describe('User-Agent'),
+    schoolName: schoolSchema.shape.sname.describe('학교명'),
+    schoolCode: schoolSchema.shape.scode.describe('학교 코드'),
+    managerName: managerSchema.shape.name.describe('사용자명'),
+    managerSignInId: managerSchema.shape.signInId.describe('사용자 로그인 ID'),
+    reason: z.string().max(1000, { message: '설명은 최대 1000자까지 입력할 수 있습니다.' }).describe('설명'),
+    order: z.enum(['asc', 'desc']).nullish().default('desc').describe('정렬'),
+  })
+  .partial();
+export type HistoryFilter = z.infer<typeof historyFilterSchema>;
 
 /**
  * 작업 이력 목록 조회 요청 DTO
  */
 export const selectHistoriesRequestDto = z.object({
   pagination: z.preprocess(stringToNumberObject, paginationSchema),
-  filters: z.preprocess(
-    nullToUndefinedObject,
-    z
-      .object({})
-      .partial()
-      .extend({
-        order: z.enum(['asc', 'desc']).nullish().default('desc'),
-      }),
-  ),
+  filters: z.preprocess(nullToUndefinedObject, historyFilterSchema),
 });
 export type SelectHistoriesRequestDto = z.infer<typeof selectHistoriesRequestDto>;
 

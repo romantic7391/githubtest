@@ -1,29 +1,46 @@
 'use client';
 
-import { DEFAULT_PAGE_SIZE } from '@/lib/default.constant';
-import { Group, Stack, Pagination as MantinePagination, Text, Card, Title, Table } from '@mantine/core';
+import {
+  Group,
+  Stack,
+  Pagination as MantinePagination,
+  Text,
+  Card,
+  Title,
+  Table,
+  Loader,
+  Alert,
+  Badge,
+} from '@mantine/core';
 import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import useFilteredTaskHistory from '../_hooks/useFilteredTaskHistory';
 import { usePagination } from '@mantine/hooks';
 import PageSizeSelector from './PageSizeSelector';
 import useIsMobile from '@/app/_hooks/useIsMobile';
+import { IconAlertCircle, IconInfoCircle } from '@tabler/icons-react';
+import dayjs from '@/lib/dayjs';
+import { HistoryFilter } from '@/types/history';
 
 /**
  * 외부에서 받은 필터 객체를 통해서 작업 이력 목록을 조회합니다.
  */
-export default function TaskHistoryList() {
+export default function TaskHistoryList({
+  page,
+  pageSize,
+  filters,
+}: {
+  page: number;
+  pageSize: number;
+  filters: HistoryFilter;
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const order = searchParams.get('order') as 'asc' | 'desc' | null;
-  const page = Number(searchParams.get('page')) || 1;
-  const pageSize = Number(searchParams.get('pageSize')) || DEFAULT_PAGE_SIZE;
-  const { data, fetchStatus, isSuccess } = useFilteredTaskHistory({
+
+  const { data, fetchStatus, isSuccess, error, isError } = useFilteredTaskHistory({
     page,
     pageSize,
-    filters: {
-      order,
-    },
+    filters,
   });
   const histories = data.histories;
   const totalPages = Math.max(1, data.pagination.totalPages);
@@ -51,21 +68,72 @@ export default function TaskHistoryList() {
     }
   }
 
+  function getActionTypeColor(actionType: string) {
+    switch (actionType) {
+      case 'I':
+        return 'green';
+      case 'U':
+        return 'blue';
+      case 'D':
+        return 'red';
+      case 'S':
+        return 'gray';
+      default:
+        return 'gray';
+    }
+  }
+
+  function formatDate(dateString: string | null) {
+    if (!dateString) return '-';
+    try {
+      return dayjs(dateString).format('YYYY-MM-DD HH:mm:ss');
+    } catch {
+      return dateString;
+    }
+  }
+
+  function formatText(text: string | null, maxLength: number = 50) {
+    if (!text) return '-';
+    if (text.length <= maxLength) return text;
+    return `${text.substring(0, maxLength)}...`;
+  }
+
   function handleClickHistory(historyNo: number) {
     router.push(`${pathname}/${historyNo}`);
   }
 
-  if (fetchStatus !== 'idle') {
-    return <Text>데이터를 불러오고 있습니다...</Text>;
+  // 로딩 상태
+  if (fetchStatus === 'fetching') {
+    return (
+      <Stack align="center" py="xl">
+        <Loader size="lg" />
+        <Text size="sm" c="dimmed">
+          데이터를 불러오고 있습니다...
+        </Text>
+      </Stack>
+    );
   }
 
+  // 에러 상태
+  if (isError) {
+    return (
+      <Alert icon={<IconAlertCircle size="1rem" />} title="오류가 발생했습니다" color="red">
+        <Text size="sm">{error instanceof Error ? error.message : '데이터를 불러오는 중 오류가 발생했습니다.'}</Text>
+      </Alert>
+    );
+  }
+
+  // 빈 데이터 상태
   if (isSuccess && fetchStatus === 'idle' && histories.length === 0) {
     return (
       <Stack>
         <Card withBorder>
-          <Stack>
-            <Title order={5}>검색 결과가 없습니다.</Title>
-            <Text>검색 조건을 변경해주십시오.</Text>
+          <Stack align="center" py="xl">
+            <IconInfoCircle size="3rem" color="var(--mantine-color-gray-4)" />
+            <Title order={5}>검색 결과가 없습니다</Title>
+            <Text size="sm" c="dimmed" ta="center">
+              검색 조건을 변경하거나 다른 페이지를 확인해보세요.
+            </Text>
           </Stack>
         </Card>
       </Stack>
@@ -75,7 +143,13 @@ export default function TaskHistoryList() {
   return (
     <Stack>
       <Stack>
-        <Table stickyHeader stickyHeaderOffset={55} highlightOnHover withTableBorder withColumnBorders>
+        <Table
+          stickyHeader
+          stickyHeaderOffset={55}
+          highlightOnHover
+          withTableBorder
+          withColumnBorders
+          aria-label="작업 이력 목록">
           <Table.Thead>
             <Table.Tr>
               <Table.Th>#</Table.Th>
@@ -97,23 +171,42 @@ export default function TaskHistoryList() {
                     cursor: 'pointer',
                   },
                 }}
-                onClick={() => handleClickHistory(history.historyNo)}>
+                onClick={() => handleClickHistory(history.historyNo)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleClickHistory(history.historyNo);
+                  }
+                }}
+                tabIndex={0}
+                role="button"
+                aria-label={`이력 ${history.historyNo} 상세보기`}>
                 <Table.Td>{history.historyNo}</Table.Td>
-                <Table.Td>{history.created}</Table.Td>
-                {!isMobile && <Table.Td>{history.ip}</Table.Td>}
-                {!isMobile && <Table.Td>{history.userAgent}</Table.Td>}
-                {!isMobile && <Table.Td>{history.schoolName}</Table.Td>}
-                <Table.Td>{history.managerName}</Table.Td>
-                <Table.Td>{getActionTypeString(history.actionType)}</Table.Td>
-                <Table.Td>{history.reason}</Table.Td>
+                <Table.Td>{formatDate(history.created)}</Table.Td>
+                {!isMobile && <Table.Td>{formatText(history.ip, 15)}</Table.Td>}
+                {!isMobile && <Table.Td>{formatText(history.userAgent, 30)}</Table.Td>}
+                {!isMobile && <Table.Td>{formatText(history.schoolName)}</Table.Td>}
+                <Table.Td>{formatText(history.managerName)}</Table.Td>
+                <Table.Td>
+                  <Badge color={getActionTypeColor(history.actionType)} variant="light" size="sm">
+                    {getActionTypeString(history.actionType)}
+                  </Badge>
+                </Table.Td>
+                <Table.Td>{formatText(history.reason)}</Table.Td>
               </Table.Tr>
             ))}
           </Table.Tbody>
         </Table>
       </Stack>
-      <Group>
-        <MantinePagination total={totalPages} value={page} onChange={pagination.setPage} />
-        <PageSizeSelector />
+      <Group justify="space-between">
+        <Group>
+          <MantinePagination total={totalPages} value={page} onChange={pagination.setPage} />
+          <PageSizeSelector />
+        </Group>
+        <Text size="sm" c="dimmed">
+          총 {data.pagination.total}개 중 {(page - 1) * pageSize + 1} -{' '}
+          {Math.min(page * pageSize, data.pagination.total)}개 표시
+        </Text>
       </Group>
     </Stack>
   );

@@ -44,7 +44,7 @@ export async function selectHistories(dto: SelectHistoriesRequestDto, conn?: Poo
       LEFT JOIN manager AS m ON h.manager_no = m.no
       ${joins.join('\n')}
       WHERE ${conditions.join(' AND ')}
-      ORDER BY h.log_no ${dto.filters.order?.toUpperCase()}
+      ORDER BY h.log_no ${(dto.filters.order ?? 'desc').toUpperCase()}
       LIMIT ${offset}, ${dto.pagination.pageSize}
     `;
     const histories = await getAll<HistoryWithNo>(selectQuery, params, undefined, conn);
