@@ -1,5 +1,10 @@
-import { LogMeta, SelectHistoriesRequestDto, selectHistoriesResponseDto } from '@/types/history';
-import { selectHistories } from '@/models/history/history.model';
+import {
+  LogMeta,
+  SelectHistoriesRequestDto,
+  selectHistoriesResponseDto,
+  selectHistoryResponseDto,
+} from '@/types/history';
+import { selectHistories, selectHistory } from '@/models/history/history.model';
 import { AppError } from '@/utils/error.utils';
 import { beginTransaction, commitTransaction, rollbackTransaction } from '@/lib/mariadb/query';
 import { logAction, makeLogParams } from '../log-action/log-action.service';
@@ -42,6 +47,36 @@ export async function getHistoriesS(dto: SelectHistoriesRequestDto, meta: LogMet
         totalPages: Math.max(1, Math.ceil(total / dto.pagination.pageSize)),
       }),
     };
+  } catch (error) {
+    if (conn) {
+      await rollbackTransaction(conn);
+    }
+    throw error;
+  }
+}
+
+export async function getHistoryS(historyNo: number, meta: LogMeta) {
+  let conn;
+  try {
+    conn = await beginTransaction();
+    const history = await selectHistory(historyNo, conn);
+    await selectHistoryResponseDto.shape.data.parse(history);
+
+    await logAction(
+      makeLogParams({
+        ...meta,
+        actionType: 'S',
+        targetTable: 'history',
+        targetId: historyNo.toString(),
+        oldValues: null,
+        newValues: null,
+        reason: '작업 이력 조회',
+      }),
+      conn,
+    );
+
+    await commitTransaction(conn);
+    return history;
   } catch (error) {
     if (conn) {
       await rollbackTransaction(conn);

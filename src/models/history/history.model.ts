@@ -1,5 +1,5 @@
 import type { PoolConnection } from 'mariadb';
-import type { HistoryWithNo, SelectHistoriesRequestDto } from '@/types/history';
+import type { HistoryResponseItem, SelectHistoriesRequestDto } from '@/types/history';
 import { getRow, getAll } from '@/lib/mariadb/query';
 
 export async function selectHistories(dto: SelectHistoriesRequestDto, conn?: PoolConnection) {
@@ -97,12 +97,45 @@ export async function selectHistories(dto: SelectHistoriesRequestDto, conn?: Poo
       ORDER BY h.log_no ${(dto.filters.order ?? 'desc').toUpperCase()}
       LIMIT ${offset}, ${dto.pagination.pageSize}
     `;
-    const histories = await getAll<HistoryWithNo>(selectQuery, params, undefined, conn);
+    const histories = await getAll<HistoryResponseItem>(selectQuery, params, undefined, conn);
 
     return {
       histories,
       total,
     };
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function selectHistory(historyNo: number, conn?: PoolConnection) {
+  try {
+    const query = `
+      SELECT
+        h.log_no AS historyNo
+        , h.manager_no AS managerNo
+        , h.school_no AS schoolNo
+        , h.ip
+        , h.user_agent AS userAgent
+        , h.action_type AS actionType
+        , h.target_table AS targetTable
+        , h.target_id AS targetId
+        , h.old_values AS oldValues
+        , h.new_values AS newValues
+        , h.reason
+        , h.created
+        , s.scode AS schoolCode
+        , s.sname AS schoolName
+        , m.login_id AS managerSignInId
+        , m.name AS managerName
+      FROM history AS h
+      LEFT JOIN rnSchool AS s ON h.school_no = s.school_no
+      LEFT JOIN manager AS m ON h.manager_no = m.no
+      WHERE h.log_no = ?
+    `;
+    const history = await getRow<HistoryResponseItem>(query, [historyNo], undefined, conn);
+
+    return history;
   } catch (error) {
     throw error;
   }

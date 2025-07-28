@@ -57,6 +57,9 @@ export const actionTypeSchema = z.enum(
 );
 export type ActionType = z.infer<typeof actionTypeSchema>;
 
+/**
+ * 작업 이력 목록 조회 필터 스키마
+ */
 export const historyFilterSchema = z
   .object({
     startDate: datetimeSchema.describe('시작 일시'),
@@ -100,34 +103,40 @@ export const selectHistoriesRequestDto = z.object({
 });
 export type SelectHistoriesRequestDto = z.infer<typeof selectHistoriesRequestDto>;
 
+export const historyResponseItemSchema = z.object({
+  // 이력 정보
+  historyNo: z.number().positive(),
+  ip: z.string().nullable(),
+  userAgent: z.string().nullable(),
+  actionType: actionTypeSchema,
+  targetTable: z.string().nullable(),
+  targetId: z.string().nullable(),
+  oldValues: z.string().nullable(),
+  newValues: z.string().nullable(),
+  reason: z.string().nullable(),
+  created: datetimeSchema,
+
+  // 학교
+  schoolNo: z.number().nonnegative(),
+  schoolCode: z.string(),
+  schoolName: z.string(),
+
+  // 사용자
+  managerNo: z.number().nonnegative().nullable(),
+  managerSignInId: z.string().nullable(),
+  managerName: z.string().nullable(),
+});
+export type HistoryResponseItem = z.infer<typeof historyResponseItemSchema>;
+
 export const selectHistoriesResponseDto = baseApiResponseSchema.extend({
   data: z.object({
-    histories: z
-      .object({
-        // 이력 정보
-        historyNo: z.number().positive(),
-        ip: z.string().nullable(),
-        userAgent: z.string().nullable(),
-        actionType: actionTypeSchema,
-        targetTable: z.string().nullable(),
-        targetId: z.string().nullable(),
-        oldValues: z.string().nullable(),
-        newValues: z.string().nullable(),
-        reason: z.string().nullable(),
-        created: datetimeSchema,
-
-        // 학교
-        schoolNo: z.number().nonnegative(),
-        schoolCode: z.string(),
-        schoolName: z.string(),
-
-        // 사용자
-        managerNo: z.number().nonnegative().nullable(),
-        managerSignInId: z.string().nullable(),
-        managerName: z.string().nullable(),
-      })
-      .array(),
+    histories: historyResponseItemSchema.array(),
     pagination: paginationSchema,
   }),
 });
 export type SelectHistoriesResponseDto = z.infer<typeof selectHistoriesResponseDto>;
+
+export const selectHistoryResponseDto = baseApiResponseSchema.extend({
+  data: historyResponseItemSchema.nullable(),
+});
+export type SelectHistoryResponseDto = z.infer<typeof selectHistoryResponseDto>;
