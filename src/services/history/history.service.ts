@@ -43,7 +43,6 @@ export async function getHistoriesS(dto: SelectHistoriesRequestDto, meta: LogMet
       }),
     };
   } catch (error) {
-    console.error('getHistoriesS: ', error);
     if (conn) {
       await rollbackTransaction(conn);
     }

@@ -26,8 +26,10 @@ export default function useFilteredTaskHistory({ page, pageSize, filters }: UseF
     if (pageSize) {
       requestUrl.searchParams.set('pageSize', pageSize.toString());
     }
-    if (filters.order) {
-      requestUrl.searchParams.set('order', filters.order);
+    for (const [key, value] of Object.entries(filters)) {
+      if (value) {
+        requestUrl.searchParams.set(key, value.toString());
+      }
     }
 
     const response = await fetch(requestUrl, { method: 'GET' });
@@ -49,7 +51,7 @@ export default function useFilteredTaskHistory({ page, pageSize, filters }: UseF
   }
 
   return useQuery({
-    queryKey: ['filtered-task-history', page, pageSize],
+    queryKey: ['filtered-task-history', page, pageSize, ...Object.values(filters)],
     retry: false,
     staleTime: 0,
     gcTime: 0,

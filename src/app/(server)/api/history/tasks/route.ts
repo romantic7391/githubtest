@@ -1,6 +1,6 @@
 import { getHistoriesS } from '@/services/history/history.service';
 import { CommonContext } from '@/types/api-wrapper';
-import { HistoriesApiResponse, selectHistoriesRequestDto } from '@/types/history';
+import { selectHistoriesRequestDto, SelectHistoriesResponseDto } from '@/types/history';
 import { withPermissionCheck } from '@/utils/api-wrapper.utils';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -11,9 +11,7 @@ export const GET = withPermissionCheck(async (request: NextRequest, commonContex
     page: searchParams.get('page'),
     pageSize: searchParams.get('pageSize'),
   });
-  const filters = selectHistoriesRequestDto.shape.filters.parse({
-    order: searchParams.get('order'),
-  });
+  const filters = selectHistoriesRequestDto.shape.filters.parse(Object.fromEntries(searchParams.entries()));
 
   const result = await getHistoriesS({ pagination, filters }, commonContext);
 
@@ -21,5 +19,5 @@ export const GET = withPermissionCheck(async (request: NextRequest, commonContex
     success: true,
     message: '',
     data: result,
-  } satisfies HistoriesApiResponse);
+  } as SelectHistoriesResponseDto);
 });

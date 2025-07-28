@@ -154,7 +154,6 @@ export default function TaskHistorySearch() {
   }
 
   function handleDetailSearch(values: DetailSearchForm) {
-    console.log('[handleDetailSearch] values: ', values);
     const params = new URLSearchParams(searchParams);
 
     deleteSearchParams(params);
@@ -163,10 +162,10 @@ export default function TaskHistorySearch() {
 
     // 상세 검색 파라미터 설정
     if (values.startDate) {
-      params.set('startDate', dayjs(values.startDate).format('YYYY-MM-DD'));
+      params.set('startDate', dayjs(values.startDate).startOf('day').format('YYYY-MM-DD HH:mm:ss'));
     }
     if (values.endDate) {
-      params.set('endDate', dayjs(values.endDate).format('YYYY-MM-DD'));
+      params.set('endDate', dayjs(values.endDate).endOf('day').format('YYYY-MM-DD HH:mm:ss'));
     }
     if (values.actionTypes.length > 0) {
       params.set('actionTypes', values.actionTypes.join(','));
@@ -200,15 +199,27 @@ export default function TaskHistorySearch() {
 
   function handleClearSearch() {
     const params = new URLSearchParams(searchParams);
-
     deleteSearchParams(params);
-    params.set('page', '1');
-
-    router.push(`${pathname}?${params.toString()}`);
 
     // 폼 초기화
-    simpleForm.reset();
-    detailForm.reset();
+    simpleForm.initialize({
+      searchKey: 'historyNo',
+      searchValue: '',
+    });
+    detailForm.initialize({
+      startDate: null,
+      endDate: null,
+      actionTypes: [],
+      targetTables: [],
+      ip: '',
+      userAgent: '',
+      schoolName: '',
+      managerName: '',
+      reason: '',
+      targetId: '',
+    });
+
+    router.push(pathname);
   }
 
   function hasActiveFilters(): boolean {
@@ -302,6 +313,7 @@ export default function TaskHistorySearch() {
                   placeholder="시작일을 선택하세요"
                   valueFormat="YYYY-MM-DD"
                   clearable
+                  firstDayOfWeek={0}
                   style={{ flex: 1 }}
                   {...detailForm.getInputProps('startDate')}
                 />
@@ -310,6 +322,7 @@ export default function TaskHistorySearch() {
                   placeholder="종료일을 선택하세요"
                   valueFormat="YYYY-MM-DD"
                   clearable
+                  firstDayOfWeek={0}
                   style={{ flex: 1 }}
                   {...detailForm.getInputProps('endDate')}
                 />
@@ -329,6 +342,12 @@ export default function TaskHistorySearch() {
                   style={{ flex: 1 }}
                   {...detailForm.getInputProps('targetTables')}
                 />
+                <TextInput
+                  label="대상 ID"
+                  placeholder="대상 ID를 입력하세요"
+                  style={{ flex: 1 }}
+                  {...detailForm.getInputProps('targetId')}
+                />
               </Group>
 
               <Stack>
@@ -346,16 +365,16 @@ export default function TaskHistorySearch() {
                     {...detailForm.getInputProps('userAgent')}
                   />
                   <TextInput
-                    label="소속명"
-                    placeholder="소속명을 입력하세요"
+                    label="학교 이름"
+                    placeholder="학교 이름을 입력하세요"
                     style={{ flex: 1 }}
                     {...detailForm.getInputProps('schoolName')}
                   />
                 </Group>
                 <Group>
                   <TextInput
-                    label="사용자명"
-                    placeholder="사용자명을 입력하세요"
+                    label="사용자 이름"
+                    placeholder="사용자 이름을 입력하세요"
                     style={{ flex: 1 }}
                     {...detailForm.getInputProps('managerName')}
                   />
@@ -364,12 +383,6 @@ export default function TaskHistorySearch() {
                     placeholder="설명을 입력하세요"
                     style={{ flex: 1 }}
                     {...detailForm.getInputProps('reason')}
-                  />
-                  <TextInput
-                    label="대상 ID"
-                    placeholder="대상 ID를 입력하세요"
-                    style={{ flex: 1 }}
-                    {...detailForm.getInputProps('targetId')}
                   />
                 </Group>
               </Stack>

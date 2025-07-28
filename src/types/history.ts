@@ -45,14 +45,6 @@ export type LogMeta = z.infer<typeof logMetaSchema>;
 export type HistoryNo = z.infer<typeof historyNoSchema>;
 export type HistoryWithNo = z.infer<typeof historyWithNoSchema>;
 
-export const historiesApiResponseSchema = baseApiResponseSchema.extend({
-  data: z.object({
-    histories: historyWithNoSchema.array(),
-    pagination: paginationSchema,
-  }),
-});
-export type HistoriesApiResponse = z.infer<typeof historiesApiResponseSchema>;
-
 export const ACTION_TYPE = {
   SELECT: 'S',
   INSERT: 'I',
@@ -70,8 +62,22 @@ export const historyFilterSchema = z
     startDate: datetimeSchema.describe('시작 일시'),
     endDate: datetimeSchema.describe('종료 일시'),
     historyNo: z.coerce.number({ message: '이력 번호는 숫자여야 합니다.' }).describe('이력 번호'),
-    actionTypes: actionTypeSchema.array().default([]).describe('작업 유형'),
-    targetTables: z.string().array().default([]).describe('대상 테이블'),
+    actionTypes: z
+      .preprocess((v) => {
+        if (Array.isArray(v)) return v;
+        if (typeof v === 'string') return v.split(',');
+        return v;
+      }, actionTypeSchema.array())
+      .default([])
+      .describe('작업 유형'),
+    targetTables: z
+      .preprocess((v) => {
+        if (Array.isArray(v)) return v;
+        if (typeof v === 'string') return v.split(',');
+        return v;
+      }, z.string().array())
+      .default([])
+      .describe('대상 테이블'),
     targetId: z.string().describe('대상 ID'),
     ip: z.string().ip({ version: 'v4', message: 'IP 주소는 IPv4 형식이어야 합니다.' }).describe('IP 주소'),
     userAgent: z.string().describe('User-Agent'),
