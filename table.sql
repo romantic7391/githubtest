@@ -246,3 +246,20 @@ COLLATE='utf8mb3_unicode_ci'
 ENGINE=InnoDB
 AUTO_INCREMENT=0
 ;
+
+CREATE TABLE `manager_login_history` (
+  `idx` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `no` bigint(20) unsigned NOT NULL,
+  `login_time` datetime NOT NULL DEFAULT current_timestamp(),
+  `logout_time` datetime DEFAULT NULL,
+  `success` enum('Y','N','F') DEFAULT NULL COMMENT 'Yes, No, Fail',
+  `remote_addr` int(10) unsigned NOT NULL DEFAULT inet_aton('127.0.0.1') COMMENT 'Remote Address',
+  `login_id` varchar(50) DEFAULT NULL,
+  PRIMARY KEY (`idx`),
+  KEY `mno` (`no`,`login_time`)
+) 
+COLLATE=utf8mb4_unicode_ci
+ENGINE=InnoDB
+AUTO_INCREMENT=0
+DEFAULT CHARSET=utf8mb4
+;
