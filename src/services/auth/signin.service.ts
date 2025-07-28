@@ -16,6 +16,8 @@ import {
 import { UserWithPassword } from '@/types/next-auth';
 import bcrypt from 'bcrypt';
 import { CredentialsSignin } from 'next-auth';
+import { signInLogAction } from '../log-action/log-action.service';
+import dayjs from '@/lib/dayjs';
 
 export async function authenticateUser(signInId: string, password: string) {
   const conn = await beginTransaction();
@@ -64,6 +66,19 @@ export async function authenticateUser(signInId: string, password: string) {
 
     // 8. 사용자 데이터 반환.
     const result = await findManagerBySignInId(signInId, conn);
+    if (result) {
+      await signInLogAction(
+        {
+          managerNo: result.managerNo,
+          signInId,
+          signInTime: dayjs().format('YYYY-MM-DD HH:mm:ss'),
+          signOutTime: null,
+          success: 'Y',
+        },
+        conn,
+      );
+    }
+
     await commitTransaction(conn);
     return result;
   } catch (error) {
