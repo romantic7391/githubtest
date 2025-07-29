@@ -4,6 +4,7 @@ import { managerSchema } from './manager';
 import { datetimeSchema, ynSchema } from './common';
 
 export const managerSignInHistorySchema = z.object({
+  historyNo: z.number().optional(),
   managerNo: managerSchema.shape.managerNo,
   signInTime: datetimeSchema,
   signOutTime: datetimeSchema.nullable(),

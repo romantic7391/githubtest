@@ -1,9 +1,14 @@
+'use client';
+
 import { Avatar, Image, Menu } from '@mantine/core';
 import { IconLogout, IconSettings } from '@tabler/icons-react';
+import { signOut, useSession } from 'next-auth/react';
 import styles from './_styles/HeaderUserAvatar.module.css';
-import { signOut } from 'next-auth/react';
+import { redirect } from 'next/navigation';
 
 export default function HeaderUserAvatar() {
+  const session = useSession();
+
   return (
     <Menu shadow="md" width={200}>
       <Menu.Target>
@@ -18,7 +23,15 @@ export default function HeaderUserAvatar() {
         <Menu.Item
           leftSection={<IconLogout size={14} />}
           onClick={async () => {
-            await signOut();
+            const user = { ...session.data?.user };
+            await signOut({
+              redirect: false,
+            });
+            await fetch('/api/signout/log', {
+              method: 'POST',
+              body: JSON.stringify(user),
+            });
+            redirect('/');
           }}>
           로그아웃
         </Menu.Item>
