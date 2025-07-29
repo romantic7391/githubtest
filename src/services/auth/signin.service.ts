@@ -1,9 +1,23 @@
-import { InvalidCredentialsError, UserNotFoundError } from '@/lib/credential.error';
+import {
+  AccountLockedError,
+  AccountNotApprovedError,
+  InvalidCredentialsError,
+  TooManyLoginAttemptsError,
+  UserNotFoundError,
+} from '@/lib/credential.error';
 import { beginTransaction, commitTransaction, rollbackTransaction } from '@/lib/mariadb/query';
-import { findManagerBySignInId, findManagerWithPasswordBySignInId } from '@/models/manager/manager.model';
+import {
+  addSignInAttemptCount,
+  findManagerBySignInId,
+  findManagerWithPasswordBySignInId,
+  lockAccount,
+  resetSignInAttemptCount,
+} from '@/models/manager/manager.model';
 import { UserWithPassword } from '@/types/next-auth';
 import bcrypt from 'bcrypt';
 import { CredentialsSignin } from 'next-auth';
+import { signInLogAction } from '../log-action/log-action.service';
+import dayjs from '@/lib/dayjs';
 
 export async function authenticateUser(signInId: string, password: string) {
   const conn = await beginTransaction();
@@ -18,6 +32,9 @@ export async function authenticateUser(signInId: string, password: string) {
     }
 
     // 3. 계정 잠금 상태 확인.
+    if (manager.locked === 'Y') {
+      throw new AccountLockedError(manager.signInAttemptCount);
+    }
 
     // 4. 비밀번호 검증.
     const isPasswordValid = await validatePassword(password, manager.hashedPassword);
@@ -25,24 +42,46 @@ export async function authenticateUser(signInId: string, password: string) {
     // 5. 비밀번호 불일치 처리.
     if (!isPasswordValid) {
       // 5.1. 로그인 시도 횟수 증가.
+      const signInAttemptCount = manager.signInAttemptCount + 1;
 
       // 5.2. 계정 잠금 여부 결정.
+      if (signInAttemptCount >= 5) {
+        await lockAccount({ managerNo: manager.managerNo, signInAttemptCount }, conn);
+        throw new TooManyLoginAttemptsError(signInAttemptCount);
+      }
 
       // 5.3. 로그인 시도 횟수를 DB에 업데이트.
+      await addSignInAttemptCount(manager.managerNo, conn);
 
       throw new InvalidCredentialsError();
     }
 
     // 6. 계정 승인 상태 확인.
+    if (manager.approvedStatus !== 'APPROVED') {
+      throw new AccountNotApprovedError(manager.signInAttemptCount);
+    }
 
     // 7. 로그인 성공. 로그인 시도 횟수 초기화.
+    await resetSignInAttemptCount(manager.managerNo, conn);
 
     // 8. 사용자 데이터 반환.
-    const result = await findManagerBySignInId(signInId);
+    const result = await findManagerBySignInId(signInId, conn);
+    if (result) {
+      await signInLogAction(
+        {
+          managerNo: result.managerNo,
+          signInId,
+          signInTime: dayjs().format('YYYY-MM-DD HH:mm:ss'),
+          signOutTime: null,
+          success: 'Y',
+        },
+        conn,
+      );
+    }
+
     await commitTransaction(conn);
     return result;
   } catch (error) {
-    console.error(error);
     await rollbackTransaction(conn);
     if (error instanceof CredentialsSignin) {
       throw error;

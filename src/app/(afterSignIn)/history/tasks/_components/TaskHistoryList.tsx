@@ -15,12 +15,11 @@ import {
 import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import useFilteredTaskHistory from '../_hooks/useFilteredTaskHistory';
 import { usePagination } from '@mantine/hooks';
-import PageSizeSelector from './PageSizeSelector';
+import PageSizeSelector from '../../_components/PageSizeSelector';
 import useIsMobile from '@/app/_hooks/useIsMobile';
 import { IconAlertCircle, IconInfoCircle } from '@tabler/icons-react';
 import dayjs from '@/lib/dayjs';
 import { HistoryFilter } from '@/types/history';
-import { useEffect } from 'react';
 
 /**
  * 외부에서 받은 필터 객체를 통해서 작업 이력 목록을 조회합니다.
@@ -102,10 +101,6 @@ export default function TaskHistoryList({
   function handleClickHistory(historyNo: number) {
     router.push(`${pathname}/${historyNo}`);
   }
-
-  useEffect(() => {
-    console.log('[TaskHistoryList] filters: ', filters);
-  }, [filters]);
 
   // 로딩 상태
   if (fetchStatus === 'fetching') {

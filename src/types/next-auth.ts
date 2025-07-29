@@ -8,6 +8,7 @@ import 'next-auth';
 import { DefaultSession } from 'next-auth';
 import { DefaultJWT } from 'next-auth/jwt';
 import { z } from 'zod';
+import { ynSchema } from './common';
 
 export const userSchema = z.object({
   managerNo: z.number(),
@@ -22,6 +23,9 @@ export const userWithPasswordSchema = userSchema.extend({
    * 해시된 비밀번호
    */
   hashedPassword: z.string(),
+  signInAttemptCount: z.number().nonnegative(),
+  approvedStatus: z.string(),
+  locked: ynSchema,
 });
 export type UserWithPassword = z.infer<typeof userWithPasswordSchema>;
 
