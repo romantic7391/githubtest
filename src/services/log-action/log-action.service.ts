@@ -11,7 +11,6 @@ import { headers } from 'next/headers';
 import { AppError } from '@/utils/error.utils';
 import dayjs from '@/lib/dayjs';
 import { User } from '@/types/next-auth';
-// import { auth } from '@/auth';
 
 // 로그 파라미터를 History 타입으로 변환
 export function makeLogParams(params: Partial<History>) {
@@ -59,10 +58,6 @@ export async function signOutLogAction(user: User, conn?: PoolConnection) {
   }
 
   const lastSignInHistory = await selectLastSignInHistory(user.managerNo, remoteAddr, conn);
-  console.log('===============================================');
-  console.log('lastSignInHistory: ', lastSignInHistory);
-  console.log('user: ', user);
-  console.log('===============================================');
   if (!lastSignInHistory) {
     throw new AppError('로그인 기록이 없습니다.', 400);
   }
