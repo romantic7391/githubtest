@@ -13,31 +13,31 @@ import {
   Badge,
 } from '@mantine/core';
 import { usePathname, useSearchParams, useRouter } from 'next/navigation';
-import useFilteredTaskHistory from '../_hooks/useFilteredTaskHistory';
+import useFilteredSignInHistory from '../_hooks/useFilteredSignInHistory';
 import { usePagination } from '@mantine/hooks';
 import PageSizeSelector from '../../_components/PageSizeSelector';
 import useIsMobile from '@/app/_hooks/useIsMobile';
 import { IconAlertCircle, IconInfoCircle } from '@tabler/icons-react';
 import dayjs from '@/lib/dayjs';
-import { HistoryFilter } from '@/types/history';
+import { SignInHistoryFilter } from '@/types/manager-signin-history';
 
 /**
- * 외부에서 받은 필터 객체를 통해서 작업 이력 목록을 조회합니다.
+ * 외부에서 받은 필터 객체를 통해서 로그인 이력 목록을 조회합니다.
  */
-export default function TaskHistoryList({
+export default function SignInHistoryList({
   page,
   pageSize,
   filters,
 }: {
   page: number;
   pageSize: number;
-  filters: HistoryFilter;
+  filters: SignInHistoryFilter;
 }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const { data, fetchStatus, isSuccess, error, isError } = useFilteredTaskHistory({
+  const { data, fetchStatus, isSuccess, error, isError } = useFilteredSignInHistory({
     page,
     pageSize,
     filters,
@@ -53,31 +53,23 @@ export default function TaskHistoryList({
     router.push(`${pathname}?${params.toString()}`);
   }
 
-  function getActionTypeString(actionType: string) {
-    switch (actionType) {
-      case 'I':
-        return '추가';
-      case 'U':
-        return '수정';
-      case 'D':
-        return '삭제';
-      case 'S':
-        return '조회';
+  function getSuccessString(success: string) {
+    switch (success) {
+      case 'Y':
+        return '성공';
+      case 'N':
+        return '실패';
       default:
-        return actionType;
+        return success;
     }
   }
 
-  function getActionTypeColor(actionType: string) {
-    switch (actionType) {
-      case 'I':
+  function getSuccessColor(success: string) {
+    switch (success) {
+      case 'Y':
         return 'green';
-      case 'U':
-        return 'blue';
-      case 'D':
+      case 'N':
         return 'red';
-      case 'S':
-        return 'gray';
       default:
         return 'gray';
     }
@@ -149,17 +141,17 @@ export default function TaskHistoryList({
           highlightOnHover
           withTableBorder
           withColumnBorders
-          aria-label="작업 이력 목록">
+          aria-label="로그인 이력 목록">
           <Table.Thead>
             <Table.Tr>
               <Table.Th>#</Table.Th>
-              <Table.Th>시각</Table.Th>
+              <Table.Th>로그인 시각</Table.Th>
+              <Table.Th>로그아웃 시각</Table.Th>
               {!isMobile && <Table.Th>IP 주소</Table.Th>}
-              {!isMobile && <Table.Th>User-Agent</Table.Th>}
               {!isMobile && <Table.Th>소속명</Table.Th>}
               <Table.Th>사용자명</Table.Th>
-              <Table.Th>분류</Table.Th>
-              <Table.Th>설명</Table.Th>
+              <Table.Th>로그인 ID</Table.Th>
+              <Table.Th>성공 여부</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
@@ -182,17 +174,17 @@ export default function TaskHistoryList({
                 role="button"
                 aria-label={`이력 ${history.historyNo} 상세보기`}>
                 <Table.Td>{history.historyNo}</Table.Td>
-                <Table.Td>{formatDate(history.created)}</Table.Td>
+                <Table.Td>{formatDate(history.signInTime)}</Table.Td>
+                <Table.Td>{formatDate(history.signOutTime)}</Table.Td>
                 {!isMobile && <Table.Td>{formatText(history.ip, 15)}</Table.Td>}
-                {!isMobile && <Table.Td>{formatText(history.userAgent, 30)}</Table.Td>}
                 {!isMobile && <Table.Td>{formatText(history.schoolName)}</Table.Td>}
                 <Table.Td>{formatText(history.managerName)}</Table.Td>
+                <Table.Td>{formatText(history.signInId)}</Table.Td>
                 <Table.Td>
-                  <Badge color={getActionTypeColor(history.actionType)} variant="light" size="sm">
-                    {getActionTypeString(history.actionType)}
+                  <Badge color={getSuccessColor(history.success)} variant="light" size="sm">
+                    {getSuccessString(history.success)}
                   </Badge>
                 </Table.Td>
-                <Table.Td>{formatText(history.reason)}</Table.Td>
               </Table.Tr>
             ))}
           </Table.Tbody>
