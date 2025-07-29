@@ -13,9 +13,9 @@ import {
   Badge,
 } from '@mantine/core';
 import { usePathname, useSearchParams, useRouter } from 'next/navigation';
-import useFilteredTaskHistory from '../_hooks/useFilteredTaskHistory';
+import useFilteredTaskHistory from '../../_hooks/useFilteredTaskHistory';
 import { usePagination } from '@mantine/hooks';
-import PageSizeSelector from './PageSizeSelector';
+import PageSizeSelector from '../../_components/PageSizeSelector';
 import useIsMobile from '@/app/_hooks/useIsMobile';
 import { IconAlertCircle, IconInfoCircle } from '@tabler/icons-react';
 import dayjs from '@/lib/dayjs';

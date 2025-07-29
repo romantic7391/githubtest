@@ -1,7 +1,7 @@
 import { Group, Stack, Title } from '@mantine/core';
 import { Metadata } from 'next';
-import TaskHistoryList from '../_components/TaskHistoryList';
-import TaskHistorySearch from '../_components/TaskHistorySearch';
+import TaskHistoryList from './_components/TaskHistoryList';
+import TaskHistorySearch from './_components/TaskHistorySearch';
 import { historyFilterSchema } from '@/types/history';
 import { paginationSchema } from '@/types/common';
 
