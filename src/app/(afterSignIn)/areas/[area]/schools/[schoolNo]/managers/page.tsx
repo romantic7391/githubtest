@@ -1,9 +1,8 @@
-import { Stack } from '@mantine/core';
+import { Group, Stack, Title } from '@mantine/core';
 import ManagerCreateButton from './_components/ManagerCreateButton';
 import ManagerSearch from './_components/ManagerSearch';
 import { DEFAULT_PAGE_SIZE } from '@/lib/default.constant';
 import ManagerList from './_components/ManagerList';
-import BreadcrumbNavigation from '@/app/(afterSignIn)/_components/BreadcrumbNavigation';
 
 export default async function Page({
   params,
@@ -25,11 +24,12 @@ export default async function Page({
 
   return (
     <Stack>
-      <BreadcrumbNavigation
-        title="사용자 목록"
-        showBackButton={false}
-        actions={<ManagerCreateButton area={area} schoolNo={Number(schoolNo)} />}
-      />
+      <Stack>
+        <Group align="center">
+          <Title order={3}>사용자 목록</Title>
+          <ManagerCreateButton area={area} schoolNo={Number(schoolNo)} />
+        </Group>
+      </Stack>
       <ManagerSearch />
       <ManagerList
         area={area}

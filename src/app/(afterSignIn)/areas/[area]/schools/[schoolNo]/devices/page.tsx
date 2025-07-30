@@ -1,5 +1,5 @@
+import { Title } from '@mantine/core';
 import DeviceList from './_components/DeviceList';
-import BreadcrumbNavigation from '@/app/(afterSignIn)/_components/BreadcrumbNavigation';
 
 export default async function Page({
   params,
@@ -13,7 +13,7 @@ export default async function Page({
 
   return (
     <>
-      <BreadcrumbNavigation title="센서 장치" showBackButton={false} />
+      <Title order={3}>센서 장치 목록</Title>
       <DeviceList area={area} schoolNo={Number(schoolNo)} />
     </>
   );

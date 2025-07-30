@@ -1,5 +1,5 @@
+import { Title } from '@mantine/core';
 import GroupList from './_components/GroupList';
-import BreadcrumbNavigation from '@/app/(afterSignIn)/_components/BreadcrumbNavigation';
 
 export default async function Page({
   params,
@@ -12,7 +12,7 @@ export default async function Page({
 
   return (
     <>
-      <BreadcrumbNavigation title="그룹" showBackButton={false} />
+      <Title order={3}>그룹</Title>
       <GroupList schoolNo={Number(schoolNo)} />
     </>
   );

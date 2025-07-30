@@ -142,16 +142,15 @@ export default function BreadcrumbNavigation({
             })}
           </Breadcrumbs>
         </Group>
-
-        {/* 추가 액션 버튼들 */}
-        {actions && <Group gap="xs">{actions}</Group>}
       </Group>
 
       {/* 페이지 제목 */}
       {title && (
-        <Title order={3} mt="xs">
-          {title}
-        </Title>
+        <Group align="center" mt="xs">
+          <Title order={3}>{title}</Title>
+          {/* 추가 액션 버튼들 */}
+          {actions && <Group gap="xs">{actions}</Group>}
+        </Group>
       )}
     </Stack>
   );
