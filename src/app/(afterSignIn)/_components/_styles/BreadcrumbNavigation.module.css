@@ -1,0 +1,50 @@
+/* 브레드크럼 네비게이션 스타일 */
+
+.breadcrumbContainer {
+  /* 브레드크럼 컨테이너 스타일 */
+  padding: 8px 0;
+}
+
+.breadcrumbItem {
+  /* 브레드크럼 아이템 기본 스타일 */
+  transition: color 0.2s ease;
+}
+
+.breadcrumbItem:hover {
+  /* 호버 시 색상 변경 */
+  text-decoration: underline;
+}
+
+.breadcrumbItemActive {
+  /* 현재 페이지 브레드크럼 아이템 스타일 */
+  color: var(--mantine-color-gray-6);
+  font-weight: 500;
+  cursor: default;
+}
+
+.breadcrumbItemActive:hover {
+  /* 현재 페이지는 호버 효과 없음 */
+  text-decoration: none;
+}
+
+.backButton {
+  /* 뒤로가기 버튼 스타일 */
+  transition: background-color 0.2s ease;
+}
+
+.backButton:hover {
+  /* 뒤로가기 버튼 호버 효과 */
+  background-color: var(--mantine-color-gray-1);
+}
+
+/* 모바일 반응형 스타일 */
+@media (max-width: 768px) {
+  .breadcrumbContainer {
+    padding: 4px 0;
+  }
+
+  .backButton {
+    font-size: 14px;
+    padding: 6px 12px;
+  }
+}

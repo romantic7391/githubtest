@@ -1,13 +1,19 @@
 import GroupList from './_components/GroupList';
+import BreadcrumbNavigation from '@/app/(afterSignIn)/_components/BreadcrumbNavigation';
 
 export default async function Page({
   params,
 }: {
   params: Promise<{
-    area: string;
     schoolNo: string;
   }>;
 }) {
   const { schoolNo } = await params;
-  return <GroupList schoolNo={Number(schoolNo)} />;
+
+  return (
+    <>
+      <BreadcrumbNavigation title="그룹" showBackButton={false} />
+      <GroupList schoolNo={Number(schoolNo)} />
+    </>
+  );
 }

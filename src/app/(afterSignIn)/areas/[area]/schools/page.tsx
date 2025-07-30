@@ -1,9 +1,10 @@
-import { Group, Stack, Title } from '@mantine/core';
+import { Stack } from '@mantine/core';
 import Search from './_components/Search';
 import SchoolList from './_components/SchoolList';
 import { DEFAULT_PAGE_SIZE } from '@/lib/default.constant';
 import SchoolAddButton from './_components/SchoolAddButton';
 import { Metadata } from 'next';
+import BreadcrumbNavigation from '../../../_components/BreadcrumbNavigation';
 
 export const metadata: Metadata = {
   title: '학교 목록',
@@ -29,10 +30,7 @@ export default async function Page(params: {
   return (
     <>
       <Stack>
-        <Group justify="space-between">
-          <Title order={3}>학교 목록</Title>
-          <SchoolAddButton />
-        </Group>
+        <BreadcrumbNavigation title="학교 목록" showBackButton={false} actions={<SchoolAddButton />} />
         <Search
           searchKeys={[
             {

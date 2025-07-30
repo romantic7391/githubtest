@@ -1,9 +1,10 @@
-import { Group, Stack, Title } from '@mantine/core';
+import { Stack } from '@mantine/core';
 import { Metadata } from 'next';
 import TaskHistoryList from './_components/TaskHistoryList';
 import TaskHistorySearch from './_components/TaskHistorySearch';
 import { historyFilterSchema } from '@/types/history';
 import { paginationSchema } from '@/types/common';
+import BreadcrumbNavigation from '../../_components/BreadcrumbNavigation';
 
 export const metadata: Metadata = {
   title: '작업 이력 목록',
@@ -18,9 +19,7 @@ export default async function Page(params: {
 
   return (
     <Stack>
-      <Group justify="space-between">
-        <Title order={3}>작업 이력 목록</Title>
-      </Group>
+      <BreadcrumbNavigation title="작업 이력 목록" showBackButton={false} />
       <TaskHistorySearch />
       <TaskHistoryList page={pagination.page} pageSize={pagination.pageSize} filters={filters} />
     </Stack>

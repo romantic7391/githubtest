@@ -1,4 +1,5 @@
 import DeviceList from './_components/DeviceList';
+import BreadcrumbNavigation from '@/app/(afterSignIn)/_components/BreadcrumbNavigation';
 
 export default async function Page({
   params,
@@ -9,5 +10,11 @@ export default async function Page({
   }>;
 }) {
   const { area, schoolNo } = await params;
-  return <DeviceList area={area} schoolNo={Number(schoolNo)} />;
+
+  return (
+    <>
+      <BreadcrumbNavigation title="센서 장치" showBackButton={false} />
+      <DeviceList area={area} schoolNo={Number(schoolNo)} />
+    </>
+  );
 }

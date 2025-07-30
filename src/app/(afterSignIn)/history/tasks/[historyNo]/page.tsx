@@ -1,6 +1,7 @@
 import { historyNoSchema } from '@/types/history';
 import TaskHistory from './_components/TaskHistory';
-import { Stack, Title } from '@mantine/core';
+import { Stack } from '@mantine/core';
+import BreadcrumbNavigation from '../../../_components/BreadcrumbNavigation';
 
 export default async function Page({
   params,
@@ -13,7 +14,7 @@ export default async function Page({
 
   return (
     <Stack>
-      <Title order={3}>작업 이력 상세</Title>
+      <BreadcrumbNavigation title="작업 이력 상세" backHref="/history/tasks" />
       <TaskHistory historyNo={historyNo} />
     </Stack>
   );

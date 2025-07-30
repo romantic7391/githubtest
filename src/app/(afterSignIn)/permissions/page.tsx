@@ -1,9 +1,10 @@
 import { DEFAULT_PAGE_SIZE } from '@/lib/default.constant';
-import { Group, Stack, Title } from '@mantine/core';
+import { Stack } from '@mantine/core';
 import Search from '../_components/Search';
 import PermissionList from './_components/PermissionList';
 import PermissionCreateButton from './_components/PermissionCreateButton';
 import { Metadata } from 'next';
+import BreadcrumbNavigation from '../_components/BreadcrumbNavigation';
 
 export const metadata: Metadata = {
   title: '권한 목록',
@@ -20,10 +21,7 @@ export default async function Page(params: {
 
   return (
     <Stack>
-      <Group justify="space-between">
-        <Title order={3}>권한 목록</Title>
-        <PermissionCreateButton />
-      </Group>
+      <BreadcrumbNavigation title="권한 목록" showBackButton={false} actions={<PermissionCreateButton />} />
       <Search
         searchKeys={[
           {

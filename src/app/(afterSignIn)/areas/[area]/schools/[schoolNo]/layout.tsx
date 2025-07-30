@@ -1,6 +1,7 @@
-import { Anchor, Breadcrumbs, Stack, Title } from '@mantine/core';
+import { Stack } from '@mantine/core';
 import SchoolTab from './_components/SchoolTab';
 import { Metadata } from 'next';
+import BreadcrumbNavigation from '../../../../_components/BreadcrumbNavigation';
 
 export const metadata: Metadata = {
   title: '학교 정보',
@@ -17,18 +18,11 @@ export default async function Layout({
   }>;
 }) {
   const { area, schoolNo } = await params;
+
   return (
     <Stack>
       <Stack>
-        <Breadcrumbs>
-          <Anchor size="sm" href={`/areas/${area}/schools`}>
-            학교 목록
-          </Anchor>
-          <Anchor size="sm" href={`/areas/${area}/schools/${schoolNo}`}>
-            학교 정보
-          </Anchor>
-        </Breadcrumbs>
-        <Title order={3}>학교 정보</Title>
+        <BreadcrumbNavigation title="학교 정보" backHref={`/areas/${area}/schools`} />
         <SchoolTab area={area} schoolNo={schoolNo} />
       </Stack>
       {children}
