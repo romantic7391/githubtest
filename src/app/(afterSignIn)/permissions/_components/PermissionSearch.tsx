@@ -15,24 +15,15 @@ interface SimpleSearchForm {
 
 interface DetailSearchForm {
   name: string;
-  signInId: string;
-  scode: string;
 }
 
-export default function ManagerSearch() {
+export default function PermissionSearch() {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const router = useRouter();
   const [searchMode, setSearchMode] = useState<SearchMode>('simple');
 
-  const searchKeyOptions = useMemo(
-    () => [
-      { value: 'name', label: '사용자명' },
-      { value: 'signInId', label: '로그인 ID' },
-      { value: 'scode', label: '학교 코드' },
-    ],
-    [],
-  );
+  const searchKeyOptions = useMemo(() => [{ value: 'name', label: '권한명' }], []);
 
   const selectWidth = useMemo(() => {
     return searchKeyOptions.reduce((acc, curr) => {
@@ -67,8 +58,6 @@ export default function ManagerSearch() {
   const detailForm = useForm<DetailSearchForm>({
     initialValues: {
       name: searchParams.get('name') || '',
-      signInId: searchParams.get('signInId') || '',
-      scode: searchParams.get('scode') || '',
     },
   });
 
@@ -76,8 +65,6 @@ export default function ManagerSearch() {
     params.delete('searchKey');
     params.delete('searchValue');
     params.delete('name');
-    params.delete('signInId');
-    params.delete('scode');
   }
 
   function handleSimpleSearch(values: SimpleSearchForm) {
@@ -99,12 +86,6 @@ export default function ManagerSearch() {
     if (values.name.trim()) {
       params.set('name', values.name.trim());
     }
-    if (values.signInId.trim()) {
-      params.set('signInId', values.signInId.trim());
-    }
-    if (values.scode.trim()) {
-      params.set('scode', values.scode.trim());
-    }
 
     params.set('page', '1');
     router.push(`${pathname}?${params.toString()}`);
@@ -121,15 +102,13 @@ export default function ManagerSearch() {
     });
     detailForm.initialize({
       name: '',
-      signInId: '',
-      scode: '',
     });
 
     router.push(pathname);
   }
 
   function hasActiveFilters(): boolean {
-    return !!(searchParams.get('name') || searchParams.get('signInId') || searchParams.get('scode'));
+    return !!searchParams.get('name');
   }
 
   return (
@@ -208,22 +187,10 @@ export default function ManagerSearch() {
             <Stack>
               <Group>
                 <TextInput
-                  label="사용자명"
-                  placeholder="사용자명을 입력하세요"
+                  label="권한명"
+                  placeholder="권한명을 입력하세요"
                   style={{ flex: 1 }}
                   {...detailForm.getInputProps('name')}
-                />
-                <TextInput
-                  label="로그인 ID"
-                  placeholder="로그인 ID를 입력하세요"
-                  style={{ flex: 1 }}
-                  {...detailForm.getInputProps('signInId')}
-                />
-                <TextInput
-                  label="학교 코드"
-                  placeholder="학교 코드를 입력하세요"
-                  style={{ flex: 1 }}
-                  {...detailForm.getInputProps('scode')}
                 />
               </Group>
 

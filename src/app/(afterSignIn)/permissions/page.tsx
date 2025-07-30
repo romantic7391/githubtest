@@ -1,6 +1,6 @@
 import { DEFAULT_PAGE_SIZE } from '@/lib/default.constant';
 import { Stack } from '@mantine/core';
-import Search from '../_components/Search';
+import PermissionSearch from './_components/PermissionSearch';
 import PermissionList from './_components/PermissionList';
 import PermissionCreateButton from './_components/PermissionCreateButton';
 import { Metadata } from 'next';
@@ -22,14 +22,7 @@ export default async function Page(params: {
   return (
     <Stack>
       <BreadcrumbNavigation title="권한 목록" showBackButton={false} actions={<PermissionCreateButton />} />
-      <Search
-        searchKeys={[
-          {
-            label: '권한 이름',
-            value: 'name',
-          },
-        ]}
-      />
+      <PermissionSearch />
       <PermissionList name={name} page={page} pageSize={pageSize} />
     </Stack>
   );

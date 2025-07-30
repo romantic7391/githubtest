@@ -1,5 +1,5 @@
 import { Stack } from '@mantine/core';
-import Search from './_components/Search';
+import SchoolSearch from './_components/SchoolSearch';
 import SchoolList from './_components/SchoolList';
 import { DEFAULT_PAGE_SIZE } from '@/lib/default.constant';
 import SchoolAddButton from './_components/SchoolAddButton';
@@ -31,18 +31,7 @@ export default async function Page(params: {
     <>
       <Stack>
         <BreadcrumbNavigation title="학교 목록" showBackButton={false} actions={<SchoolAddButton />} />
-        <Search
-          searchKeys={[
-            {
-              label: '학교 이름',
-              value: 'sname',
-            },
-            {
-              label: '학교 코드',
-              value: 'scode',
-            },
-          ]}
-        />
+        <SchoolSearch />
         <SchoolList sname={sname} scode={scode} page={page} pageSize={pageSize} />
       </Stack>
     </>

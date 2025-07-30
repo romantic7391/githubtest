@@ -14,12 +14,12 @@ interface SimpleSearchForm {
 }
 
 interface DetailSearchForm {
-  name: string;
-  signInId: string;
+  sname: string;
   scode: string;
+  area: string;
 }
 
-export default function ManagerSearch() {
+export default function SchoolSearch() {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const router = useRouter();
@@ -27,8 +27,7 @@ export default function ManagerSearch() {
 
   const searchKeyOptions = useMemo(
     () => [
-      { value: 'name', label: '사용자명' },
-      { value: 'signInId', label: '로그인 ID' },
+      { value: 'sname', label: '학교명' },
       { value: 'scode', label: '학교 코드' },
     ],
     [],
@@ -44,7 +43,7 @@ export default function ManagerSearch() {
   // 단순 검색 폼
   const simpleForm = useForm<SimpleSearchForm>({
     initialValues: {
-      searchKey: searchParams.get('searchKey') || 'name',
+      searchKey: searchParams.get('searchKey') || 'sname',
       searchValue: searchParams.get('searchValue') || '',
     },
     validate: {
@@ -66,18 +65,18 @@ export default function ManagerSearch() {
   // 상세 검색 폼
   const detailForm = useForm<DetailSearchForm>({
     initialValues: {
-      name: searchParams.get('name') || '',
-      signInId: searchParams.get('signInId') || '',
+      sname: searchParams.get('sname') || '',
       scode: searchParams.get('scode') || '',
+      area: searchParams.get('area') || '',
     },
   });
 
   function deleteSearchParams(params: URLSearchParams) {
     params.delete('searchKey');
     params.delete('searchValue');
-    params.delete('name');
-    params.delete('signInId');
+    params.delete('sname');
     params.delete('scode');
+    params.delete('area');
   }
 
   function handleSimpleSearch(values: SimpleSearchForm) {
@@ -96,14 +95,14 @@ export default function ManagerSearch() {
     const params = new URLSearchParams(searchParams);
     deleteSearchParams(params);
 
-    if (values.name.trim()) {
-      params.set('name', values.name.trim());
-    }
-    if (values.signInId.trim()) {
-      params.set('signInId', values.signInId.trim());
+    if (values.sname.trim()) {
+      params.set('sname', values.sname.trim());
     }
     if (values.scode.trim()) {
       params.set('scode', values.scode.trim());
+    }
+    if (values.area.trim()) {
+      params.set('area', values.area.trim());
     }
 
     params.set('page', '1');
@@ -116,20 +115,20 @@ export default function ManagerSearch() {
 
     // 폼 초기화
     simpleForm.initialize({
-      searchKey: 'name',
+      searchKey: 'sname',
       searchValue: '',
     });
     detailForm.initialize({
-      name: '',
-      signInId: '',
+      sname: '',
       scode: '',
+      area: '',
     });
 
     router.push(pathname);
   }
 
   function hasActiveFilters(): boolean {
-    return !!(searchParams.get('name') || searchParams.get('signInId') || searchParams.get('scode'));
+    return !!(searchParams.get('sname') || searchParams.get('scode') || searchParams.get('area'));
   }
 
   return (
@@ -208,22 +207,22 @@ export default function ManagerSearch() {
             <Stack>
               <Group>
                 <TextInput
-                  label="사용자명"
-                  placeholder="사용자명을 입력하세요"
+                  label="학교명"
+                  placeholder="학교명을 입력하세요"
                   style={{ flex: 1 }}
-                  {...detailForm.getInputProps('name')}
-                />
-                <TextInput
-                  label="로그인 ID"
-                  placeholder="로그인 ID를 입력하세요"
-                  style={{ flex: 1 }}
-                  {...detailForm.getInputProps('signInId')}
+                  {...detailForm.getInputProps('sname')}
                 />
                 <TextInput
                   label="학교 코드"
                   placeholder="학교 코드를 입력하세요"
                   style={{ flex: 1 }}
                   {...detailForm.getInputProps('scode')}
+                />
+                <TextInput
+                  label="지역"
+                  placeholder="지역을 입력하세요"
+                  style={{ flex: 1 }}
+                  {...detailForm.getInputProps('area')}
                 />
               </Group>
 

@@ -21,6 +21,7 @@ export default function useFilteredPermissions({ name, page, pageSize }: UseFilt
     if (name) {
       requestUrl.searchParams.set('name', name);
     }
+
     if (page) {
       requestUrl.searchParams.set('page', page.toString());
     }

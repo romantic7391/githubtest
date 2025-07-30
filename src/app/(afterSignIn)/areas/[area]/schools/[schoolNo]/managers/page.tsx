@@ -19,6 +19,7 @@ export default async function Page({
   const sp = await searchParams;
   const name = sp.name as string | null;
   const signInId = sp.signInId as string | null;
+  const scode = sp.scode as string | null;
   const page = Number(sp.page) || 1;
   const pageSize = Number(sp.pageSize) || DEFAULT_PAGE_SIZE;
 
@@ -35,6 +36,7 @@ export default async function Page({
         schoolNo={Number(schoolNo)}
         name={name ?? undefined}
         signInId={signInId ?? undefined}
+        scode={scode ?? undefined}
         page={page}
         pageSize={pageSize}
       />
