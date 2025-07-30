@@ -41,6 +41,7 @@ export default function SignInForm() {
         return null;
       },
     },
+    validateInputOnChange: true,
   });
 
   function handleSubmit(values: typeof form.values) {

@@ -81,6 +81,7 @@ export default function SchoolCreateForm() {
         if (error) return showError(error);
       },
     },
+    validateInputOnChange: true,
   });
 
   function showError(error: ZodError) {

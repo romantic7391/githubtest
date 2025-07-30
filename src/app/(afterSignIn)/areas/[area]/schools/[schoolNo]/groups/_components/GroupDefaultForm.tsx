@@ -28,6 +28,7 @@ export default function GroupDefaultForm({
         if (error) return showError(error);
       },
     },
+    validateInputOnChange: true,
   });
   const { mutate: updateGroup, isSuccess: isUpdatedGroup } = useUpdateGroup({ schoolNo });
 

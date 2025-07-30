@@ -55,6 +55,7 @@ export default function PermissionForm({ permissionNo }: { permissionNo: number 
         if (error) return showError(error);
       },
     },
+    validateInputOnChange: true,
   });
 
   useEffect(() => {
