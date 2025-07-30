@@ -2,7 +2,7 @@
 
 import { Button, Card, ComboboxItem, Flex, Grid, Group, Select, Text, TextInput } from '@mantine/core';
 import { useMemo, useState } from 'react';
-import { IconSearch } from '@tabler/icons-react';
+import { IconSearch, IconFilterOff } from '@tabler/icons-react';
 import { useDebouncedCallback } from '@mantine/hooks';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
@@ -41,6 +41,7 @@ export default function Search({ searchKeys }: { searchKeys: ComboboxItem[] }) {
 
   function handleReset() {
     setSearchValue('');
+    setSearchKey(searchKeys[0]);
     router.replace(pathname);
   }
 
@@ -92,8 +93,11 @@ export default function Search({ searchKeys }: { searchKeys: ComboboxItem[] }) {
                 검색
               </Group>
             </Button>
-            <Button px={10} onClick={() => handleReset()} color="red">
-              초기화
+            <Button px={10} onClick={() => handleReset()} color="red" variant="light">
+              <Group gap={5}>
+                <IconFilterOff size={16} />
+                초기화
+              </Group>
             </Button>
           </Group>
         </Grid.Col>
