@@ -50,13 +50,18 @@ export default function SchoolTab({ area, schoolNo }: { area: string; schoolNo: 
   }
 
   return (
-    <Tabs variant="pills" value={selectedTab} onChange={(value) => setSelectedTab(value ?? 'info')}>
+    <Tabs
+      variant="pills"
+      value={selectedTab}
+      onChange={(value) => setSelectedTab(value ?? 'info')}
+      aria-label="학교 정보 탭">
       <Tabs.List>
         {TAB_LIST.map((tab) => (
           <Tabs.Tab
             key={tab.value}
             value={tab.value}
-            onClick={() => router.push(`/areas/${area}/schools/${schoolNo}/${tab.value}`)}>
+            onClick={() => router.push(`/areas/${area}/schools/${schoolNo}/${tab.value}`)}
+            aria-label={`${tab.label} 탭`}>
             {tab.label}
           </Tabs.Tab>
         ))}

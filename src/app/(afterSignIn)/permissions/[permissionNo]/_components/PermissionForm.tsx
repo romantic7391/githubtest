@@ -220,7 +220,7 @@ export default function PermissionForm({ permissionNo }: { permissionNo: number 
 
           <Grid justify="flex-start" mb="md">
             <Grid.Col span={{ base: 12, md: 'content' }}>
-              <Button type="submit" fullWidth loading={isButtonLoading}>
+              <Button type="submit" fullWidth loading={isButtonLoading} aria-label="권한 정보 수정">
                 수정
               </Button>
             </Grid.Col>
@@ -231,7 +231,8 @@ export default function PermissionForm({ permissionNo }: { permissionNo: number 
                 color="grey"
                 fullWidth
                 loading={isButtonLoading}
-                onClick={form.reset}>
+                onClick={form.reset}
+                aria-label="권한 정보 초기화">
                 초기화
               </Button>
             </Grid.Col>
@@ -242,7 +243,8 @@ export default function PermissionForm({ permissionNo }: { permissionNo: number 
                 color="red"
                 fullWidth
                 loading={isButtonLoading}
-                onClick={handleDelete}>
+                onClick={handleDelete}
+                aria-label="권한 삭제">
                 삭제
               </Button>
             </Grid.Col>

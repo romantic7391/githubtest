@@ -217,6 +217,15 @@ export default function DeviceCard({
               <Title
                 order={5}
                 onClick={() => setKindEditMode(!kindEditMode)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setKindEditMode(!kindEditMode);
+                  }
+                }}
+                tabIndex={form.values.name === '' ? 0 : -1}
+                role={form.values.name === '' ? 'button' : undefined}
+                aria-label={form.values.name === '' ? '센서 종류 선택' : undefined}
                 style={{ cursor: form.values.name === '' ? 'pointer' : 'default' }}>
                 {form.values.name === '' ? '클릭하여 센서 선택' : form.values.name}
               </Title>
@@ -224,7 +233,9 @@ export default function DeviceCard({
           </Group>
           <Menu position="bottom-end">
             <Menu.Target>
-              <Button size="compact-sm">메뉴</Button>
+              <Button size="compact-sm" aria-label="장치 메뉴">
+                메뉴
+              </Button>
             </Menu.Target>
 
             <Menu.Dropdown>

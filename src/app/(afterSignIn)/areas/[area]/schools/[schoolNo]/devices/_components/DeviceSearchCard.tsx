@@ -55,16 +55,16 @@ export default function DeviceSearchCard({
         </Grid.Col>
         <Grid.Col span={{ base: 12, xs: 'content' }}>
           <Group>
-            <Button px={10} onClick={() => {}}>
+            <Button px={10} onClick={() => {}} aria-label="장치 검색">
               <Group gap={5}>
                 <IconSearch size={16} stroke={3} />
                 검색
               </Group>
             </Button>
-            <Button px={10} onClick={() => {}} color="red">
+            <Button px={10} onClick={() => {}} color="red" aria-label="장치 검색 조건 초기화">
               초기화
             </Button>
-            <Button px={10} onClick={() => {}}>
+            <Button px={10} onClick={() => {}} aria-label="장치 추가">
               <Group gap={5}>
                 <IconPlus size={16} stroke={3} />
                 장치 추가

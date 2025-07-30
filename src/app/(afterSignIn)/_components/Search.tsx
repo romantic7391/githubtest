@@ -87,13 +87,13 @@ export default function Search({ searchKeys }: { searchKeys: ComboboxItem[] }) {
         </Grid.Col>
         <Grid.Col span={{ base: 12, md: 'content' }}>
           <Group>
-            <Button px={10} onClick={() => handleSearch(searchKey.value, searchValue)}>
+            <Button px={10} onClick={() => handleSearch(searchKey.value, searchValue)} aria-label="검색">
               <Group gap={5}>
                 <IconSearch size={16} stroke={3} />
                 검색
               </Group>
             </Button>
-            <Button px={10} onClick={() => handleReset()} color="red" variant="light">
+            <Button px={10} onClick={() => handleReset()} color="red" variant="light" aria-label="검색 조건 초기화">
               <Group gap={5}>
                 <IconFilterOff size={16} />
                 초기화

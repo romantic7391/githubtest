@@ -118,13 +118,14 @@ export default function BreadcrumbNavigation({
               leftSection={<IconArrowLeft size={16} />}
               onClick={handleBackClick}
               size="sm"
-              className={styles.backButton}>
+              className={styles.backButton}
+              aria-label="이전 페이지로 이동">
               뒤로가기
             </Button>
           )}
 
           {/* 브레드크럼 */}
-          <Breadcrumbs separator="/">
+          <Breadcrumbs separator="/" aria-label="페이지 네비게이션">
             {breadcrumbSegments.map((segment, index) => {
               const isLast = index === breadcrumbSegments.length - 1;
 
@@ -135,7 +136,8 @@ export default function BreadcrumbNavigation({
                   href={isLast ? undefined : segment.href}
                   c={isLast ? 'dimmed' : 'blue'}
                   className={isLast ? styles.breadcrumbItemActive : styles.breadcrumbItem}
-                  onClick={isLast ? (e) => e.preventDefault() : undefined}>
+                  onClick={isLast ? (e) => e.preventDefault() : undefined}
+                  aria-label={isLast ? `현재 페이지: ${segment.label}` : `${segment.label}로 이동`}>
                   {segment.label}
                 </Anchor>
               );

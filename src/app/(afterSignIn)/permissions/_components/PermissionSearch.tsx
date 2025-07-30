@@ -120,13 +120,15 @@ export default function PermissionSearch() {
             <Button
               variant={searchMode === 'simple' ? 'filled' : 'light'}
               size="sm"
-              onClick={() => setSearchMode('simple')}>
+              onClick={() => setSearchMode('simple')}
+              aria-label="단순 검색 모드로 변경">
               단순 검색
             </Button>
             <Button
               variant={searchMode === 'detail' ? 'filled' : 'light'}
               size="sm"
-              onClick={() => setSearchMode('detail')}>
+              onClick={() => setSearchMode('detail')}
+              aria-label="상세 검색 모드로 변경">
               상세 검색
             </Button>
           </Group>

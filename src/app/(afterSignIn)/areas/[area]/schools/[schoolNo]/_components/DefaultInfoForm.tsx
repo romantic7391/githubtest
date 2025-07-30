@@ -294,7 +294,7 @@ export default function DefaultInfoForm({ schoolNo }: { schoolNo: number }) {
 
           <Grid justify="flex-start" mb="md">
             <Grid.Col span={{ base: 12, md: 'content' }}>
-              <Button type="submit" fullWidth loading={isButtonLoading}>
+              <Button type="submit" fullWidth loading={isButtonLoading} aria-label="학교 정보 수정">
                 수정
               </Button>
             </Grid.Col>
@@ -305,7 +305,8 @@ export default function DefaultInfoForm({ schoolNo }: { schoolNo: number }) {
                 color="grey"
                 fullWidth
                 loading={isButtonLoading}
-                onClick={form.reset}>
+                onClick={form.reset}
+                aria-label="학교 정보 초기화">
                 초기화
               </Button>
             </Grid.Col>
@@ -316,7 +317,8 @@ export default function DefaultInfoForm({ schoolNo }: { schoolNo: number }) {
                 color="red"
                 fullWidth
                 loading={isButtonLoading}
-                onClick={handleDelete}>
+                onClick={handleDelete}
+                aria-label="학교 삭제">
                 삭제
               </Button>
             </Grid.Col>
