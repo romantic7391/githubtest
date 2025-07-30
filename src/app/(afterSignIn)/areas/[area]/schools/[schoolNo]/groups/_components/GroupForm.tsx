@@ -4,7 +4,7 @@ import { Group } from '@/types/permission/group';
 import { TreeNode } from '@/utils/common.util';
 import useDeleteGroup from '../_hooks/useDeleteGroup';
 import { useEffect } from 'react';
-import { notifications } from '@mantine/notifications';
+import { showSuccessNotification } from '@/utils/notification.utils';
 import { Text, Button, Tabs, Stack } from '@mantine/core';
 import GroupDefaultForm from './GroupDefaultForm';
 import GroupPermissionForm from './GroupPermissionForm';
@@ -26,14 +26,7 @@ export default function GroupForm({
 
   useEffect(() => {
     if (!isDeletedGroup) return;
-    notifications.show({
-      title: '그룹이 삭제되었습니다.',
-      message: '',
-      autoClose: true,
-      withCloseButton: true,
-      position: 'top-center',
-      color: 'green',
-    });
+    showSuccessNotification('그룹이 삭제되었습니다.');
     setSelectedGroup(null);
   }, [isDeletedGroup, setSelectedGroup]);
 

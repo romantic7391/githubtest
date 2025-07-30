@@ -12,7 +12,7 @@ import { useEffect, useMemo, useState } from 'react';
 import AuthLoadingOverlay from '@/app/(beforeSignIn)/auth/_components/AuthLoadingOverlay';
 import { IconAlertCircleFilled } from '@tabler/icons-react';
 import useFilteredGroups from '../../../groups/_hooks/useFilteredGroups';
-import { notifications } from '@mantine/notifications';
+import { showSuccessNotification, showErrorNotification } from '@/utils/notification.utils';
 
 export default function ManagerCreateForm({ area, schoolNo }: { area: string; schoolNo: number }) {
   const router = useRouter();
@@ -131,13 +131,7 @@ export default function ManagerCreateForm({ area, schoolNo }: { area: string; sc
   useEffect(() => {
     if (!isSignUpSuccess) return;
 
-    notifications.show({
-      title: '사용자 생성 완료',
-      message: '',
-      color: 'green',
-      autoClose: 3000,
-      position: 'top-center',
-    });
+    showSuccessNotification('사용자 생성 완료');
 
     router.push(`/areas/${area}/schools/${schoolNo}/managers`);
   }, [isSignUpSuccess, router, area, schoolNo]);
@@ -145,13 +139,7 @@ export default function ManagerCreateForm({ area, schoolNo }: { area: string; sc
   useEffect(() => {
     if (!isSignUpError) return;
 
-    notifications.show({
-      title: '사용자 생성 실패',
-      message: signUpError.message,
-      color: 'red',
-      autoClose: 3000,
-      position: 'top-center',
-    });
+    showErrorNotification('사용자 생성 실패', signUpError.message);
     setDisplayedSignUpError(true);
   }, [isSignUpError, signUpError]);
 

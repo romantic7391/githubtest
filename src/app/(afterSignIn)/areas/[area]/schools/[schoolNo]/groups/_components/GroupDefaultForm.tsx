@@ -4,7 +4,7 @@ import { Stack, TextInput, Group as MantineGroup, Select, Grid, Button } from '@
 import { useForm } from '@mantine/form';
 import { useEffect } from 'react';
 import useUpdateGroup from '../_hooks/useUpdateGroup';
-import { notifications } from '@mantine/notifications';
+import { showSuccessNotification } from '@/utils/notification.utils';
 
 export default function GroupDefaultForm({
   schoolNo,
@@ -57,14 +57,7 @@ export default function GroupDefaultForm({
 
   useEffect(() => {
     if (!isUpdatedGroup) return;
-    notifications.show({
-      title: '그룹이 수정되었습니다.',
-      message: '',
-      autoClose: true,
-      withCloseButton: true,
-      position: 'top-center',
-      color: 'green',
-    });
+    showSuccessNotification('그룹이 수정되었습니다.');
   }, [isUpdatedGroup]);
 
   return (

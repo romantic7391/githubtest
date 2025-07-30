@@ -3,6 +3,7 @@ import { Button, Group, Modal, Stack, Text, TextInput } from '@mantine/core';
 import styles from './_styles/GroupCreateModal.module.css';
 import useCreateGroup from '../_hooks/useCreateGroup';
 import { useEffect, useState } from 'react';
+import { showSuccessNotification } from '@/utils/notification.utils';
 
 export default function GroupCreateModal({
   opened,
@@ -39,6 +40,7 @@ export default function GroupCreateModal({
   useEffect(() => {
     if (!data || !isCreatedGroup) return;
     onSuccess({ groupNo: data.groupNo, name: groupName });
+    showSuccessNotification('그룹이 추가되었습니다.');
     handlers.close();
   }, [data, isCreatedGroup]);
 

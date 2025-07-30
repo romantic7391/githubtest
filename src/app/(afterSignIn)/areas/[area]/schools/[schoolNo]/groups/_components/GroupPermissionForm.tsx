@@ -11,7 +11,7 @@ import {
   Group as MantineGroup,
 } from '@mantine/core';
 import { useEffect, useState, useMemo } from 'react';
-import { notifications } from '@mantine/notifications';
+import { showSuccessNotification } from '@/utils/notification.utils';
 import { IconSearch } from '@tabler/icons-react';
 import usePermissions from '../_hooks/usePermissions';
 import useGroupPermissions from '../_hooks/useGroupPermissions';
@@ -132,14 +132,7 @@ export default function GroupPermissionForm({
   // 업데이트 성공 알림
   useEffect(() => {
     if (!isUpdatedGroupPermissions) return;
-    notifications.show({
-      title: '그룹 권한이 수정되었습니다.',
-      message: '',
-      autoClose: true,
-      withCloseButton: true,
-      position: 'top-center',
-      color: 'green',
-    });
+    showSuccessNotification('그룹 권한이 수정되었습니다.');
   }, [isUpdatedGroupPermissions]);
 
   // 로딩 상태

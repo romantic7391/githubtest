@@ -2,7 +2,7 @@ import { Stack } from '@mantine/core';
 import React from 'react';
 import { Metadata } from 'next';
 import PermissionCreateForm from './_components/PermissionCreateForm';
-import BreadcrumbNavigation from '../_components/BreadcrumbNavigation';
+import BreadcrumbNavigation from '@/app/(afterSignIn)/_components/BreadcrumbNavigation';
 
 export const metadata: Metadata = {
   title: '권한 추가',

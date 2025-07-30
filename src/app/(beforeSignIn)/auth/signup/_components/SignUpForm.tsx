@@ -13,7 +13,7 @@ import { managerSignUpSchema } from '@/types/manager';
 import { showError } from '@/utils/common.util';
 import { z } from 'zod';
 import useCheckSignIdDuplicate from '../_hooks/useCheckSignIdDuplicate';
-import { notifications } from '@mantine/notifications';
+import { showSuccessNotification, showErrorNotification } from '@/utils/notification.utils';
 
 export default function SignUpForm() {
   const router = useRouter();
@@ -125,13 +125,7 @@ export default function SignUpForm() {
   useEffect(() => {
     if (!isSignUpSuccess) return;
 
-    notifications.show({
-      title: '회원가입 완료',
-      message: '로그인 페이지에서 로그인해주세요.',
-      color: 'green',
-      autoClose: 3000,
-      position: 'top-center',
-    });
+    showSuccessNotification('회원가입 완료', '로그인 페이지에서 로그인해주세요.');
 
     router.push('/auth/signin');
   }, [isSignUpSuccess, router]);
@@ -139,13 +133,7 @@ export default function SignUpForm() {
   useEffect(() => {
     if (!isSignUpError) return;
 
-    notifications.show({
-      title: '회원가입 실패',
-      message: signUpError.message,
-      color: 'red',
-      autoClose: 3000,
-      position: 'top-center',
-    });
+    showErrorNotification('회원가입 실패', signUpError.message);
     setDisplayedSignUpError(true);
   }, [isSignUpError, signUpError]);
 

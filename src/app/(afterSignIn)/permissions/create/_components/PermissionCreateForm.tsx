@@ -2,8 +2,7 @@
 
 import { Anchor, Button, Group, Stack, Text, Textarea, TextInput } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { notifications, type NotificationData } from '@mantine/notifications';
-import { IconAlertCircleFilled, IconCheck } from '@tabler/icons-react';
+import { showLoadingNotification, updateToError, updateToSuccess } from '@/utils/notification.utils';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import useCreatePermission from '../_hooks/useCreatePermission';
@@ -16,14 +15,6 @@ export default function PermissionCreateForm() {
   const router = useRouter();
   const { mutate: createPermission, isSuccess, data, isError, error } = useCreatePermission();
   const [notificationId, setNotificationId] = useState<string | null>(null);
-  const notificationDefaultConfig: NotificationData = {
-    loading: false,
-    title: '',
-    message: '',
-    autoClose: false,
-    withCloseButton: false,
-    position: 'top-center',
-  };
   const permissionLink = useMemo(() => {
     if (!data?.permissionNo) return '';
     return `/permissions/${data.permissionNo}`;
@@ -69,11 +60,7 @@ export default function PermissionCreateForm() {
     };
     createPermission(submitValue);
 
-    const notificationId = notifications.show({
-      ...notificationDefaultConfig,
-      loading: true,
-      title: '권한을 추가하고 있습니다. 잠시만 기다려주십시오.',
-    });
+    const notificationId = showLoadingNotification('권한을 추가하고 있습니다. 잠시만 기다려주십시오.');
     setNotificationId(notificationId);
   }
 
@@ -85,35 +72,20 @@ export default function PermissionCreateForm() {
       errorMessage = <>{showError(error)}</>;
     }
 
-    notifications.update({
-      ...notificationDefaultConfig,
-      id: notificationId,
-      loading: false,
-      title: '권한을 추가하는 중 오류가 발생했습니다.',
-      message: errorMessage,
-      icon: <IconAlertCircleFilled size={18} />,
-      color: 'red',
-    });
+    updateToError(notificationId, '권한을 추가하는 중 오류가 발생했습니다.', errorMessage);
   }, [notificationId, isError, error]);
 
   useEffect(() => {
     if (!notificationId || !isSuccess) return;
 
-    notifications.update({
-      ...notificationDefaultConfig,
-      id: notificationId,
-      loading: false,
-      title: '권한을 성공적으로 추가했습니다.',
-      message: (
-        <Group gap="xs">
-          <Text>잠시 후 권한 페이지로 이동합니다.</Text>
-          <Anchor href={permissionLink}>바로 가기</Anchor>
-        </Group>
-      ),
-      icon: <IconCheck size={18} />,
-      autoClose: DEFAULT_NOTIFICATION_AUTOCLOSE_MS,
-      color: 'green',
-    });
+    updateToSuccess(
+      notificationId,
+      '권한을 성공적으로 추가했습니다.',
+      <Group gap="xs">
+        <Text>잠시 후 권한 페이지로 이동합니다.</Text>
+        <Anchor href={permissionLink}>바로 가기</Anchor>
+      </Group>,
+    );
 
     setTimeout(() => {
       router.push(permissionLink);

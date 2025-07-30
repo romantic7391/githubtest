@@ -23,8 +23,8 @@ import { useForm } from '@mantine/form';
 import ZodErrorDisplay from '@/app/(afterSignIn)/_components/ZodErrorDisplay';
 import { useParams } from 'next/navigation';
 import { QueryObserverResult, RefetchOptions } from '@tanstack/react-query';
-import { notifications } from '@mantine/notifications';
-import { IconAlertCircleFilled, IconCheck, IconDots, IconTrash } from '@tabler/icons-react';
+import { showErrorNotification, showSuccessNotification } from '@/utils/notification.utils';
+import { IconDots, IconTrash } from '@tabler/icons-react';
 import useUpdateDevice from '../_hooks/useUpdateDevice';
 import useCreateDevice from '../_hooks/useCreateDevice';
 import useDeleteDevice from '../_hooks/useDeleteDevice';
@@ -161,15 +161,7 @@ export default function DeviceCard({
 
   useEffect(() => {
     if (!isCreateError) return;
-    notifications.show({
-      title: '센서 장치를 추가하는데 실패했습니다.',
-      message: createError?.message,
-      icon: <IconAlertCircleFilled size={18} />,
-      autoClose: true,
-      withCloseButton: true,
-      position: 'top-center',
-      color: 'red',
-    });
+    showErrorNotification('센서 장치를 추가하는데 실패했습니다.', createError?.message);
   }, [isCreateError, createError]);
 
   const handleChangeName = (value: string | null) => {
@@ -186,29 +178,13 @@ export default function DeviceCard({
 
   useEffect(() => {
     if (!device || !isDeleted) return;
-    notifications.show({
-      title: `센서 장치 ${device.name}(${device.mac})을 삭제했습니다.`,
-      message: '',
-      icon: <IconCheck size={18} />,
-      autoClose: true,
-      withCloseButton: true,
-      position: 'top-center',
-      color: 'green',
-    });
+    showSuccessNotification(`센서 장치 ${device.name}(${device.mac})을 삭제했습니다.`);
     refetch();
   }, [device, isDeleted]);
 
   useEffect(() => {
     if (!isDeleteError) return;
-    notifications.show({
-      title: '센서 장치를 삭제하는데 실패했습니다.',
-      message: deleteError?.message,
-      icon: <IconAlertCircleFilled size={18} />,
-      autoClose: true,
-      withCloseButton: true,
-      position: 'top-center',
-      color: 'red',
-    });
+    showErrorNotification('센서 장치를 삭제하는데 실패했습니다.', deleteError?.message);
   }, [isDeleteError, deleteError]);
 
   return (
