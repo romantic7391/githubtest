@@ -1,6 +1,7 @@
-import { Anchor, Breadcrumbs, Stack, Title } from '@mantine/core';
+import { Stack } from '@mantine/core';
 import PermissionForm from './_components/PermissionForm';
 import { Metadata } from 'next';
+import BreadcrumbNavigation from '@/app/(afterSignIn)/_components/BreadcrumbNavigation';
 
 export const metadata: Metadata = {
   title: '권한 정보',
@@ -19,15 +20,7 @@ export default async function Page({
   return (
     <Stack>
       <Stack>
-        <Breadcrumbs>
-          <Anchor size="sm" href={`/permissions`}>
-            권한 목록
-          </Anchor>
-          <Anchor size="sm" href={`/permissions/${permissionNo}`}>
-            권한 정보
-          </Anchor>
-        </Breadcrumbs>
-        <Title order={3}>권한 정보</Title>
+        <BreadcrumbNavigation title="권한 정보" backHref="/permissions" />
         <PermissionForm permissionNo={Number(permissionNo)} />
       </Stack>
     </Stack>

@@ -1,13 +1,19 @@
+import { Title } from '@mantine/core';
 import GroupList from './_components/GroupList';
 
 export default async function Page({
   params,
 }: {
   params: Promise<{
-    area: string;
     schoolNo: string;
   }>;
 }) {
   const { schoolNo } = await params;
-  return <GroupList schoolNo={Number(schoolNo)} />;
+
+  return (
+    <>
+      <Title order={3}>그룹</Title>
+      <GroupList schoolNo={Number(schoolNo)} />
+    </>
+  );
 }

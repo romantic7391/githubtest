@@ -12,8 +12,6 @@ export default function LeftNavigation() {
       <NavLink href="/" label="메인" leftSection={<IconHome />} defaultOpened />
       <NavLink href="/" label="지역" leftSection={<IconLocation />} defaultOpened={pathname.startsWith('/areas')}>
         <NavLink href="/areas/all/schools" label="학교" />
-        {/* <NavLink href="/not-ready" label="교육지원청" /> */}
-        {/* <NavLink href="/not-ready" label="교육청" /> */}
       </NavLink>
       <NavLink
         href="/permissions"

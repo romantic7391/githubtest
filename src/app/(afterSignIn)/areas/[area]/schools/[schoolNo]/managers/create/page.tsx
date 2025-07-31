@@ -1,5 +1,6 @@
-import { Stack, Title } from '@mantine/core';
+import { Stack } from '@mantine/core';
 import ManagerCreateForm from './_components/ManagerCreateForm';
+import BreadcrumbNavigation from '@/app/(afterSignIn)/_components/BreadcrumbNavigation';
 
 export default async function Page({
   params,
@@ -13,7 +14,7 @@ export default async function Page({
 
   return (
     <Stack>
-      <Title order={4}>사용자 추가</Title>
+      <BreadcrumbNavigation title="사용자 추가" backHref={`/areas/${area}/schools/${schoolNo}/managers`} />
       <ManagerCreateForm area={area} schoolNo={Number(schoolNo)} />
     </Stack>
   );

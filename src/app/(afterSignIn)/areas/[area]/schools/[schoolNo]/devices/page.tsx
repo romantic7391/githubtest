@@ -1,3 +1,4 @@
+import { Title } from '@mantine/core';
 import DeviceList from './_components/DeviceList';
 
 export default async function Page({
@@ -9,5 +10,11 @@ export default async function Page({
   }>;
 }) {
   const { area, schoolNo } = await params;
-  return <DeviceList area={area} schoolNo={Number(schoolNo)} />;
+
+  return (
+    <>
+      <Title order={3}>센서 장치 목록</Title>
+      <DeviceList area={area} schoolNo={Number(schoolNo)} />
+    </>
+  );
 }

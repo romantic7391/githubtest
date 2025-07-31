@@ -1,8 +1,9 @@
-import { Anchor, Breadcrumbs, Stack, Title } from '@mantine/core';
+import { Stack } from '@mantine/core';
 import React from 'react';
 import SchoolCreateForm from './_components/SchoolCreateForm';
 import { Metadata } from 'next';
 import SchoolSearchModal from './_components/SchoolSearchModal';
+import BreadcrumbNavigation from '../../../../_components/BreadcrumbNavigation';
 
 export const metadata: Metadata = {
   title: '학교 추가',
@@ -25,15 +26,7 @@ export default async function Page({ params }: { params: Promise<{ area: string 
   return (
     <Stack>
       <Stack>
-        <Breadcrumbs>
-          <Anchor size="sm" href={`/areas/${area}/schools`}>
-            학교 목록
-          </Anchor>
-          <Anchor size="sm" href={`/areas/${area}/schools/create`}>
-            학교 추가
-          </Anchor>
-        </Breadcrumbs>
-        <Title order={3}>학교 추가</Title>
+        <BreadcrumbNavigation title="학교 추가" backHref={`/areas/${area}/schools`} />
       </Stack>
       <SchoolCreateForm />
       <SchoolSearchModal />

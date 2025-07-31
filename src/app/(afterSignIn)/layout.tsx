@@ -3,26 +3,10 @@
 import { Anchor, AppShell, Box, Burger, Group, Image, Title } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import LeftNavigation from './_components/LeftNavigation';
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import HeaderUserAvatar from './_components/HeaderUserAvatar';
 
 export default function AfterLoginLayout({ children }: { children: React.ReactNode }) {
   const [opened, { toggle }] = useDisclosure();
-  const router = useRouter();
-
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.altKey && event.key === 't') {
-        router.push('/test');
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [router]);
 
   return (
     <AppShell

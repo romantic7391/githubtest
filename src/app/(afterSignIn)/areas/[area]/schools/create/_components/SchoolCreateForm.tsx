@@ -7,8 +7,7 @@ import { useMemo, useState, Fragment, useEffect } from 'react';
 import { ZodError } from 'zod';
 import useCreateSchool from '../_hooks/useCreateSchool';
 import { Anchor, Button, Group, NumberInput, Radio, Stack, Text, TextInput } from '@mantine/core';
-import { notifications } from '@mantine/notifications';
-import { IconAlertCircleFilled, IconCheck } from '@tabler/icons-react';
+import { showLoadingNotification, updateToError, updateToSuccess } from '@/utils/notification.utils';
 import { DEFAULT_NOTIFICATION_AUTOCLOSE_MS, DEFAULT_PAGE_SIZE } from '@/lib/default.constant';
 import { useSchoolSearchModalStore } from '@/stores/modal/school-search-modal.store';
 
@@ -81,6 +80,7 @@ export default function SchoolCreateForm() {
         if (error) return showError(error);
       },
     },
+    validateInputOnChange: true,
   });
 
   function showError(error: ZodError) {
@@ -105,14 +105,7 @@ export default function SchoolCreateForm() {
     createSchool(submitValue);
 
     // 학교 추가 알림
-    const notificationId = notifications.show({
-      loading: true,
-      title: '학교를 추가하고 있습니다. 잠시만 기다려주십시오.',
-      message: '',
-      autoClose: false,
-      withCloseButton: false,
-      position: 'top-center',
-    });
+    const notificationId = showLoadingNotification('학교를 추가하고 있습니다. 잠시만 기다려주십시오.');
     setNotificationId(notificationId);
   }
 
@@ -124,38 +117,21 @@ export default function SchoolCreateForm() {
       errorMessage = <>{showError(error)}</>;
     }
 
-    notifications.update({
-      id: notificationId,
-      loading: false,
-      title: '학교를 추가하는 중 오류가 발생했습니다.',
-      message: errorMessage,
-      icon: <IconAlertCircleFilled size={18} />,
-      autoClose: false,
-      withCloseButton: true,
-      position: 'top-center',
-      color: 'red',
-    });
+    updateToError(notificationId, '학교를 추가하는 중 오류가 발생했습니다.', errorMessage);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [notificationId, isError, error]); // 무한 렌더링 방지를 위해 form 제외.
 
   useEffect(() => {
     if (!notificationId || !isSuccess) return;
 
-    notifications.update({
-      id: notificationId,
-      loading: false,
-      title: '학교를 성공적으로 추가했습니다.',
-      message: (
-        <Group gap="xs">
-          <Text>잠시 후 학교 페이지로 이동합니다.</Text>
-          <Anchor href={schoolLink}>바로 가기</Anchor>
-        </Group>
-      ),
-      icon: <IconCheck size={18} />,
-      autoClose: DEFAULT_NOTIFICATION_AUTOCLOSE_MS,
-      position: 'top-center',
-      color: 'green',
-    });
+    updateToSuccess(
+      notificationId,
+      '학교를 성공적으로 추가했습니다.',
+      <Group gap="xs">
+        <Text>잠시 후 학교 페이지로 이동합니다.</Text>
+        <Anchor href={schoolLink}>바로 가기</Anchor>
+      </Group>,
+    );
 
     setTimeout(() => {
       router.push(schoolLink);

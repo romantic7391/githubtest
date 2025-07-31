@@ -4,10 +4,12 @@ import { Avatar, Image, Menu } from '@mantine/core';
 import { IconLogout, IconSettings } from '@tabler/icons-react';
 import { signOut, useSession } from 'next-auth/react';
 import styles from './_styles/HeaderUserAvatar.module.css';
-import { redirect } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 export default function HeaderUserAvatar() {
   const session = useSession();
+  const user = session.data?.user;
+  const router = useRouter();
 
   return (
     <Menu shadow="md" width={200}>
@@ -19,7 +21,19 @@ export default function HeaderUserAvatar() {
 
       <Menu.Dropdown>
         <Menu.Label>사용자</Menu.Label>
-        <Menu.Item leftSection={<IconSettings size={14} />}>설정</Menu.Item>
+        <Menu.Item
+          leftSection={<IconSettings size={14} />}
+          onClick={() => {
+            if (!user) {
+              router.push('/auth/signin');
+              return;
+            }
+
+            const { schoolNo, managerNo } = user;
+            router.push(`/areas/all/schools/${schoolNo}/managers/${managerNo}`);
+          }}>
+          설정
+        </Menu.Item>
         <Menu.Item
           leftSection={<IconLogout size={14} />}
           onClick={async () => {
@@ -31,7 +45,7 @@ export default function HeaderUserAvatar() {
               method: 'POST',
               body: JSON.stringify(user),
             });
-            redirect('/');
+            router.push('/');
           }}>
           로그아웃
         </Menu.Item>

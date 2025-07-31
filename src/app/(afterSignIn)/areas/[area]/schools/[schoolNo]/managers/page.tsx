@@ -18,21 +18,25 @@ export default async function Page({
   const sp = await searchParams;
   const name = sp.name as string | null;
   const signInId = sp.signInId as string | null;
+  const scode = sp.scode as string | null;
   const page = Number(sp.page) || 1;
   const pageSize = Number(sp.pageSize) || DEFAULT_PAGE_SIZE;
 
   return (
     <Stack>
-      <Group justify="space-between">
-        <Title order={4}>사용자 목록</Title>
-        <ManagerCreateButton area={area} schoolNo={Number(schoolNo)} />
-      </Group>
+      <Stack>
+        <Group align="center">
+          <Title order={3}>사용자 목록</Title>
+          <ManagerCreateButton area={area} schoolNo={Number(schoolNo)} />
+        </Group>
+      </Stack>
       <ManagerSearch />
       <ManagerList
         area={area}
         schoolNo={Number(schoolNo)}
         name={name ?? undefined}
         signInId={signInId ?? undefined}
+        scode={scode ?? undefined}
         page={page}
         pageSize={pageSize}
       />
