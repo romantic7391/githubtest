@@ -1,3 +1,6 @@
+/**
+ * 이 함수는 새로운 Next.js 서버 인스턴스가 시작될 때 한 번만 호출됩니다.
+ */
 export function register() {
   if (process.env.NEXT_RUNTIME === 'nodejs') {
     new Promise(async (resolve, reject) => {
