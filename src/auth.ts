@@ -35,7 +35,7 @@ async function authenticate(signInId: string, password: string) {
 
     return data;
   } catch (error) {
-    console.error('Authentication error:', error);
+    console.error('[auth][authenticate] error: ', error);
     if (error instanceof CredentialsSignin) {
       throw error;
     }
@@ -60,8 +60,8 @@ export const config: NextAuthConfig = {
       console.error(`[auth][error] ${error}`, error);
     },
   },
-  trustHost: process.env.AUTH_TRUST === 'true' || process.env.NODE_ENV === 'development',
-  secret: process.env.AUTH_SECRET || 'fallback-secret-key-for-development',
+  trustHost: process.env.AUTH_TRUST === 'true' ? true : false,
+  secret: process.env.AUTH_SECRET,
   pages: {
     signIn: '/auth/signin',
   },

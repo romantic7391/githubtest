@@ -25,6 +25,7 @@ export async function POST(request: NextRequest) {
       data: user,
     });
   } catch (error) {
+    console.error('[api][signin][POST] error: ', error);
     if (error instanceof CredentialsSignin) {
       return NextResponse.json(
         {

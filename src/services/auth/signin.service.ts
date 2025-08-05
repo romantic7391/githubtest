@@ -82,6 +82,7 @@ export async function authenticateUser(signInId: string, password: string) {
     await commitTransaction(conn);
     return result;
   } catch (error) {
+    console.error('[services][signin][authenticateUser] error: ', error);
     await rollbackTransaction(conn);
     if (error instanceof CredentialsSignin) {
       throw error;
