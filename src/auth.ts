@@ -6,7 +6,7 @@ import { EmptyCredentialsError, UnknownError } from './lib/credential.error';
 import { User } from './types/next-auth';
 
 async function authenticate(signInId: string, password: string) {
-  const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://nextjs.localhost';
+  const baseUrl = process.env.NEXT_PUBLIC_URL;
   const requestUrl = new URL('/api/signin', baseUrl);
 
   try {
@@ -36,6 +36,9 @@ async function authenticate(signInId: string, password: string) {
     return data;
   } catch (error) {
     console.error('Authentication error:', error);
+    if (error instanceof CredentialsSignin) {
+      throw error;
+    }
     const authError = new CredentialsSignin();
     authError.code = '인증 서버에 연결할 수 없습니다.';
     throw authError;
