@@ -37,6 +37,48 @@ const matchersForSignInAndSignUp: string[] = ['/auth/signin', '/auth/signup'];
 const matchersForAuthJsApiEndpoint: string[] = [`${authConfig.basePath ?? '/api/auth'}{/*path}`];
 
 /**
+ * CORS 헤더를 설정합니다.
+ */
+function setCorsHeaders(request: NextRequest, response: NextResponse): NextResponse {
+  const allowedOrigins: string[] = [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://192.168.11.11:3000',
+    'http://nextjs.localhost',
+    'https://nextjs.localhost',
+  ];
+  const origin = request.headers.get('origin');
+  const allowedOrigin = allowedOrigins.includes(origin || '') ? origin : allowedOrigins[0];
+
+  // credentials가 true일 때는 origin을 '*'로 설정할 수 없음
+  if (allowedOrigin) {
+    response.headers.set('Access-Control-Allow-Origin', allowedOrigin);
+  } else {
+    response.headers.set('Access-Control-Allow-Origin', '*');
+  }
+
+  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  response.headers.set(
+    'Access-Control-Allow-Headers',
+    'Content-Type, Authorization, X-Requested-With, Accept, Origin, Cache-Control, X-File-Name',
+  );
+  response.headers.set('Access-Control-Allow-Credentials', 'true');
+  response.headers.set('Access-Control-Max-Age', '86400'); // 24시간
+
+  // 개발 환경에서 추가 디버깅 정보
+  if (process.env.NODE_ENV === 'development') {
+    console.log('CORS Headers set for:', {
+      origin,
+      allowedOrigin,
+      method: request.method,
+      pathname: request.nextUrl.pathname,
+    });
+  }
+
+  return response;
+}
+
+/**
  * 제공된 ```pathname```이 ```matchers``` 배열에 있는 패턴 중 하나와 일치하는지 확인합니다.
  *
  * @param {string} pathname 평가할 경로 문자열입니다.
@@ -52,14 +94,22 @@ function isMatch(pathname: string, matchers: string[]): boolean {
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
+  // OPTIONS 요청 처리 (CORS preflight)
+  if (request.method === 'OPTIONS') {
+    const response = new NextResponse(null, { status: 200 });
+    return setCorsHeaders(request, response);
+  }
+
   // Auth.js 용 URL 처리. 그냥 통과시켜야 합니다.
   if (isMatch(pathname, matchersForAuthJsApiEndpoint)) {
-    return NextResponse.next();
+    const response = NextResponse.next();
+    return setCorsHeaders(request, response);
   }
 
   // 로그인이 필요없는 URL 처리
   if (isMatch(pathname, [...matchersForPublic])) {
-    return NextResponse.next();
+    const response = NextResponse.next();
+    return setCorsHeaders(request, response);
   }
 
   // 세션 인증 확인
@@ -89,7 +139,8 @@ export async function middleware(request: NextRequest) {
       const callbackUrlEncoded = encodeURIComponent(request.url);
       signInUrl.searchParams.set('callbackUrl', callbackUrlEncoded);
 
-      return NextResponse.redirect(signInUrl);
+      const response = NextResponse.redirect(signInUrl);
+      return setCorsHeaders(request, response);
     }
   }
 
@@ -98,9 +149,11 @@ export async function middleware(request: NextRequest) {
     // 로그인이 되어있으면 콜백 URL로 리다이렉트
     if (session) {
       const callbackUrl = decodeURIComponent(request.nextUrl.searchParams.get('callbackUrl') || '/');
-      return NextResponse.redirect(new URL(callbackUrl, request.url));
+      const response = NextResponse.redirect(new URL(callbackUrl, request.url));
+      return setCorsHeaders(request, response);
     }
   }
 
-  return NextResponse.next();
+  const response = NextResponse.next();
+  return setCorsHeaders(request, response);
 }

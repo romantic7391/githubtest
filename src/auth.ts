@@ -6,43 +6,61 @@ import { EmptyCredentialsError, UnknownError } from './lib/credential.error';
 import { User } from './types/next-auth';
 
 async function authenticate(signInId: string, password: string) {
-  const requestUrl = new URL('/api/signin', process.env.NEXT_PUBLIC_URL);
-  const response = await fetch(requestUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      signInId,
-      password,
-    }),
-  });
+  const baseUrl = process.env.NEXT_PUBLIC_URL;
+  const requestUrl = new URL('/api/signin', baseUrl);
 
-  const { success, message, data } = await response.json();
+  try {
+    const response = await fetch(requestUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        signInId,
+        password,
+      }),
+    });
 
-  if (!success) {
-    const error = new CredentialsSignin();
-    error.code = message;
-    throw error;
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const { success, message, data } = await response.json();
+
+    if (!success) {
+      const error = new CredentialsSignin();
+      error.code = message;
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('[auth][authenticate] error: ', error);
+    if (error instanceof CredentialsSignin) {
+      throw error;
+    }
+    const authError = new CredentialsSignin();
+    authError.code = '인증 서버에 연결할 수 없습니다.';
+    throw authError;
   }
-
-  return data;
 }
 
 export const config: NextAuthConfig = {
-  debug: false,
+  debug: process.env.NODE_ENV === 'development',
   logger: {
     debug: (message, metadata) => {
-      console.log(`[auth][debug] ${message} ${metadata}`);
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[auth][debug] ${message} ${metadata}`);
+      }
     },
     warn: (code) => {
       console.warn(`[auth][warn] ${code}`);
     },
     error: (error) => {
-      console.error(`[auth][error] ${error}`);
+      console.error(`[auth][error] ${error}`, error);
     },
   },
-  trustHost: process.env.AUTH_TRUST === 'true',
+  trustHost: process.env.AUTH_TRUST === 'true' ? true : false,
   secret: process.env.AUTH_SECRET,
   pages: {
     signIn: '/auth/signin',

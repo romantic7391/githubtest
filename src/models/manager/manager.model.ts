@@ -20,7 +20,7 @@ export async function findManagerBySignInId(signInId: string, conn?: PoolConnect
 
     return result as User | null;
   } catch (error) {
-    console.error(error);
+    console.error('[models][manager][findManagerBySignInId] error: ', error);
     throw error;
   }
 }
@@ -46,7 +46,7 @@ export async function findManagerWithPasswordBySignInId(signInId: string, conn?:
 
     return result as UserWithPassword | null;
   } catch (error) {
-    console.error(error);
+    console.error('[models][manager][findManagerWithPasswordBySignInId] error: ', error);
     throw error;
   }
 }
@@ -136,7 +136,7 @@ export async function findManagerByNo(managerNo: number, conn?: PoolConnection) 
     const result = await getRow<Manager>(query, params, undefined, conn);
     return result;
   } catch (error) {
-    console.error(error);
+    console.error('[models][manager][findManagerByNo] error: ', error);
     throw error;
   }
 }
@@ -156,7 +156,7 @@ export async function findPasswordByNo(managerNo: number, conn?: PoolConnection)
     );
     return result;
   } catch (error) {
-    console.error(error);
+    console.error('[models][manager][findPasswordByNo] error: ', error);
     throw error;
   }
 }
@@ -186,7 +186,7 @@ export async function insertManager(dto: InsertManagerDto, conn?: PoolConnection
     const result = await exec(query, params, conn);
     return { insertId: result.insertId };
   } catch (error) {
-    console.error(error);
+    console.error('[models][manager][addSignInAttemptCount] error: ', error);
     throw error;
   }
 }
@@ -220,6 +220,7 @@ export async function lockAccount(dto: { managerNo: number; signInAttemptCount: 
     const params = [dto.signInAttemptCount, dto.managerNo];
     return await exec(query, params, conn);
   } catch (error) {
+    console.error('[models][manager][lockAccount] error: ', error);
     throw error;
   }
 }
@@ -236,6 +237,7 @@ export async function resetSignInAttemptCount(managerNo: number, conn?: PoolConn
     const params = [managerNo];
     return await exec(query, params, conn);
   } catch (error) {
+    console.error('[models][manager][resetSignInAttemptCount] error: ', error);
     throw error;
   }
 }
@@ -257,7 +259,7 @@ export async function updateManager(dto: UpdateManagerDto, conn?: PoolConnection
     const result = await exec(query, params, conn);
     return { affectedRows: result.affectedRows };
   } catch (error) {
-    console.error(error);
+    console.error('[models][manager][updateManager] error: ', error);
     throw error;
   }
 }
@@ -279,7 +281,7 @@ export async function updatePassword(dto: UpdatePasswordDto, conn?: PoolConnecti
     const result = await exec(query, params, conn);
     return { affectedRows: result.affectedRows };
   } catch (error) {
-    console.error(error);
+    console.error('[models][manager][updatePassword] error: ', error);
     throw error;
   }
 }
@@ -294,7 +296,7 @@ export async function deleteManager(managerNo: number, conn?: PoolConnection) {
     const result = await exec(query, params, conn);
     return { affectedRows: result.affectedRows };
   } catch (error) {
-    console.error(error);
+    console.error('[models][manager][deleteManager] error: ', error);
     throw error;
   }
 }
