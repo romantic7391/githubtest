@@ -3,6 +3,7 @@
  */
 export function register() {
   console.info('[instrumentation] checking environment variables...');
+  console.info(`[instrumentation] runtime: ${process.env.NEXT_RUNTIME}`);
   if (process.env.NEXT_RUNTIME === 'nodejs') {
     console.table({
       TZ: process.env.TZ,
